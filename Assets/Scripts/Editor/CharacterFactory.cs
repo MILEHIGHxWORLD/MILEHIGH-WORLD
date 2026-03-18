@@ -44,7 +44,12 @@ namespace Milehigh.Editor
                 asset.traits = charProfile.traits;
                 asset.behaviorScript = charProfile.behaviorScript;
 
-                string assetPath = $"{folderPath}/{charProfile.name.Replace(" ", "_")}.asset";
+                // 🛡️ Sentinel: Sanitize character name to prevent Path Traversal vulnerabilities
+                // Malicious JSON could use "../" to write assets outside the intended directory
+                string sanitizedName = string.Join("_", charProfile.name.Split(Path.GetInvalidFileNameChars()));
+                string safeFileName = Path.GetFileName(sanitizedName).Replace(" ", "_");
+
+                string assetPath = $"{folderPath}/{safeFileName}.asset";
                 AssetDatabase.CreateAsset(asset, assetPath);
                 Debug.Log($"Created character asset: {assetPath}");
             }
