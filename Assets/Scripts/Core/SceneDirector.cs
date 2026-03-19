@@ -10,6 +10,24 @@ namespace Milehigh.Core
         public List<GameObject> characterPrefabs; // Assign in Inspector
         public Transform characterSpawnRoot;
 
+        // ⚡ Bolt Optimization: Cache GameObject.Find results to prevent O(N*M) lookups during scene setup
+        private Dictionary<string, GameObject> _objectCache = new Dictionary<string, GameObject>();
+
+        private GameObject FindObjectCached(string objectName)
+        {
+            if (_objectCache.TryGetValue(objectName, out GameObject obj) && obj != null)
+            {
+                return obj;
+            }
+
+            obj = GameObject.Find(objectName);
+            if (obj != null)
+            {
+                _objectCache[objectName] = obj;
+            }
+            return obj;
+        }
+
         private void Start()
         {
             if (CampaignManager.Instance.currentCampaignData != null)
@@ -37,7 +55,7 @@ namespace Milehigh.Core
 
         private void SpawnOrUpdateCharacter(CharacterProfile profile)
         {
-            GameObject characterObj = GameObject.Find(profile.name);
+            GameObject characterObj = FindObjectCached(profile.name);
             if (characterObj == null)
             {
                 // Try to find prefab
@@ -46,6 +64,7 @@ namespace Milehigh.Core
                 {
                     characterObj = Instantiate(prefab, characterSpawnRoot);
                     characterObj.name = profile.name;
+                    _objectCache[profile.name] = characterObj; // Cache the newly instantiated object
                 }
             }
 
@@ -69,7 +88,7 @@ namespace Milehigh.Core
 
         private void ApplyInteraction(ObjectInteraction interaction)
         {
-            GameObject target = GameObject.Find(interaction.objectId);
+            GameObject target = FindObjectCached(interaction.objectId);
             if (target != null)
             {
                 Debug.Log($"Applying {interaction.action} to {interaction.objectId}");
