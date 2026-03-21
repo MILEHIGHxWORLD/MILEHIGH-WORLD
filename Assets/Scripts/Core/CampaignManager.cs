@@ -52,17 +52,24 @@ namespace Milehigh.Core
 
             if (File.Exists(filePath))
             {
-                string json = File.ReadAllText(filePath);
-                currentCampaignData = JsonUtility.FromJson<HorizonGameData>(json);
-                if (currentCampaignData != null && currentCampaignData.metadata != null)
+                try
                 {
-                    currentVoidSaturationLevel = currentCampaignData.metadata.voidSaturationLevel;
-                    Debug.Log($"Campaign data loaded from {filePath}");
+                    string json = File.ReadAllText(filePath);
+                    currentCampaignData = JsonUtility.FromJson<HorizonGameData>(json);
+                    if (currentCampaignData != null && currentCampaignData.metadata != null)
+                    {
+                        currentVoidSaturationLevel = currentCampaignData.metadata.voidSaturationLevel;
+                        Debug.Log($"Campaign data loaded from {fileName}");
+                    }
+                }
+                catch (System.Exception)
+                {
+                    Debug.LogError($"Failed to load or parse campaign data from {fileName}.");
                 }
             }
             else
             {
-                Debug.LogError($"Campaign master JSON not found at {filePath}");
+                Debug.LogError($"Campaign master JSON not found: {fileName}");
 
                 // Fallback for current environment if needed
                 if (!Application.isEditor) {
