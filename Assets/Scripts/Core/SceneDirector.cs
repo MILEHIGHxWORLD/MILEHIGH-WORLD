@@ -10,6 +10,23 @@ namespace Milehigh.Core
         public List<GameObject> characterPrefabs; // Assign in Inspector
         public Transform characterSpawnRoot;
 
+        // ⚡ Bolt: Cache for GameObject lookups to prevent expensive O(N) hierarchy traversals
+        private Dictionary<string, GameObject> _objectCache = new Dictionary<string, GameObject>();
+
+        private GameObject FindCachedObject(string objectName)
+        {
+            if (_objectCache.TryGetValue(objectName, out GameObject cachedObj) && cachedObj != null)
+            {
+                return cachedObj;
+            }
+
+            GameObject foundObj = GameObject.Find(objectName);
+            if (foundObj != null)
+            {
+                _objectCache[objectName] = foundObj;
+            }
+
+            return foundObj;
         // ⚡ Bolt: Cache GameObjects to avoid expensive GameObject.Find() calls in loops
         private Dictionary<string, GameObject> _objectCache = new Dictionary<string, GameObject>();
 
@@ -125,6 +142,7 @@ namespace Milehigh.Core
 
         private void SpawnOrUpdateCharacter(CharacterProfile profile)
         {
+            GameObject characterObj = FindCachedObject(profile.name);
             GameObject characterObj = null;
             if (_objectCache.ContainsKey(profile.name))
             {
@@ -155,6 +173,7 @@ namespace Milehigh.Core
                     _objectCache[profile.name] = characterObj;
                     characterObj = Instantiate(prefab, characterSpawnRoot);
                     characterObj.name = profile.name;
+                    _objectCache[profile.name] = characterObj; // ⚡ Bolt: add instantiated object to cache
                     _objectCache[profile.name] = characterObj; // Cache the newly instantiated object
                     _objectCache[profile.name] = characterObj; // Cache new instance
 
@@ -186,6 +205,7 @@ namespace Milehigh.Core
 
         private void ApplyInteraction(ObjectInteraction interaction)
         {
+            GameObject target = FindCachedObject(interaction.objectId);
             GameObject target = null;
             if (_objectCache.ContainsKey(interaction.objectId))
             {
