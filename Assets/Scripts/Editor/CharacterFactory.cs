@@ -50,6 +50,15 @@ namespace Milehigh.Editor
                 string safeFileName = Path.GetFileName(sanitizedName).Replace(" ", "_");
 
                 string assetPath = $"{folderPath}/{safeFileName}.asset";
+                // Sanitize character name to prevent path traversal and invalid characters
+                string sanitizedName = charProfile.name;
+                foreach (char c in Path.GetInvalidFileNameChars())
+                {
+                    sanitizedName = sanitizedName.Replace(c, '_');
+                }
+                sanitizedName = sanitizedName.Replace(" ", "_");
+
+                string assetPath = $"{folderPath}/{sanitizedName}.asset";
                 AssetDatabase.CreateAsset(asset, assetPath);
                 Debug.Log($"Created character asset: {assetPath}");
             }
