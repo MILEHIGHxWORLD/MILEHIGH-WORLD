@@ -1,0 +1,228 @@
+{
+  "sceneId": "MILEHIGH_INTO_THE_VOID_CAMPAIGN",
+  "metadata": {
+    "lighting": "Dynamic",
+    "environment": "The Verse - Multiversal Nexus to The Void",
+    "systemParity": 9,
+    "voidSaturationLevel": 0.0
+  },
+  "characters": [
+    {
+      "name": "Micah the Unbreakable",
+      "role": "Tank / Earthshaper",
+      "traits": [
+        "Base_Defense_500",
+        "Low_Void_Affinity",
+        "Reactive_Hardening"
+      ],
+      "behaviorScript": "function update(incomingForce, attackType) {\n    if (attackType === 'rigid') {\n        redirectKineticForce(incomingForce);\n        FlowMeter.increment(15);\n    }\n    if (health.tookDamage) {\n        Shader.setFloat('_GauntletExtrusion', 2.5); // Reactive Hardening\n    }\n}"
+    },
+    {
+      "name": "Omega.one (The Architect)",
+      "role": "AI Companion / Astronaut Guide",
+      "traits": [
+        "High_Reasoning_Calculations",
+        "Gemini_Logic",
+        "Data_Integrity_Scanner"
+      ],
+      "behaviorScript": "function checkStability(environment) {\n    if (player.StabilityIndex < 0.3) {\n        runGeminiLogic();\n        VoidPtr.reconcileCorruptedFiles(environment.nearestShard);\n    }\n}"
+    },
+    {
+      "name": "King Cyrus the Dragon King",
+      "role": "Antagonist / Void Anchor",
+      "traits": [
+        "Brute_Force",
+        "Void_Corrupted",
+        "Shadow_Dominion_Ruler"
+      ],
+      "behaviorScript": "function executeInvasion() {\n    target = \"Onalym Nexus\";\n    unleashVoidShockwave();\n    overwriteCoreLogic();\n}"
+    },
+    {
+      "name": "Aeron the Brave",
+      "role": "Winged Sentinel / Aerial Combatant",
+      "traits": [
+        "Base_Strength_450",
+        "Ginga_Stance_Airborne",
+        "Kinetic_Peak_Native"
+      ],
+      "behaviorScript": "function aerialCombat() {\n    if (player.isFlappingArms || thrusters.active) {\n        maintainAltitude();\n        if (FlowMeter.isFull) {\n            executeVoidLightningStomp();\n        }\n    } else if (distanceTo(Lyra.SolarBarrier) > AuraRadius) {\n        applyDefenseDebuff();\n    }\n}"
+    },
+    {
+      "name": "Anastasia the Dreamer",
+      "role": "Psychic Healer / CC",
+      "traits": [
+        "Dream_Harmony",
+        "Sanity_Parity_Check",
+        "Psychic_Weaver"
+      ],
+      "behaviorScript": "function processDreamscape() {\n    if (geometry.state === 'brittle' || geometry.state === 'gray') {\n        snapMemoryFragments();\n        if (ParityCheck.fails > threshold) {\n            triggerEnvironmentCrash(previousSaveState);\n        }\n    }\n    commandReverie('toggle_form');\n}"
+    },
+    {
+      "name": "Delilah the Desolate (Corrupted Ingris)",
+      "role": "Boss / Avatar of Decay",
+      "traits": [
+        "Voidfire_Attacks",
+        "Illusion_Controller",
+        "Shadow_Clones"
+      ],
+      "behaviorScript": "function bossPhase() {\n    spawnShadowClones();\n    castSicklyGreenBlackVoidfire();\n    if (hasStatus('Blinding_Truth') && hasStatus('Dream_Harmony')) {\n        implodeVoid();\n        restoreIngris();\n    }\n}"
+    }
+  ],
+  "scenarios": [
+    {
+      "scenarioId": "ACT_I_CH1_ONALYM_NEXUS",
+      "description": "The Catalyst: King Cyrus invades the rain-slicked, neon heart of ŁĪƝĈ, destabilizing the Onalym Nexus and scattering the dimensions.",
+      "interactiveObjects": [
+        {
+          "objectId": "DurasteelFloor",
+          "action": "ShatterAndExtrude_EarthBarrier",
+          "isVector": true,
+          "x": 0.0,
+          "y": 15.5,
+          "z": 0.0
+        },
+        {
+          "objectId": "VoidShockwave",
+          "action": "ExpandRadius_ScaleFactor",
+          "isVector": false,
+          "floatValue": 500.0
+        },
+        {
+          "objectId": "NexusPlatform_01",
+          "action": "DimensionalShift_XYZ",
+          "isVector": true,
+          "x": 100.0,
+          "y": -50.0,
+          "z": 200.0
+        }
+      ],
+      "dialogue": [
+        {
+          "speaker": "King Cyrus",
+          "text": "You are a technological aberration, an error in my new order.",
+          "trigger": "Encounter_Omega_One"
+        }
+      ]
+    },
+    {
+      "scenarioId": "ACT_I_CH2_THE_CRASH_SITE",
+      "description": "The Void Beckons: Omega.one crash-lands in the 'Place Between Worlds'. The player must use VR climbing and holographic maps to find Shard Memories and repair the Stability Index.",
+      "interactiveObjects": [
+        {
+          "objectId": "Kepler186f_Wreckage",
+          "action": "EmitSmoke_Scale",
+          "isVector": false,
+          "floatValue": 3.5
+        },
+        {
+          "objectId": "CorruptedData_TearsOfFire",
+          "action": "SpawnShadowCreature_XYZ",
+          "isVector": true,
+          "x": 12.5,
+          "y": 0.0,
+          "z": -8.2
+        },
+        {
+          "objectId": "VoidDistort_Shader",
+          "action": "SetChromaticAberration_Intensity",
+          "isVector": false,
+          "floatValue": 0.85
+        }
+      ],
+      "dialogue": [
+        {
+          "speaker": "Lucent the Lightweaver",
+          "text": "The Game has begun.",
+          "trigger": "Phoenix_Flyover"
+        }
+      ]
+    },
+    {
+      "scenarioId": "ACT_II_CH3_AETHYLGARD_FJORDS",
+      "description": "Blood and Ash: Aerial VR combat against Kane, the Lava Demon. Players must utilize thermal updrafts and stay within Lyra's Solar Barrier.",
+      "interactiveObjects": [
+        {
+          "objectId": "Lyra_SolarBarrier",
+          "action": "SetAuraRadius",
+          "isVector": false,
+          "floatValue": 25.0
+        },
+        {
+          "objectId": "ThermalUpdraft_01",
+          "action": "ApplyVerticalVelocity",
+          "isVector": true,
+          "x": 0.0,
+          "y": 45.0,
+          "z": 0.0
+        }
+      ],
+      "dialogue": [
+        {
+          "speaker": "Lyra the Sun Stone",
+          "text": "Strength lies in the synergy of light, Aeron, not the rigidity of iron!",
+          "trigger": "Kane_LavaStrike_Parried"
+        }
+      ]
+    },
+    {
+      "scenarioId": "ACT_III_CH5_CONCORD_PURIFICATION",
+      "description": "The Siege of the Soul: Dynamic Multi-Character control at Concord's spires. Zaia and Anastasia collaborate to purge the Void from Delilah the Desolate.",
+      "interactiveObjects": [
+        {
+          "objectId": "Delilah_ShadowClone",
+          "action": "SpawnAt_XYZ",
+          "isVector": true,
+          "x": -20.0,
+          "y": 5.0,
+          "z": 15.0
+        },
+        {
+          "objectId": "Voidfire_Projectile",
+          "action": "Reflect_VelocityMultiplier",
+          "isVector": false,
+          "floatValue": -1.5
+        }
+      ],
+      "dialogue": [
+        {
+          "speaker": "Zaia the Just",
+          "text": "Reveal the True Code!",
+          "trigger": "Cast_Unerring_Gaze"
+        }
+      ]
+    },
+    {
+      "scenarioId": "ACT_IV_MMO_THE_GRAND_PURPOSE",
+      "description": "Confronting Era: 10-player cooperative raid at the Onalym Core to execute the TSIDKENU strike and synthesize GAMMA.PRIME.",
+      "interactiveObjects": [
+        {
+          "objectId": "Era_SwirlingVortex",
+          "action": "SetCorruptionMeter",
+          "isVector": false,
+          "floatValue": 510.0
+        },
+        {
+          "objectId": "Global_Lighting",
+          "action": "ShiftToRadiantMillenia_Intensity",
+          "isVector": false,
+          "floatValue": 5.0
+        },
+        {
+          "objectId": "TSIDKENU_LightningStrike",
+          "action": "StrikeCoordinate_XYZ",
+          "isVector": true,
+          "x": 0.0,
+          "y": 1000.0,
+          "z": 0.0
+        }
+      ],
+      "dialogue": [
+        {
+          "speaker": "Omega.one",
+          "text": "Alliance synchronization at 100%. Initiating Split Peel...",
+          "trigger": "Synchronized_Ginga_Success"
+        }
+      ]
+    }
+  ]
+}
