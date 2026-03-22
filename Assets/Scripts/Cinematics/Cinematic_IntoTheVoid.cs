@@ -109,6 +109,10 @@ public class Cinematic_IntoTheVoid : MonoBehaviour
     public GameObject DialogueBox;
     public TextMeshProUGUI SpeakerNameText;
     public TextMeshProUGUI DialogueText;
+    [Tooltip("Delay in seconds between each character being revealed.")]
+    public float typeSpeed = 0.05f;
+
+    private Coroutine typingCoroutine;
 
     private Coroutine typingCoroutine;
     // Cache for WaitForSeconds to eliminate GC allocations during coroutine execution
@@ -144,6 +148,10 @@ public class Cinematic_IntoTheVoid : MonoBehaviour
         StartCoroutine(Cinematic_IntoTheVoid_Sequence());
     }
 
+    private void ShowDialogue(string speaker, string message)
+    {
+        SpeakerNameText.text = speaker;
+        if (typingCoroutine != null) StopCoroutine(typingCoroutine);
     public void ShowDialogue(string speaker, string message)
     {
         if (typingCoroutine != null) StopCoroutine(typingCoroutine);
