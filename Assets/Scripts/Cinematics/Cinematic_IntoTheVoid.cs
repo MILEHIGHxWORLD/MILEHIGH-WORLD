@@ -117,6 +117,7 @@ public class Cinematic_IntoTheVoid : MonoBehaviour
     private void ShowDialogue(string speaker, string message)
     {
         if (typingCoroutine != null)
+            StopCoroutine(typingCoroutine);
         {
             StopCoroutine(typingCoroutine);
         }
@@ -133,6 +134,10 @@ public class Cinematic_IntoTheVoid : MonoBehaviour
         for (int i = 0; i <= message.Length; i++)
         {
             DialogueText.maxVisibleCharacters = i;
+            yield return new WaitForSeconds(0.03f);
+        }
+
+        typingCoroutine = null;
             yield return new WaitForSeconds(CHAR_REVEAL_DELAY);
         }
 
