@@ -59,6 +59,12 @@ namespace Milehigh.Core
                     if (currentCampaignData != null && currentCampaignData.metadata != null)
                     {
                         currentVoidSaturationLevel = currentCampaignData.metadata.voidSaturationLevel;
+                        Debug.Log($"Campaign data loaded from {fileName}"); // Security: Don't log full paths
+                    }
+                }
+                catch (System.Exception ex)
+                {
+                    Debug.LogError($"Error loading campaign data: {ex.Message}"); // Security: Mask stack trace
                         // SECURITY: Log only the file name, not the absolute path, to prevent information disclosure
                         Debug.Log($"Campaign data loaded from {fileName}");
                     }
@@ -72,6 +78,7 @@ namespace Milehigh.Core
             }
             else
             {
+                Debug.LogError($"Campaign master JSON not found at {fileName}"); // Security: Don't log full paths
                 // SECURITY: Log only the file name, not the absolute path, to prevent information disclosure
                 Debug.LogError($"Campaign master JSON not found: {fileName}");
 
