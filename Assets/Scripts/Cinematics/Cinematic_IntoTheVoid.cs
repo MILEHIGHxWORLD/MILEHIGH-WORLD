@@ -35,6 +35,7 @@
 // 7. Ensure your project has TextMeshPro imported (Window -> TextMeshPro -> Import TMP Essential Resources).
 
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
 
@@ -43,6 +44,19 @@ using TMPro;
 /// </summary>
 public class Cinematic_IntoTheVoid : MonoBehaviour
 {
+    // Performance optimization: Cache WaitForSeconds to prevent GC allocations
+    private static readonly Dictionary<float, WaitForSeconds> _waitForSecondsCache = new Dictionary<float, WaitForSeconds>();
+
+    private static WaitForSeconds GetWait(float time)
+    {
+        if (!_waitForSecondsCache.TryGetValue(time, out var wait))
+        {
+            wait = new WaitForSeconds(time);
+            _waitForSecondsCache[time] = wait;
+        }
+        return wait;
+    }
+
     // ====================================================================
     //
     // CHARACTER ASSET & VOICE REFERENCE BLOCK
@@ -96,9 +110,65 @@ public class Cinematic_IntoTheVoid : MonoBehaviour
     public TextMeshProUGUI SpeakerNameText;
     public TextMeshProUGUI DialogueText;
 
+    private Coroutine typingCoroutine;
+    private const float CHAR_REVEAL_DELAY = 0.03f;
+    [Header("UX Settings")]
+    public float typeSpeed = 0.02f;
+
     void Start()
     {
+        // 🛡️ Sentinel: Security enhancement - Defensive programming
+        // Ensure UI components are assigned to prevent NullReferenceException and potential stack trace leakage.
+        if (DialogueBox == null || SpeakerNameText == null || DialogueText == null)
+        {
+            Debug.LogError("Missing UI components required for cinematic. Aborting to prevent errors.");
+            return;
+        }
+
         StartCoroutine(Cinematic_IntoTheVoid_Sequence());
+    }
+
+    private void ShowDialogue(string speaker, string message)
+    {
+        if (typingCoroutine != null)
+        {
+            StopCoroutine(typingCoroutine);
+        }
+            StopCoroutine(typingCoroutine);
+        {
+            StopCoroutine(typingCoroutine);
+        }
+
+        SpeakerNameText.text = speaker;
+        typingCoroutine = StartCoroutine(TypeDialogue(message));
+    }
+
+    private IEnumerator TypeDialogue(string message)
+    {
+        DialogueText.text = message;
+        DialogueText.maxVisibleCharacters = 0;
+
+        for (int i = 0; i <= message.Length; i++)
+        {
+            DialogueText.maxVisibleCharacters = i;
+            yield return new WaitForSeconds(0.03f); // Speed of typing
+        }
+            yield return new WaitForSeconds(0.03f);
+        }
+
+        typingCoroutine = null;
+            yield return new WaitForSeconds(CHAR_REVEAL_DELAY);
+        }
+
+        typingCoroutine = null;
+    private IEnumerator TypeDialogue(string text)
+    {
+        DialogueText.text = "";
+        foreach (char c in text.ToCharArray())
+        {
+            DialogueText.text += c;
+            yield return new WaitForSeconds(typeSpeed);
+        }
     }
 
     private IEnumerator Cinematic_IntoTheVoid_Sequence()
@@ -108,86 +178,102 @@ public class Cinematic_IntoTheVoid : MonoBehaviour
         // Example: CinematicCamera.SetActive(true);
 
         DialogueBox.SetActive(true);
-        yield return new WaitForSeconds(1.0f);
+        yield return GetWait(1.0f);
 
         // --- Dialogue Line 1: Delilah ---
         // [ANIMATION: Delilah_Character.GetComponent<Animator>().SetTrigger("Channeling_Idle");]
         // [CAMERA: Slow dolly zoom towards Delilah, who is calmly observing the Memory Stream.]
+        yield return GetWait(1.5f);
         yield return new WaitForSeconds(1.5f);
+        ShowDialogue("Delilah", "Can you feel them, Sky.ix? Fading. Every laugh, every touch, every promise... becoming meaningless noise. It's a mercy, really. Attachments are just flaws in the code.");
         SpeakerNameText.text = "Delilah";
-        DialogueText.text = "Can you feel them, Sky.ix? Fading. Every laugh, every touch, every promise... becoming meaningless noise. It's a mercy, really. Attachments are just flaws in the code.";
+        yield return StartCoroutine(TypeDialogue("Can you feel them, Sky.ix? Fading. Every laugh, every touch, every promise... becoming meaningless noise. It's a mercy, really. Attachments are just flaws in the code."));
         // Delilah_VoiceSource.Play();
-        yield return new WaitForSeconds(7.5f);
+        yield return GetWait(7.5f);
 
         // --- Dialogue Line 2: Sky.ix ---
         // [ANIMATION: Skyix_Character.GetComponent<Animator>().SetTrigger("React_Furious");]
         // [CAMERA: Quick cut to a tight close-up on Sky.ix's enraged face.]
+        yield return GetWait(0.5f);
         yield return new WaitForSeconds(0.5f);
+        ShowDialogue("Sky.ix", "Those 'flaws' are everything that matters! You're not cleansing anything, you're just a vandal smashing something beautiful you could never understand.");
         SpeakerNameText.text = "Sky.ix";
-        DialogueText.text = "Those 'flaws' are everything that matters! You're not cleansing anything, you're just a vandal smashing something beautiful you could never understand.";
+        yield return StartCoroutine(TypeDialogue("Those 'flaws' are everything that matters! You're not cleansing anything, you're just a vandal smashing something beautiful you could never understand."));
         // Skyix_VoiceSource.Play();
-        yield return new WaitForSeconds(6.0f);
+        yield return GetWait(6.0f);
 
         // --- Dialogue Line 3: Kai ---
         // [ANIMATION: Kai_Character.GetComponent<Animator>().SetTrigger("Point_Urgent");]
         // [CAMERA: Pan to Kai, who points towards a glowing conduit pulsating with corrupted energy.]
+        yield return GetWait(0.7f);
         yield return new WaitForSeconds(0.7f);
+        ShowDialogue("Kai", "Sky, don't let her distract you. Her channeling is creating a feedback loop. It's unstable, but it's shielded. I need you to hit the third resonant frequency conduit... now!");
         SpeakerNameText.text = "Kai";
-        DialogueText.text = "Sky, don't let her distract you. Her channeling is creating a feedback loop. It's unstable, but it's shielded. I need you to hit the third resonant frequency conduit... now!";
+        yield return StartCoroutine(TypeDialogue("Sky, don't let her distract you. Her channeling is creating a feedback loop. It's unstable, but it's shielded. I need you to hit the third resonant frequency conduit... now!"));
         // Kai_VoiceSource.Play();
-        yield return new WaitForSeconds(8.0f);
+        yield return GetWait(8.0f);
 
         // --- Dialogue Line 4: Delilah ---
         // [ANIMATION: Delilah_Character.GetComponent<Animator>().SetTrigger("Smirk_Dismissive");]
         // [CAMERA: Cut back to a low-angle shot of Delilah, making her appear dominant and unconcerned.]
+        yield return GetWait(1.2f);
         yield return new WaitForSeconds(1.2f);
+        ShowDialogue("Delilah", "The little drifter thinks it's found a backdoor. How quaint. This power is not built on code you can hack. It is built on pure, unadulterated nothingness.");
         SpeakerNameText.text = "Delilah";
-        DialogueText.text = "The little drifter thinks it's found a backdoor. How quaint. This power is not built on code you can hack. It is built on pure, unadulterated nothingness.";
+        yield return StartCoroutine(TypeDialogue("The little drifter thinks it's found a backdoor. How quaint. This power is not built on code you can hack. It is built on pure, unadulterated nothingness."));
         // Delilah_VoiceSource.Play();
-        yield return new WaitForSeconds(7.0f);
+        yield return GetWait(7.0f);
 
         // --- Dialogue Line 5: Sky.ix ---
         // [ANIMATION: Skyix_Character.GetComponent<Animator>().SetTrigger("Action_Ready");]
         // [CAMERA: Follow Sky.ix as she turns her body towards the conduit, cybernetics glowing.]
+        yield return GetWait(0.8f);
         yield return new WaitForSeconds(0.8f);
+        ShowDialogue("Sky.ix", "Then I'll just have to break it with something real. Kai, I see it! I'm going in!");
         SpeakerNameText.text = "Sky.ix";
-        DialogueText.text = "Then I'll just have to break it with something real. Kai, I see it! I'm going in!";
+        yield return StartCoroutine(TypeDialogue("Then I'll just have to break it with something real. Kai, I see it! I'm going in!"));
         // Skyix_VoiceSource.Play();
-        yield return new WaitForSeconds(4.5f);
+        yield return GetWait(4.5f);
 
         // --- ACTION: Sky.ix dashes towards the conduit ---
         // [ANIMATION: Skyix_Character.GetComponent<Animator>().SetTrigger("Dash_Forward");]
         // [VFX: Play glitchy dash particle trail from Sky.ix's starting position to the conduit.]
         // [CAMERA: Fast dolly track, following Sky.ix's movement. Add motion blur.]
         // [SFX: Play sound of cybernetic dash and energy whoosh.]
-        yield return new WaitForSeconds(2.0f);
+        yield return GetWait(2.0f);
 
         // --- Dialogue Line 6: Kai ---
         // [ANIMATION: Kai_Character.GetComponent<Animator>().SetTrigger("React_Alarmed");]
         // [CAMERA: Cut to Kai, a holographic display in front of them shows a massive energy spike warning.]
+        yield return GetWait(0.5f);
         yield return new WaitForSeconds(0.5f);
+        ShowDialogue("Kai", "The energy spike is massive! Your shields won't hold for long!");
         SpeakerNameText.text = "Kai";
-        DialogueText.text = "The energy spike is massive! Your shields won't hold for long!";
+        yield return StartCoroutine(TypeDialogue("The energy spike is massive! Your shields won't hold for long!"));
         // Kai_VoiceSource.Play();
-        yield return new WaitForSeconds(3.5f);
+        yield return GetWait(3.5f);
 
         // --- Dialogue Line 7: Delilah ---
         // [ANIMATION: Delilah_Character.GetComponent<Animator>().SetTrigger("Taunt_OpenArms");]
         // [CAMERA: Wide shot showing Sky.ix nearing the objective, with Delilah in the background, arms spread in a mocking invitation.]
+        yield return GetWait(1.5f);
         yield return new WaitForSeconds(1.5f);
+        ShowDialogue("Delilah", "Come then. Offer your existence to the glitch. Join your precious family in the great deletion.");
         SpeakerNameText.text = "Delilah";
-        DialogueText.text = "Come then. Offer your existence to the glitch. Join your precious family in the great deletion.";
+        yield return StartCoroutine(TypeDialogue("Come then. Offer your existence to the glitch. Join your precious family in the great deletion."));
         // Delilah_VoiceSource.Play();
-        yield return new WaitForSeconds(5.5f);
+        yield return GetWait(5.5f);
 
         // --- Dialogue Line 8: Sky.ix ---
         // [ANIMATION: Skyix_Character.GetComponent<Animator>().SetTrigger("Determined_Resolve");]
         // [CAMERA: Extreme close-up on Sky.ix's eyes, reflecting the corrupted energy, but her expression is resolute.]
+        yield return GetWait(1.0f);
         yield return new WaitForSeconds(1.0f);
+        ShowDialogue("Sky.ix", "My family is my anchor. They are the reason I can walk through this hell and not become a monster like you. And I am bringing them home.");
         SpeakerNameText.text = "Sky.ix";
-        DialogueText.text = "My family is my anchor. They are the reason I can walk through this hell and not become a monster like you. And I am bringing them home.";
+        yield return StartCoroutine(TypeDialogue("My family is my anchor. They are the reason I can walk through this hell and not become a monster like you. And I am bringing them home."));
         // Skyix_VoiceSource.Play();
-        yield return new WaitForSeconds(7.5f);
+        yield return GetWait(7.5f);
 
         DialogueBox.SetActive(false);
 

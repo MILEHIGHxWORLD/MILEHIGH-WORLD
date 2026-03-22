@@ -52,17 +52,35 @@ namespace Milehigh.Core
 
             if (File.Exists(filePath))
             {
-                string json = File.ReadAllText(filePath);
-                currentCampaignData = JsonUtility.FromJson<HorizonGameData>(json);
-                if (currentCampaignData != null && currentCampaignData.metadata != null)
+                try
                 {
-                    currentVoidSaturationLevel = currentCampaignData.metadata.voidSaturationLevel;
-                    Debug.Log($"Campaign data loaded from {filePath}");
+                    string json = File.ReadAllText(filePath);
+                    currentCampaignData = JsonUtility.FromJson<HorizonGameData>(json);
+                    if (currentCampaignData != null && currentCampaignData.metadata != null)
+                    {
+                        currentVoidSaturationLevel = currentCampaignData.metadata.voidSaturationLevel;
+                        Debug.Log($"Campaign data loaded from {fileName}"); // Security: Don't log full paths
+                    }
+                }
+                catch (System.Exception ex)
+                {
+                    Debug.LogError($"Error loading campaign data: {ex.Message}"); // Security: Mask stack trace
+                        // SECURITY: Log only the file name, not the absolute path, to prevent information disclosure
+                        Debug.Log($"Campaign data loaded from {fileName}");
+                    }
+                }
+                catch (System.Exception)
+                {
+                    Debug.LogError($"Failed to load or parse campaign data from {fileName}.");
+                    // SECURITY: Catch exceptions during file read/JSON parse to fail securely and avoid leaking stack traces
+                    Debug.LogError($"Failed to load campaign data from {fileName}. Error parsing file.");
                 }
             }
             else
             {
-                Debug.LogError($"Campaign master JSON not found at {filePath}");
+                Debug.LogError($"Campaign master JSON not found at {fileName}"); // Security: Don't log full paths
+                // SECURITY: Log only the file name, not the absolute path, to prevent information disclosure
+                Debug.LogError($"Campaign master JSON not found: {fileName}");
 
                 // Fallback for current environment if needed
                 if (!Application.isEditor) {
