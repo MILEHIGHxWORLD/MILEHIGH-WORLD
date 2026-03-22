@@ -92,7 +92,8 @@ Shader "Milehigh/HyperPBRCharacter_4D"
         float3 Iridescence(float thickness, float NdotV)
         {
             float3 interference = sin(2.0 * 3.14159 * thickness * float3(1.0, 0.8, 0.6) / NdotV) * 0.5 + 0.5;
-            return pow(interference, 2.0);
+            // ⚡ Bolt: Replace pow(interference, 2.0) with interference * interference for performance
+            return interference * interference;
         }
 
         void surf (Input IN, inout SurfaceOutputStandardSpecular o)
@@ -120,7 +121,8 @@ Shader "Milehigh/HyperPBRCharacter_4D"
                 half noise = tex3D(_NoiseTex, noiseCoord.xyz + noiseCoord.w).r;
 
                 // Add emissive glow based on noise
-                o.Emission = _EffectColor.rgb * pow(noise, 3.0) * effectMask * 2.0;
+                // ⚡ Bolt: Replace pow(noise, 3.0) with noise * noise * noise for performance
+                o.Emission = _EffectColor.rgb * (noise * noise * noise) * effectMask * 2.0;
             }
 
             // --- Iridescence ---
@@ -140,7 +142,11 @@ Shader "Milehigh/HyperPBRCharacter_4D"
                 // A more advanced SSS would use a proper lighting model.
                 // This is a stylistic approximation.
                 half NdotL = dot(o.Normal, _WorldSpaceLightPos0.xyz);
-                half sss = pow(saturate(dot(IN.viewDir, -_WorldSpaceLightPos0.xyz)), 8.0) * _SSSScale;
+                // ⚡ Bolt: Replace pow(..., 8.0) with nested squares for performance
+                half sss_base = saturate(dot(IN.viewDir, -_WorldSpaceLightPos0.xyz));
+                half sss_sq = sss_base * sss_base;
+                half sss_4 = sss_sq * sss_sq;
+                half sss = sss_4 * sss_4 * _SSSScale;
                 o.Albedo += _SSSColor.rgb * sss * NdotL * sssMask;
             }
 
