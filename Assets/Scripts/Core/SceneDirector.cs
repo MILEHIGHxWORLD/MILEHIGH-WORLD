@@ -10,6 +10,7 @@ namespace Milehigh.Core
         public List<GameObject> characterPrefabs; // Assign in Inspector
         public Transform characterSpawnRoot;
 
+        private Dictionary<string, GameObject> _cachedObjects = new Dictionary<string, GameObject>();
         // ⚡ Bolt: Cache for GameObject lookups to prevent expensive O(N) hierarchy traversals
         private Dictionary<string, GameObject> _objectCache = new Dictionary<string, GameObject>();
 
@@ -112,6 +113,11 @@ namespace Milehigh.Core
             }
         }
 
+        private GameObject FindCachedObject(string objectName)
+        {
+            // Unity's GameObject.Find is an expensive O(N) operation over all active objects.
+            // Caching it avoids redundant full scene graph traversals.
+            if (_cachedObjects.TryGetValue(objectName, out GameObject obj) && obj != null)
         private GameObject FindCachedObject(string objName)
         {
             if (_objectCache.TryGetValue(objName, out GameObject obj) && obj != null)
@@ -125,6 +131,12 @@ namespace Milehigh.Core
                 return obj;
             }
 
+            obj = GameObject.Find(objectName);
+            if (obj != null)
+            {
+                _cachedObjects[objectName] = obj;
+            }
+            return obj;
             obj = GameObject.Find(objName);
             if (obj != null)
             {
@@ -173,6 +185,7 @@ namespace Milehigh.Core
                     _objectCache[profile.name] = characterObj;
                     characterObj = Instantiate(prefab, characterSpawnRoot);
                     characterObj.name = profile.name;
+                    _cachedObjects[profile.name] = characterObj;
                     _objectCache[profile.name] = characterObj; // ⚡ Bolt: add instantiated object to cache
                     _objectCache[profile.name] = characterObj; // Cache the newly instantiated object
                     _objectCache[profile.name] = characterObj; // Cache new instance
