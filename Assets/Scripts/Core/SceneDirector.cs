@@ -11,6 +11,9 @@ namespace Milehigh.Core
 
         public Transform characterSpawnRoot;
 
+        // ⚡ Bolt: Cache game objects to prevent expensive O(N) GameObject.Find() calls on every interaction.
+        private Dictionary<string, GameObject> _objectCache = new Dictionary<string, GameObject>();
+
         // BOLT: Cache for GameObject.Find to prevent redundant scene graph searches
         private Dictionary<string, GameObject> _objectCache = new Dictionary<string, GameObject>();
 
@@ -135,6 +138,14 @@ namespace Milehigh.Core
             }
         }
 
+        // ⚡ Bolt: Helper to retrieve or cache GameObjects, avoiding repeated hierarchy traversal.
+        private GameObject FindCachedObject(string objectName)
+        {
+            if (_objectCache.TryGetValue(objectName, out GameObject cachedObj) && cachedObj != null)
+            {
+                return cachedObj;
+            }
+
         private GameObject FindCachedObject(string objectName)
         {
             // Unity's GameObject.Find is an expensive O(N) operation over all active objects.
@@ -177,6 +188,7 @@ namespace Milehigh.Core
 
         private void SpawnOrUpdateCharacter(CharacterProfile profile)
         {
+            GameObject characterObj = FindCachedObject(profile.name);
             GameObject characterObj = null;
 
             // Check cache first (O(1) lookup instead of O(n) scene traversal)
@@ -220,6 +232,9 @@ namespace Milehigh.Core
                     _objectCache[profile.name] = characterObj;
                     characterObj = Instantiate(prefab, characterSpawnRoot);
                     characterObj.name = profile.name;
+
+                    // ⚡ Bolt: Cache newly spawned characters immediately
+                    _objectCache[profile.name] = characterObj;
                     _objectCache[profile.name] = characterObj; // BOLT: Cache newly spawned object
                     _objectCache[profile.name] = characterObj; // Cache the new object
                     _cachedObjects[profile.name] = characterObj;
@@ -255,6 +270,7 @@ namespace Milehigh.Core
 
         private void ApplyInteraction(ObjectInteraction interaction)
         {
+            GameObject target = FindCachedObject(interaction.objectId);
             GameObject target = null;
 
             // Check cache first
