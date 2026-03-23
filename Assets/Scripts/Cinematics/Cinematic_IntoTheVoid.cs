@@ -37,6 +37,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Serialization;
 using TMPro;
 
 /// <summary>
@@ -98,10 +99,17 @@ public class Cinematic_IntoTheVoid : MonoBehaviour
     public TextMeshProUGUI DialogueText;
 
     [Header("UX Settings")]
-    [Tooltip("Delay in seconds between each character being revealed.")]
-    public float typingSpeed = 0.03f;
+    [FormerlySerializedAs("typingSpeed")]
+    [Tooltip("Base delay in seconds between each character being revealed.")]
+    public float baseTypingSpeed = 0.03f;
+    [Tooltip("Delay multiplier for Kai (Slow/Paused tempo).")]
+    public float kaiSpeedMultiplier = 3.0f;
+    [Tooltip("Delay multiplier for Skyix (Steady/Precise tempo).")]
+    public float skyixSpeedMultiplier = 1.2f;
 
     private Coroutine typingCoroutine;
+    private float currentTypingSpeed;
+    private bool skipRequested;
 
     // Cache for WaitForSeconds to eliminate GC allocations during coroutine execution
     private static readonly Dictionary<float, WaitForSeconds> _waitForSecondsCache = new Dictionary<float, WaitForSeconds>();
@@ -129,6 +137,11 @@ public class Cinematic_IntoTheVoid : MonoBehaviour
         StartCoroutine(Cinematic_IntoTheVoid_Sequence());
     }
 
+    void Update()
+    {
+        if (Input.anyKeyDown) skipRequested = true;
+    }
+
     /// <summary>
     /// Updates the speaker name and begins the typewriter effect for the dialogue message.
     /// </summary>
@@ -136,6 +149,14 @@ public class Cinematic_IntoTheVoid : MonoBehaviour
     {
         if (typingCoroutine != null) StopCoroutine(typingCoroutine);
         SpeakerNameText.text = speaker;
+
+        // Apply speaker-specific speed multipliers based on voice profiles
+        float multiplier = 1.0f;
+        if (speaker == "Kai") multiplier = kaiSpeedMultiplier;
+        else if (speaker == "Sky.ix") multiplier = skyixSpeedMultiplier;
+
+        currentTypingSpeed = baseTypingSpeed * multiplier;
+        skipRequested = false;
         typingCoroutine = StartCoroutine(TypeDialogue(message));
     }
 
@@ -143,11 +164,33 @@ public class Cinematic_IntoTheVoid : MonoBehaviour
     {
         DialogueText.text = message;
         DialogueText.maxVisibleCharacters = 0;
+
         for (int i = 0; i <= message.Length; i++)
         {
+            // UX Enhancement: Robust skip logic using persistent flag
+            if (skipRequested)
+            {
+                DialogueText.maxVisibleCharacters = message.Length;
+                break;
+            }
+
             DialogueText.maxVisibleCharacters = i;
-            yield return new WaitForSeconds(typingSpeed);
+
+            if (i < message.Length)
+            {
+                char c = message[i];
+                float delay = currentTypingSpeed;
+
+                // UX Enhancement: Rhythmic punctuation pauses for natural reading
+                // Note: Delay occurs *after* character reveal for natural rhythm.
+                if (c == '.' || c == '!' || c == '?') delay += 0.4f;
+                else if (c == ',' || c == ';' || c == ':') delay += 0.2f;
+
+                yield return GetWait(delay);
+            }
         }
+
+        skipRequested = false;
         typingCoroutine = null;
     }
 
