@@ -56,36 +56,30 @@ namespace Milehigh.Core
                 {
                     string json = File.ReadAllText(filePath);
                     currentCampaignData = JsonUtility.FromJson<HorizonGameData>(json);
-                    if (currentCampaignData != null && currentCampaignData.metadata != null)
+
+                    // SECURITY: Perform validation after deserialization to ensure data integrity
+                    if (currentCampaignData != null && currentCampaignData.IsValid())
                     {
                         currentVoidSaturationLevel = currentCampaignData.metadata.voidSaturationLevel;
-                        Debug.Log($"Campaign data loaded from {fileName}"); // Security: Don't log full paths
+                        // SECURITY: Log only the file name, not the absolute path, to prevent information disclosure
+                        Debug.Log($"Campaign data loaded and validated from {fileName}");
+                    }
+                    else
+                    {
+                        Debug.LogError($"Failed to parse or validate campaign data from {fileName}.");
+                        currentCampaignData = null; // Ensure we don't use invalid data
                     }
                 }
                 catch (System.Exception ex)
                 {
-                    Debug.LogError($"Error loading campaign data: {ex.Message}"); // Security: Mask stack trace
-                        // SECURITY: Log only the file name, not the absolute path, to prevent information disclosure
-                        Debug.Log($"Campaign data loaded from {fileName}");
-                    }
-                }
-                catch (System.Exception)
-                {
-                    Debug.LogError($"Failed to load or parse campaign data from {fileName}.");
-                    // SECURITY: Catch exceptions during file read/JSON parse to fail securely and avoid leaking stack traces
-                    Debug.LogError($"Failed to load campaign data from {fileName}. Error parsing file.");
+                    // SECURITY: Mask runtime exception stack traces and avoid leaking absolute paths in logs
+                    Debug.LogError($"Error loading campaign data from {fileName}: {ex.Message}");
                 }
             }
             else
             {
-                Debug.LogError($"Campaign master JSON not found at {fileName}"); // Security: Don't log full paths
                 // SECURITY: Log only the file name, not the absolute path, to prevent information disclosure
                 Debug.LogError($"Campaign master JSON not found: {fileName}");
-
-                // Fallback for current environment if needed
-                if (!Application.isEditor) {
-                     // In some platforms we might need to use UnityWebRequest for StreamingAssets
-                }
             }
         }
 
