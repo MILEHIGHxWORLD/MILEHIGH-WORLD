@@ -18,6 +18,20 @@ namespace Milehigh.Data
         public string environment;
         public int systemParity;
         public float voidSaturationLevel;
+
+        /// <summary>
+        /// Validates metadata integrity and safety bounds.
+        /// </summary>
+        public bool IsValid()
+        {
+            // SECURITY: Ensure voidSaturationLevel is within the expected [0.0, 1.0] range
+            if (voidSaturationLevel < 0f || voidSaturationLevel > 1f)
+            {
+                Debug.LogError($"Invalid voidSaturationLevel detected: {voidSaturationLevel}. Must be between 0.0 and 1.0.");
+                return false;
+            }
+            return true;
+        }
     }
 
     [Serializable]
@@ -71,5 +85,17 @@ namespace Milehigh.Data
         public Metadata metadata;
         public List<CharacterProfile> characters;
         public List<SceneScenario> scenarios;
+
+        /// <summary>
+        /// Validates the deserialized game data for security and integrity.
+        /// </summary>
+        public bool IsValid()
+        {
+            if (metadata == null) return false;
+            if (!metadata.IsValid()) return false;
+            if (characters == null || scenarios == null) return false;
+
+            return true;
+        }
     }
 }

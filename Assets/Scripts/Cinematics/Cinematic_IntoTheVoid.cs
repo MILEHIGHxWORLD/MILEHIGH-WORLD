@@ -151,6 +151,8 @@ public class Cinematic_IntoTheVoid : MonoBehaviour
         {
             DialogueText.maxVisibleCharacters = i;
             yield return wait;
+            // ⚡ Bolt: Use cached WaitForSeconds to avoid GC allocations per character
+            yield return GetWait(typingSpeed);
         }
         typingCoroutine = null;
     }
