@@ -100,8 +100,13 @@ public class Cinematic_IntoTheVoid : MonoBehaviour
     [Header("UX Settings")]
     [Tooltip("Delay in seconds between each character being revealed.")]
     public float typingSpeed = 0.03f;
+    [Tooltip("Pause duration after punctuation (., !, ?).")]
+    public float punctuationPause = 0.4f;
+    [Tooltip("Pause duration after a comma.")]
+    public float commaPause = 0.2f;
 
     private Coroutine typingCoroutine;
+    private bool skipRequested;
 
     // Cache for WaitForSeconds to eliminate GC allocations during coroutine execution
     private static readonly Dictionary<float, WaitForSeconds> _waitForSecondsCache = new Dictionary<float, WaitForSeconds>();
@@ -114,6 +119,15 @@ public class Cinematic_IntoTheVoid : MonoBehaviour
             _waitForSecondsCache[time] = wait;
         }
         return wait;
+    }
+
+    void Update()
+    {
+        // Poll for skip input to ensure responsiveness
+        if (Input.GetKeyDown(KeyCode.Space) || Input.GetMouseButtonDown(0))
+        {
+            skipRequested = true;
+        }
     }
 
     void Start()
@@ -136,6 +150,7 @@ public class Cinematic_IntoTheVoid : MonoBehaviour
     {
         if (typingCoroutine != null) StopCoroutine(typingCoroutine);
         SpeakerNameText.text = speaker;
+        skipRequested = false; // Reset skip flag for new line
         typingCoroutine = StartCoroutine(TypeDialogue(message));
     }
 
@@ -143,11 +158,31 @@ public class Cinematic_IntoTheVoid : MonoBehaviour
     {
         DialogueText.text = message;
         DialogueText.maxVisibleCharacters = 0;
-        for (int i = 0; i <= message.Length; i++)
+
+        // Ensure TMP is updated to get accurate character info
+        DialogueText.ForceMeshUpdate();
+        TMP_TextInfo textInfo = DialogueText.textInfo;
+        int totalCharacters = textInfo.characterCount;
+
+        for (int i = 0; i < totalCharacters; i++)
         {
-            DialogueText.maxVisibleCharacters = i;
-            yield return new WaitForSeconds(typingSpeed);
+            if (skipRequested) break;
+
+            DialogueText.maxVisibleCharacters = i + 1;
+
+            char c = textInfo.characterInfo[i].character;
+            float delay = typingSpeed;
+
+            if (c == '.' || c == '!' || c == '?')
+                delay = punctuationPause;
+            else if (c == ',')
+                delay = commaPause;
+
+            yield return GetWait(delay);
         }
+
+        DialogueText.maxVisibleCharacters = totalCharacters;
+        skipRequested = false;
         typingCoroutine = null;
     }
 
