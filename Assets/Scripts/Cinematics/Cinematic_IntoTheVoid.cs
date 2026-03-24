@@ -135,7 +135,26 @@ public class Cinematic_IntoTheVoid : MonoBehaviour
     public void ShowDialogue(string speaker, string message)
     {
         if (typingCoroutine != null) StopCoroutine(typingCoroutine);
+
         SpeakerNameText.text = speaker;
+
+        // Apply character-specific colors for better speaker identification
+        switch (speaker)
+        {
+            case "Sky.ix":
+                SpeakerNameText.color = Color.cyan;
+                break;
+            case "Kai":
+                SpeakerNameText.color = new Color(1f, 0.84f, 0f); // Gold
+                break;
+            case "Delilah":
+                SpeakerNameText.color = new Color(0.6f, 0.1f, 0.9f); // Void Purple
+                break;
+            default:
+                SpeakerNameText.color = Color.white;
+                break;
+        }
+
         typingCoroutine = StartCoroutine(TypeDialogue(message));
     }
 
@@ -143,10 +162,34 @@ public class Cinematic_IntoTheVoid : MonoBehaviour
     {
         DialogueText.text = message;
         DialogueText.maxVisibleCharacters = 0;
+
         for (int i = 0; i <= message.Length; i++)
         {
             DialogueText.maxVisibleCharacters = i;
-            yield return new WaitForSeconds(typingSpeed);
+
+            // Rhythmic typewriter effect: longer pauses for punctuation to mimic natural speech
+            if (i > 0)
+            {
+                char c = message[i - 1];
+                if (c == '.' || c == '?' || c == '!')
+                {
+                    yield return GetWait(typingSpeed * 15f);
+                }
+                else if (c == ',' || c == ';' || c == ':')
+                {
+                    yield return GetWait(typingSpeed * 8f);
+                }
+                else
+                {
+                    yield return GetWait(typingSpeed);
+                }
+            }
+            else
+            {
+                yield return GetWait(typingSpeed);
+            }
+            // ⚡ Bolt: Use cached WaitForSeconds to avoid GC allocations per character
+            yield return GetWait(typingSpeed);
         }
         typingCoroutine = null;
     }
