@@ -183,6 +183,8 @@ public class Cinematic_IntoTheVoid : MonoBehaviour
         DialogueText.text = message;
         DialogueText.maxVisibleCharacters = 0;
 
+        // ⚡ Bolt: Cache WaitForSeconds outside the loop to prevent GC allocation per character.
+        WaitForSeconds wait = new WaitForSeconds(typingSpeed);
         // ⚡ Bolt: Cache WaitForSeconds outside the loop to prevent GC allocations per character typed.
         var wait = new WaitForSeconds(typingSpeed);
         for (int i = 0; i <= message.Length; i++)
@@ -214,6 +216,7 @@ public class Cinematic_IntoTheVoid : MonoBehaviour
         for (int i = 0; i <= message.Length; i++)
         {
             DialogueText.maxVisibleCharacters = i;
+            yield return wait;
 
             // Rhythmic typewriter effect: longer pauses for punctuation to mimic natural speech
             if (i > 0)

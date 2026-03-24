@@ -45,3 +45,6 @@
 ## 2024-05-24 - Expensive GameObject.Find in Loops
 **Learning:** `GameObject.Find` is an O(N) operation traversing the scene hierarchy and is especially expensive when called repeatedly inside loops or initialization sequences like `SceneDirector.SetupScene`.
 **Action:** Always use dictionary caches (e.g., `Dictionary<string, GameObject>`) to store and retrieve object references to avoid repeated scene traversals.
+## 2024-05-25 - Unity WaitForSeconds GC Allocation in Loops
+**Learning:** Using `new WaitForSeconds()` inside a tight loop (like a typewriter text effect in a Coroutine) creates a new object allocation on the heap for every single character typed. This causes unnecessary garbage collection (GC) pressure and can lead to frame stuttering during text-heavy cinematic sequences.
+**Action:** Always cache `WaitForSeconds` objects outside the loop or use a shared caching mechanism when the yield duration is constant, returning the cached instance inside the loop.
