@@ -31,3 +31,7 @@
 ## 2026-03-23 - [Rhythmic Typewriter and Speaker Color-Coding]
 **Learning:** Dialogue-heavy cinematics benefit from punctuation-aware typewriter timing (longer pauses after '.', '?', ',', etc.), which mimics the natural cadence of speech and improves readability. Additionally, color-coding speaker names provides an immediate visual cue for character identification, reducing cognitive load during fast-paced sequences.
 **Action:** Implement rhythmic pauses in typewriter effects and use consistent character-specific color palettes for speaker UI to enhance immersion and accessibility.
+
+## 2026-03-24 - [Dialogue Completion Indicator]
+**Learning:** In narrative-driven interfaces, users often struggle to know exactly when a typewriter effect has finished, especially if the last sentence is short. Adding a visual "Continue" indicator (like a '▽' symbol) at the end of the reveal provides a clear affordance that the dialogue sequence is ready for the next interaction.
+**Action:** Always append a completion symbol or change the UI state once a text reveal animation concludes to improve usability and reduce user uncertainty.
