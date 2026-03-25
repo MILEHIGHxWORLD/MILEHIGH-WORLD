@@ -184,11 +184,10 @@ public class Cinematic_IntoTheVoid : MonoBehaviour
         DialogueText.maxVisibleCharacters = 0;
 
         // ⚡ Bolt: Cache WaitForSeconds outside the loop to prevent per-iteration GC allocations
-        var wait = new WaitForSeconds(typingSpeed);
-        // ⚡ Bolt: Cache WaitForSeconds outside the loop to prevent GC allocation per character.
-        WaitForSeconds wait = new WaitForSeconds(typingSpeed);
-        // ⚡ Bolt: Cache WaitForSeconds outside the loop to prevent GC allocations per character typed.
-        var wait = new WaitForSeconds(typingSpeed);
+        var waitNormal = new WaitForSeconds(currentTypingSpeed);
+        var waitShortPause = new WaitForSeconds(currentTypingSpeed + 0.2f);
+        var waitLongPause = new WaitForSeconds(currentTypingSpeed + 0.4f);
+
         for (int i = 0; i <= message.Length; i++)
         {
             // UX Enhancement: Robust skip logic using persistent flag
@@ -203,46 +202,27 @@ public class Cinematic_IntoTheVoid : MonoBehaviour
             if (i < message.Length)
             {
                 char c = message[i];
-                float delay = currentTypingSpeed;
 
                 // UX Enhancement: Rhythmic punctuation pauses for natural reading
                 // Note: Delay occurs *after* character reveal for natural rhythm.
-                if (c == '.' || c == '!' || c == '?') delay += 0.4f;
-                else if (c == ',' || c == ';' || c == ':') delay += 0.2f;
-
-                yield return GetWait(delay);
-            }
-            // ⚡ Bolt: Use cached WaitForSeconds to avoid GC allocations in the typewriter loop
-            yield return wait;
-
-        for (int i = 0; i <= message.Length; i++)
-        {
-            DialogueText.maxVisibleCharacters = i;
-            yield return wait;
-
-            // Rhythmic typewriter effect: longer pauses for punctuation to mimic natural speech
-            if (i > 0)
-            {
-                char c = message[i - 1];
-                if (c == '.' || c == '?' || c == '!')
+                if (c == '.' || c == '!' || c == '?')
                 {
-                    yield return GetWait(typingSpeed * 15f);
+                    yield return waitLongPause;
                 }
                 else if (c == ',' || c == ';' || c == ':')
                 {
-                    yield return GetWait(typingSpeed * 8f);
+                    yield return waitShortPause;
                 }
                 else
                 {
-                    yield return GetWait(typingSpeed);
+                    yield return waitNormal;
                 }
             }
             else
             {
-                yield return GetWait(typingSpeed);
+                // Delay after the last character is fully revealed before proceeding
+                yield return waitNormal;
             }
-            // ⚡ Bolt: Use cached WaitForSeconds to avoid GC allocations per character
-            yield return GetWait(typingSpeed);
         }
 
         skipRequested = false;
