@@ -48,3 +48,7 @@
 ## 2024-05-25 - Unity WaitForSeconds GC Allocation in Loops
 **Learning:** Using `new WaitForSeconds()` inside a tight loop (like a typewriter text effect in a Coroutine) creates a new object allocation on the heap for every single character typed. This causes unnecessary garbage collection (GC) pressure and can lead to frame stuttering during text-heavy cinematic sequences.
 **Action:** Always cache `WaitForSeconds` objects outside the loop or use a shared caching mechanism when the yield duration is constant, returning the cached instance inside the loop.
+
+## 2026-03-25 - [Redundant Member Clutter Performance Impact]
+**Learning:** The 'SceneDirector.cs' file was severely cluttered with over a dozen redundant dictionary declarations and duplicate helper methods for GameObject caching. This not only increases memory overhead but also creates a "state fragmentation" risk where different parts of the initialization loop use different caches, leading to redundant O(N) traversals despite the caching intent.
+**Action:** Always audit caching implementations for redundancy. Consolidate into a single, unified caching pattern to ensure O(1) lookups are consistent across the entire system.
