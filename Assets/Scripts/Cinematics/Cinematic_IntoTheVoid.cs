@@ -182,27 +182,26 @@ public class Cinematic_IntoTheVoid : MonoBehaviour
     {
         DialogueText.text = message;
         DialogueText.maxVisibleCharacters = 0;
+        DialogueText.ForceMeshUpdate();
 
-        // ⚡ Bolt: Cache WaitForSeconds outside the loop to prevent per-iteration GC allocations
-        var wait = new WaitForSeconds(typingSpeed);
-        // ⚡ Bolt: Cache WaitForSeconds outside the loop to prevent GC allocation per character.
-        WaitForSeconds wait = new WaitForSeconds(typingSpeed);
-        // ⚡ Bolt: Cache WaitForSeconds outside the loop to prevent GC allocations per character typed.
-        var wait = new WaitForSeconds(typingSpeed);
-        for (int i = 0; i <= message.Length; i++)
+        int totalVisibleCharacters = DialogueText.textInfo.characterCount;
+
+        for (int i = 0; i <= totalVisibleCharacters; i++)
         {
             // UX Enhancement: Robust skip logic using persistent flag
             if (skipRequested)
             {
-                DialogueText.maxVisibleCharacters = message.Length;
+                DialogueText.maxVisibleCharacters = totalVisibleCharacters;
                 break;
             }
 
             DialogueText.maxVisibleCharacters = i;
 
-            if (i < message.Length)
+            if (i < totalVisibleCharacters)
             {
-                char c = message[i];
+                // To handle potential rich text tags and punctuation correctly,
+                // we retrieve the actual character info from TMPro's textInfo.
+                char c = DialogueText.textInfo.characterInfo[i].character;
                 float delay = currentTypingSpeed;
 
                 // UX Enhancement: Rhythmic punctuation pauses for natural reading
@@ -212,37 +211,6 @@ public class Cinematic_IntoTheVoid : MonoBehaviour
 
                 yield return GetWait(delay);
             }
-            // ⚡ Bolt: Use cached WaitForSeconds to avoid GC allocations in the typewriter loop
-            yield return wait;
-
-        for (int i = 0; i <= message.Length; i++)
-        {
-            DialogueText.maxVisibleCharacters = i;
-            yield return wait;
-
-            // Rhythmic typewriter effect: longer pauses for punctuation to mimic natural speech
-            if (i > 0)
-            {
-                char c = message[i - 1];
-                if (c == '.' || c == '?' || c == '!')
-                {
-                    yield return GetWait(typingSpeed * 15f);
-                }
-                else if (c == ',' || c == ';' || c == ':')
-                {
-                    yield return GetWait(typingSpeed * 8f);
-                }
-                else
-                {
-                    yield return GetWait(typingSpeed);
-                }
-            }
-            else
-            {
-                yield return GetWait(typingSpeed);
-            }
-            // ⚡ Bolt: Use cached WaitForSeconds to avoid GC allocations per character
-            yield return GetWait(typingSpeed);
         }
 
         skipRequested = false;
