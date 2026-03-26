@@ -52,3 +52,7 @@
 ## 2026-03-25 - [Redundant Member Clutter Performance Impact]
 **Learning:** The 'SceneDirector.cs' file was severely cluttered with over a dozen redundant dictionary declarations and duplicate helper methods for GameObject caching. This not only increases memory overhead but also creates a "state fragmentation" risk where different parts of the initialization loop use different caches, leading to redundant O(N) traversals despite the caching intent.
 **Action:** Always audit caching implementations for redundancy. Consolidate into a single, unified caching pattern to ensure O(1) lookups are consistent across the entire system.
+
+## 2024-05-25 - Unity WaitForSeconds GC Allocation in Loops vs Static Cache
+**Learning:** Using `new WaitForSeconds()` inside a tight loop (like a typewriter text effect in a Coroutine) creates a new object allocation on the heap for every single character typed, causing unnecessary GC pressure. However, using a `Dictionary<float, WaitForSeconds>` for caching is an anti-pattern due to floating-point precision inaccuracies, and it risks a static memory leak if typing speeds vary continuously.
+**Action:** Remove static `Dictionary<float, WaitForSeconds>` caches. Always safely cache `WaitForSeconds` objects in a local variable *outside* the loop (e.g., `var wait = new WaitForSeconds(time);`) instead of relying on unverified custom static dictionary caching methods.
