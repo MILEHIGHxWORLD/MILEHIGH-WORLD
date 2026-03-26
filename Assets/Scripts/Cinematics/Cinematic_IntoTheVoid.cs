@@ -187,7 +187,6 @@ public class Cinematic_IntoTheVoid : MonoBehaviour
         // BOLT: Typewriter effect optimized for performance.
         // We use the existing GetWait(float) method to ensure zero-allocation yields,
         // avoiding GC pressure during dialogue sequences.
-        for (int i = 0; i <= message.Length; i++)
         int totalVisibleCharacters = DialogueText.textInfo.characterCount;
 
         for (int i = 0; i <= totalVisibleCharacters; i++)
@@ -203,18 +202,24 @@ public class Cinematic_IntoTheVoid : MonoBehaviour
 
             if (i < totalVisibleCharacters)
             {
-                // To handle potential rich text tags and punctuation correctly,
-                // we retrieve the actual character info from TMPro's textInfo.
-                char c = DialogueText.textInfo.characterInfo[i].character;
                 float delay = currentTypingSpeed;
 
-                // UX Enhancement: Rhythmic punctuation pauses for natural reading
-                if (c == '.' || c == '!' || c == '?') delay += 0.4f;
-                else if (c == ',' || c == ';' || c == ':') delay += 0.2f;
+                // UX Enhancement: Rhythmic punctuation pauses for natural reading.
+                // We check the previous character (i-1) to pause *after* it has been revealed.
+                if (i > 0)
+                {
+                    char c = DialogueText.textInfo.characterInfo[i - 1].character;
+                    if (c == '.' || c == '!' || c == '?') delay = currentTypingSpeed * 15f;
+                    else if (c == ',' || c == ';' || c == ':') delay = currentTypingSpeed * 8f;
+                }
 
                 yield return GetWait(delay);
             }
         }
+
+        // UX Enhancement: Visual progression cue indicating text reveal is complete.
+        DialogueText.text = message + " ▽";
+        DialogueText.maxVisibleCharacters = totalVisibleCharacters + 2;
 
         skipRequested = false;
         typingCoroutine = null;
