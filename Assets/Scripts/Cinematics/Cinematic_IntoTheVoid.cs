@@ -209,8 +209,34 @@ public class Cinematic_IntoTheVoid : MonoBehaviour
                 if (i > 0)
                 {
                     char c = DialogueText.textInfo.characterInfo[i - 1].character;
-                    if (c == '.' || c == '!' || c == '?') delay = currentTypingSpeed * 15f;
-                    else if (c == ',' || c == ';' || c == ':') delay = currentTypingSpeed * 8f;
+
+                    if (c == '.' || c == '!' || c == '?')
+                    {
+                        delay = currentTypingSpeed * 15f;
+
+                        // UX Improvement: Handle ellipsis (...) and mid-word periods (e.g., Sky.ix)
+                        bool isEllipsis = false;
+                        if (i > 1 && DialogueText.textInfo.characterInfo[i - 2].character == '.') isEllipsis = true;
+                        if (i < totalVisibleCharacters && DialogueText.textInfo.characterInfo[i].character == '.') isEllipsis = true;
+
+                        if (isEllipsis)
+                        {
+                            delay = currentTypingSpeed * 5f;
+                        }
+                        else if (c == '.' && i < totalVisibleCharacters)
+                        {
+                            // If it's a period but not followed by a space, it's likely an abbreviation or part of a name.
+                            char nextChar = DialogueText.textInfo.characterInfo[i].character;
+                            if (nextChar != ' ' && nextChar != '\n' && nextChar != '\r' && nextChar != '\t')
+                            {
+                                delay = currentTypingSpeed;
+                            }
+                        }
+                    }
+                    else if (c == ',' || c == ';' || c == ':')
+                    {
+                        delay = currentTypingSpeed * 8f;
+                    }
                 }
 
                 yield return GetWait(delay);
