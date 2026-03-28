@@ -209,7 +209,21 @@ public class Cinematic_IntoTheVoid : MonoBehaviour
                 if (i > 0)
                 {
                     char c = DialogueText.textInfo.characterInfo[i - 1].character;
-                    if (c == '.' || c == '!' || c == '?') delay = currentTypingSpeed * 15f;
+                    if (c == '.' || c == '!' || c == '?')
+                    {
+                        delay = currentTypingSpeed * 15f;
+
+                        // Rhythmic refinement: Handle ellipsis and mid-word periods
+                        if (c == '.')
+                        {
+                            bool isEllipsis = (i > 1 && DialogueText.textInfo.characterInfo[i - 2].character == '.') ||
+                                             (i < totalVisibleCharacters && DialogueText.textInfo.characterInfo[i].character == '.');
+
+                            if (isEllipsis) delay = currentTypingSpeed * 5f;
+                            else if (i < totalVisibleCharacters && DialogueText.textInfo.characterInfo[i].character != ' ')
+                                delay = currentTypingSpeed; // Skip pause for mid-word periods (e.g. Sky.ix)
+                        }
+                    }
                     else if (c == ',' || c == ';' || c == ':') delay = currentTypingSpeed * 8f;
                 }
 
