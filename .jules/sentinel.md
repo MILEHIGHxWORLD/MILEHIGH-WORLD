@@ -27,3 +27,7 @@
 **Vulnerability:** Untrusted external data (JSON) was being used directly by the application without validation, potentially leading to out-of-bounds values or corrupted application state.
 **Learning:** Even if data is "local", it should be treated as untrusted input once it crosses the boundary from a file into the application.
 **Prevention:** Implement an `IsValid()` pattern in data models to perform security and integrity checks immediately after deserialization. This ensures the application fails fast and securely when encountering malicious or corrupted data.
+## 2024-05-24 - File I/O and JSON Deserialization Exception Handling
+**Vulnerability:** Unhandled exceptions during file reading (`File.ReadAllText`) and JSON deserialization (`JsonUtility.FromJson`) in Editor scripts like `CharacterFactory.cs` could crash the editor or leak internal system paths and stack traces to logs.
+**Learning:** Unity's built-in file reading and JSON utilities do not fail gracefully on malformed data or missing files. Uncaught exceptions propagate up, potentially exposing sensitive environment structure in the stack trace, which is a risk if logs are aggregated or shared.
+**Prevention:** Always wrap file I/O operations and JSON deserialization in `try-catch` blocks. Fail securely by logging generic, safe error messages that do not expose absolute file paths or internal call stacks.
