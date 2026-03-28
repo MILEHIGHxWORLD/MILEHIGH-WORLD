@@ -10,8 +10,10 @@ namespace Milehigh.Core
         public List<GameObject> characterPrefabs; // Assign in Inspector
         public Transform characterSpawnRoot;
 
-        // BOLT: Consolidated cache for GameObjects to prevent expensive O(N) GameObject.Find calls
+        // BOLT: Consolidated caches for GameObjects, prefabs, and controllers to prevent expensive searches and GetComponent calls
         private Dictionary<string, GameObject> _objectCache = new Dictionary<string, GameObject>();
+        private Dictionary<string, GameObject> _prefabCache = new Dictionary<string, GameObject>();
+        private Dictionary<int, CharacterControllerBase> _controllerCache = new Dictionary<int, CharacterControllerBase>();
 
         private GameObject GetCachedObject(string objectName)
         {
@@ -45,8 +47,9 @@ namespace Milehigh.Core
         {
             Debug.Log($"Setting up scenario: {scenario.scenarioId}");
 
-            // Clear cache at start of setup to avoid stale references across scenes
+            // Clear object and controller caches at start of setup to avoid stale references across scenes
             _objectCache.Clear();
+            _controllerCache.Clear();
 
             // Instantiate characters if not already in scene
             foreach (var charProfile in CampaignManager.Instance.currentCampaignData.characters)
@@ -67,8 +70,13 @@ namespace Milehigh.Core
 
             if (characterObj == null)
             {
-                // Try to find prefab if not in scene
-                GameObject prefab = characterPrefabs?.Find(p => p.name.Contains(profile.name));
+                // BOLT: O(1) prefab lookup instead of O(P) list search.
+                if (!_prefabCache.TryGetValue(profile.name, out GameObject prefab))
+                {
+                    prefab = characterPrefabs?.Find(p => p.name.Contains(profile.name));
+                    if (prefab != null) _prefabCache[profile.name] = prefab;
+                }
+
                 if (prefab != null)
                 {
                     characterObj = Instantiate(prefab, characterSpawnRoot);
@@ -81,8 +89,14 @@ namespace Milehigh.Core
 
             if (characterObj != null)
             {
-                // Assign data to controllers
-                var controller = characterObj.GetComponent<CharacterControllerBase>();
+                // BOLT: O(1) controller lookup instead of O(N) GetComponent search.
+                int id = characterObj.GetInstanceID();
+                if (!_controllerCache.TryGetValue(id, out CharacterControllerBase controller))
+                {
+                    controller = characterObj.GetComponent<CharacterControllerBase>();
+                    if (controller != null) _controllerCache[id] = controller;
+                }
+
                 if (controller != null)
                 {
                     // Create a dummy CharacterData for runtime initialization
