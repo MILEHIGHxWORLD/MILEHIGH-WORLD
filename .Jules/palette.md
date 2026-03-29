@@ -36,6 +36,10 @@
 **Learning:** In Unity TextMeshPro, iterating over string length for typewriter reveals can break when rich text tags (like <color> or <b>) are present, as the tag characters are revealed one-by-one. Using 'TMP_Text.ForceMeshUpdate()' followed by iterating over 'TMP_Text.textInfo.characterCount' ensures only rendered characters are revealed, maintaining both accessibility (screen readers) and visual polish.
 **Action:** Always use 'textInfo.characterCount' and 'ForceMeshUpdate' for typewriter effects to ensure compatibility with rich text and accurate character-based pacing.
 
+## 2026-03-25 - [Unified Cinematic Skip and Text Legibility Outlines]
+**Learning:** For a smooth cinematic experience in Unity, implementing a unified skip mechanic (using a 'WaitForSecondsOrSkip' coroutine) allows players to bypass both the typewriter reveal and the subsequent pause with a single input, making the dialogue feel more responsive. Additionally, applying black outlines to TextMeshProUGUI components (outlineWidth = 0.2f, outlineColor = Color.black) is a critical accessibility pattern to ensure text legibility against dynamic or visually complex backgrounds.
+**Action:** Use 'WaitForSecondsOrSkip' for dialogue pauses and always apply text outlines to mission-critical UI elements for better accessibility and polish.
+
 ## 2026-03-24 - [Scaling Rhythmic Typewriter and Progression Cues]
 **Learning:** Rhythmic punctuation pauses in typewriter effects are most effective when they occur *after* the punctuation character is revealed (checking index `i-1`) and use multipliers (e.g., 15x, 8x) instead of fixed delays. This ensures the cadence remains natural even when base typing speeds vary by character. Additionally, appending a visual completion cue (like '▽') provides essential feedback that a dialogue block is finished and the user can proceed.
 **Action:** Always use speed multipliers for rhythmic pauses and include a visual completion character after typewriter reveals to improve readability and interaction clarity.
