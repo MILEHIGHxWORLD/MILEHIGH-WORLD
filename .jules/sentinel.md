@@ -27,3 +27,8 @@
 **Vulnerability:** Untrusted external data (JSON) was being used directly by the application without validation, potentially leading to out-of-bounds values or corrupted application state.
 **Learning:** Even if data is "local", it should be treated as untrusted input once it crosses the boundary from a file into the application.
 **Prevention:** Implement an `IsValid()` pattern in data models to perform security and integrity checks immediately after deserialization. This ensures the application fails fast and securely when encountering malicious or corrupted data.
+
+## 2025-01-30 - Resource Exhaustion Protection in Data Validation
+**Vulnerability:** The application was vulnerable to Denial of Service (DoS) attacks via maliciously crafted JSON campaign data containing extremely large strings or collections, which could exhaust system memory.
+**Learning:** Simple integrity checks (like range checks) are insufficient for security; resource limits must be explicitly enforced during deserialization validation.
+**Prevention:** Implement "Sentinel Standard" resource limits in all `IsValid()` methods, enforcing maximum lengths for strings and maximum counts for collections based on realistic application needs.
