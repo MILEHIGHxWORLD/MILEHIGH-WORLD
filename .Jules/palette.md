@@ -39,3 +39,7 @@
 ## 2026-03-24 - [Scaling Rhythmic Typewriter and Progression Cues]
 **Learning:** Rhythmic punctuation pauses in typewriter effects are most effective when they occur *after* the punctuation character is revealed (checking index `i-1`) and use multipliers (e.g., 15x, 8x) instead of fixed delays. This ensures the cadence remains natural even when base typing speeds vary by character. Additionally, appending a visual completion cue (like '▽') provides essential feedback that a dialogue block is finished and the user can proceed.
 **Action:** Always use speed multipliers for rhythmic pauses and include a visual completion character after typewriter reveals to improve readability and interaction clarity.
+
+## 2026-03-25 - [Unified Skipping for Cinematic Dialogue]
+**Learning:** In narrative-heavy games, players often read faster than the typewriter effect reveals text. Implementing a "Unified Skip" pattern—where a single input skips both the typewriter reveal AND the subsequent fixed cinematic pause—significantly improves game flow and player agency. This is achieved by maintaining the `skipRequested` flag across both coroutines and only resetting it after the final delay in a dialogue block.
+**Action:** Use a persistent `skipRequested` flag and skippable delay coroutines (`WaitForSecondsOrSkip`) to allow players to bypass both text reveal and cinematic pauses with a single interaction.
