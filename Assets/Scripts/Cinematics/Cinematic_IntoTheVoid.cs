@@ -109,6 +109,7 @@ public class Cinematic_IntoTheVoid : MonoBehaviour
 
     private Coroutine typingCoroutine;
     private float currentTypingSpeed;
+    private string currentSpeakerColorTag;
     private bool skipRequested;
 
     // Cache for WaitForSeconds to eliminate GC allocations during coroutine execution
@@ -158,20 +159,25 @@ public class Cinematic_IntoTheVoid : MonoBehaviour
 
         currentTypingSpeed = baseTypingSpeed * multiplier;
         skipRequested = false;
+
         // Apply character-specific colors for better speaker identification
         switch (speaker)
         {
             case "Sky.ix":
                 SpeakerNameText.color = Color.cyan;
+                currentSpeakerColorTag = "#00FFFF";
                 break;
             case "Kai":
                 SpeakerNameText.color = new Color(1f, 0.84f, 0f); // Gold
+                currentSpeakerColorTag = "#FFD700";
                 break;
             case "Delilah":
                 SpeakerNameText.color = new Color(0.6f, 0.1f, 0.9f); // Void Purple
+                currentSpeakerColorTag = "#991AE6";
                 break;
             default:
                 SpeakerNameText.color = Color.white;
+                currentSpeakerColorTag = "#FFFFFF";
                 break;
         }
 
@@ -209,8 +215,27 @@ public class Cinematic_IntoTheVoid : MonoBehaviour
                 if (i > 0)
                 {
                     char c = DialogueText.textInfo.characterInfo[i - 1].character;
-                    if (c == '.' || c == '!' || c == '?') delay = currentTypingSpeed * 15f;
-                    else if (c == ',' || c == ';' || c == ':') delay = currentTypingSpeed * 8f;
+                    if (c == '.' || c == '!' || c == '?')
+                    {
+                        // Check for ellipsis (consecutive dots)
+                        bool isEllipsis = (i > 1 && DialogueText.textInfo.characterInfo[i - 2].character == '.') ||
+                                         (i < totalVisibleCharacters && DialogueText.textInfo.characterInfo[i].character == '.');
+
+                        if (isEllipsis)
+                        {
+                            delay = currentTypingSpeed * 5f;
+                        }
+                        else
+                        {
+                            // Check for mid-word periods (e.g., Sky.ix)
+                            bool isMidWord = i < totalVisibleCharacters && DialogueText.textInfo.characterInfo[i].character != ' ';
+                            delay = isMidWord ? currentTypingSpeed : currentTypingSpeed * 15f;
+                        }
+                    }
+                    else if (c == ',' || c == ';' || c == ':')
+                    {
+                        delay = currentTypingSpeed * 8f;
+                    }
                 }
 
                 yield return GetWait(delay);
@@ -218,7 +243,8 @@ public class Cinematic_IntoTheVoid : MonoBehaviour
         }
 
         // UX Enhancement: Visual progression cue indicating text reveal is complete.
-        DialogueText.text = message + " ▽";
+        // We color-code the completion symbol to match the speaker's theme.
+        DialogueText.text = message + " <color=" + currentSpeakerColorTag + ">▽</color>";
         DialogueText.maxVisibleCharacters = totalVisibleCharacters + 2;
 
         skipRequested = false;
