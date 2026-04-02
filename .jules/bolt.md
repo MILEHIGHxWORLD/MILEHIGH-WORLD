@@ -52,3 +52,7 @@
 ## 2026-03-25 - [Redundant Member Clutter Performance Impact]
 **Learning:** The 'SceneDirector.cs' file was severely cluttered with over a dozen redundant dictionary declarations and duplicate helper methods for GameObject caching. This not only increases memory overhead but also creates a "state fragmentation" risk where different parts of the initialization loop use different caches, leading to redundant O(N) traversals despite the caching intent.
 **Action:** Always audit caching implementations for redundancy. Consolidate into a single, unified caching pattern to ensure O(1) lookups are consistent across the entire system.
+
+## 2024-05-25 - Unity List.Find string matching performance
+**Learning:** Using `List.Find(p => p.name.Contains(searchString))` inside a loop (like spawning characters in `SceneDirector.cs`) causes significant string allocation and O(N) traversal overhead. However, naively pre-caching this using `prefab.name` as the key fails because `searchString` is often only a partial match of `prefab.name`.
+**Action:** When replacing `.Find(p => p.name.Contains(...))` with a dictionary cache, use lazy evaluation. Perform the O(N) `.Find()` on a cache miss, and map the *found* prefab to the `searchString` key (e.g., `_prefabCache[searchString] = prefab`) so subsequent identical lookups are O(1).
