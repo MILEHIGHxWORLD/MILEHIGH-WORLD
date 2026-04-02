@@ -9,9 +9,25 @@ namespace Milehigh.Core
     {
         public List<GameObject> characterPrefabs; // Assign in Inspector
         public Transform characterSpawnRoot;
-
         // BOLT: Consolidated cache for GameObjects to prevent expensive O(N) GameObject.Find calls
         private Dictionary<string, GameObject> _objectCache = new Dictionary<string, GameObject>();
+
+        // BOLT: Cache for character prefabs to prevent O(N) list searches during scene setup
+        private Dictionary<string, GameObject> _prefabCache = new Dictionary<string, GameObject>();
+        private GameObject GetCachedPrefab(string profileName)
+        {
+            if (string.IsNullOrEmpty(profileName) || characterPrefabs == null) return null;
+
+            if (_prefabCache.TryGetValue(profileName, out GameObject prefab))
+            {
+                return prefab; // Will return null if it was cached as null
+            }
+
+            // Fallback to O(N) search and cache the result (even if null)
+            prefab = characterPrefabs.Find(p => p.name.Contains(profileName));
+            _prefabCache[profileName] = prefab;
+            return prefab;
+        }
 
         private GameObject GetCachedObject(string objectName)
         {
@@ -68,7 +84,7 @@ namespace Milehigh.Core
             if (characterObj == null)
             {
                 // Try to find prefab if not in scene
-                GameObject prefab = characterPrefabs?.Find(p => p.name.Contains(profile.name));
+                GameObject prefab = GetCachedPrefab(profile.name);
                 if (prefab != null)
                 {
                     characterObj = Instantiate(prefab, characterSpawnRoot);
