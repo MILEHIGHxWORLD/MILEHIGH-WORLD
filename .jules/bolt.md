@@ -52,3 +52,6 @@
 ## 2026-03-25 - [Redundant Member Clutter Performance Impact]
 **Learning:** The 'SceneDirector.cs' file was severely cluttered with over a dozen redundant dictionary declarations and duplicate helper methods for GameObject caching. This not only increases memory overhead but also creates a "state fragmentation" risk where different parts of the initialization loop use different caches, leading to redundant O(N) traversals despite the caching intent.
 **Action:** Always audit caching implementations for redundancy. Consolidate into a single, unified caching pattern to ensure O(1) lookups are consistent across the entire system.
+## 2024-05-24 - Unity WaitForSeconds float key dictionary cache anti-pattern
+**Learning:** Using `Dictionary<float, WaitForSeconds>` to cache yield instructions causes cache misses due to floating-point precision inaccuracies, leading to the creation of unintended garbage allocations (GC pressure) during high frequency calls like cinematic loops or typewriters.
+**Action:** Use an integer key (e.g. milliseconds `Dictionary<int, WaitForSeconds>`) to correctly cache float-based values safely, avoiding precision-related cache misses while still eliminating GC allocation within loops.
