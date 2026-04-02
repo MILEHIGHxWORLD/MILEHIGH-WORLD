@@ -12,6 +12,8 @@ namespace Milehigh.Core
 
         // BOLT: Consolidated cache for GameObjects to prevent expensive O(N) GameObject.Find calls
         private Dictionary<string, GameObject> _objectCache = new Dictionary<string, GameObject>();
+        // BOLT: Cache for prefab lookups to prevent O(N) list searches on instantiation
+        private Dictionary<string, GameObject> _prefabCache = new Dictionary<string, GameObject>();
 
         private GameObject GetCachedObject(string objectName)
         {
@@ -68,7 +70,22 @@ namespace Milehigh.Core
             if (characterObj == null)
             {
                 // Try to find prefab if not in scene
-                GameObject prefab = characterPrefabs?.Find(p => p.name.Contains(profile.name));
+                GameObject prefab = null;
+
+                // BOLT: Use O(1) dictionary lookup for prefabs instead of O(N) list search
+                if (_prefabCache.TryGetValue(profile.name, out GameObject cachedPrefab) && cachedPrefab != null)
+                {
+                    prefab = cachedPrefab;
+                }
+                else if (characterPrefabs != null)
+                {
+                    prefab = characterPrefabs.Find(p => p != null && p.name.Contains(profile.name));
+                    if (prefab != null)
+                    {
+                        _prefabCache[profile.name] = prefab;
+                    }
+                }
+
                 if (prefab != null)
                 {
                     characterObj = Instantiate(prefab, characterSpawnRoot);
