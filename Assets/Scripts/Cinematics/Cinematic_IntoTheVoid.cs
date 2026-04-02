@@ -112,14 +112,16 @@ public class Cinematic_IntoTheVoid : MonoBehaviour
     private bool skipRequested;
 
     // Cache for WaitForSeconds to eliminate GC allocations during coroutine execution
-    private static readonly Dictionary<float, WaitForSeconds> _waitForSecondsCache = new Dictionary<float, WaitForSeconds>();
+    // ⚡ Bolt: Use int (milliseconds) instead of float as key to avoid precision issues that cause cache misses
+    private static readonly Dictionary<int, WaitForSeconds> _waitForSecondsCache = new Dictionary<int, WaitForSeconds>();
 
     private WaitForSeconds GetWait(float time)
     {
-        if (!_waitForSecondsCache.TryGetValue(time, out var wait))
+        int msTime = Mathf.RoundToInt(time * 1000f);
+        if (!_waitForSecondsCache.TryGetValue(msTime, out var wait))
         {
             wait = new WaitForSeconds(time);
-            _waitForSecondsCache[time] = wait;
+            _waitForSecondsCache[msTime] = wait;
         }
         return wait;
     }
