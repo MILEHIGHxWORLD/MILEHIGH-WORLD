@@ -109,6 +109,7 @@ public class Cinematic_IntoTheVoid : MonoBehaviour
 
     private Coroutine typingCoroutine;
     private float currentTypingSpeed;
+    private string currentSpeakerColorTag;
     private bool skipRequested;
 
     // Cache for WaitForSeconds to eliminate GC allocations during coroutine execution
@@ -163,15 +164,19 @@ public class Cinematic_IntoTheVoid : MonoBehaviour
         {
             case "Sky.ix":
                 SpeakerNameText.color = Color.cyan;
+                currentSpeakerColorTag = "<color=#00FFFF>";
                 break;
             case "Kai":
                 SpeakerNameText.color = new Color(1f, 0.84f, 0f); // Gold
+                currentSpeakerColorTag = "<color=#FFD700>";
                 break;
             case "Delilah":
                 SpeakerNameText.color = new Color(0.6f, 0.1f, 0.9f); // Void Purple
+                currentSpeakerColorTag = "<color=#991AE6>";
                 break;
             default:
                 SpeakerNameText.color = Color.white;
+                currentSpeakerColorTag = "<color=#FFFFFF>";
                 break;
         }
 
@@ -209,7 +214,21 @@ public class Cinematic_IntoTheVoid : MonoBehaviour
                 if (i > 0)
                 {
                     char c = DialogueText.textInfo.characterInfo[i - 1].character;
-                    if (c == '.' || c == '!' || c == '?') delay = currentTypingSpeed * 15f;
+                    if (c == '.' || c == '!' || c == '?')
+                    {
+                        delay = currentTypingSpeed * 15f;
+
+                        // UX: Distinction between sentence ends, ellipses, and mid-word periods (like Sky.ix).
+                        if (c == '.')
+                        {
+                            bool nextIsDot = i < totalVisibleCharacters && DialogueText.textInfo.characterInfo[i].character == '.';
+                            bool prevIsDot = i > 1 && DialogueText.textInfo.characterInfo[i - 2].character == '.';
+
+                            if (nextIsDot) delay = currentTypingSpeed * 5f;
+                            else if (!nextIsDot && !prevIsDot && i < totalVisibleCharacters && !char.IsWhiteSpace(DialogueText.textInfo.characterInfo[i].character))
+                                delay = currentTypingSpeed;
+                        }
+                    }
                     else if (c == ',' || c == ';' || c == ':') delay = currentTypingSpeed * 8f;
                 }
 
@@ -218,7 +237,8 @@ public class Cinematic_IntoTheVoid : MonoBehaviour
         }
 
         // UX Enhancement: Visual progression cue indicating text reveal is complete.
-        DialogueText.text = message + " ▽";
+        // The cue is color-coded to match the speaker's theme for better visual consistency.
+        DialogueText.text = message + " " + currentSpeakerColorTag + "▽</color>";
         DialogueText.maxVisibleCharacters = totalVisibleCharacters + 2;
 
         skipRequested = false;
