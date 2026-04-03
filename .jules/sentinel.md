@@ -27,3 +27,8 @@
 **Vulnerability:** Untrusted external data (JSON) was being used directly by the application without validation, potentially leading to out-of-bounds values or corrupted application state.
 **Learning:** Even if data is "local", it should be treated as untrusted input once it crosses the boundary from a file into the application.
 **Prevention:** Implement an `IsValid()` pattern in data models to perform security and integrity checks immediately after deserialization. This ensures the application fails fast and securely when encountering malicious or corrupted data.
+
+## 2024-05-30 - Unresolved Merge Conflicts Bypassing Security
+**Vulnerability:** Path traversal sanitization bypassed due to duplicate variable definition.
+**Learning:** Poorly resolved merge conflicts can accidentally re-declare variables that were previously sanitized, effectively overwriting the safe value with the original unsafe one, leading to critical logic bypasses.
+**Prevention:** Thoroughly review the output and flow around conflicted sections; always strictly verify changes locally and run automated checks.
