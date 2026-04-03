@@ -20,14 +20,10 @@ namespace Milehigh.Editor
             string json = File.ReadAllText(path);
             HorizonGameData data = JsonUtility.FromJson<HorizonGameData>(json);
 
-            // 🛡️ Sentinel: Security validation of deserialized data.
-            if (data == null || !data.IsValid())
-            {
-                Debug.LogError("[Security] Character import aborted: Campaign data failed validation.");
             // SECURITY: Always validate data after deserialization
             if (data == null || !data.IsValid())
             {
-                Debug.LogError("Failed to parse or validate campaign data.");
+                Debug.LogError("[Security] Character import aborted: Campaign data failed validation.");
                 return;
             }
 
@@ -51,24 +47,29 @@ namespace Milehigh.Editor
 
                 // 🛡️ Sentinel: Sanitize character name to prevent Path Traversal vulnerabilities
                 // Malicious JSON could use "../" to write assets outside the intended directory.
-                // We use Path.GetFileName to ensure only the final component is used, and replace invalid chars.
-                string baseName = charProfile.name ?? "unnamed_character";
-                string safeFileName = baseName;
-                // Malicious JSON could use "../" to write assets outside the intended directory
-                string sanitizedName = charProfile.name;
+                // Required sequence for robust sanitization:
+                string safeFileName = charProfile.name;
+                if (string.IsNullOrEmpty(safeFileName))
+                {
+                    safeFileName = "unnamed_character";
+                }
+
+                // 1. Replace invalid filename characters with underscores
                 foreach (char c in Path.GetInvalidFileNameChars())
                 {
                     safeFileName = safeFileName.Replace(c, '_');
                 }
-                safeFileName = Path.GetFileName(safeFileName).Replace(" ", "_");
 
-                // Ensure no directory traversal sequences remain
-                string safeFileName = Path.GetFileName(sanitizedName);
+                // 2. Use Path.GetFileName to ensure no directory traversal sequences remain (strip paths)
+                safeFileName = Path.GetFileName(safeFileName);
 
-                string assetPath = $"{folderPath}/{safeFileName}.asset";
+                // 3. Replace whitespace with underscores
+                safeFileName = safeFileName.Replace(" ", "_");
+
+                string assetPath = folderPath + "/" + safeFileName + ".asset";
                 AssetDatabase.CreateAsset(asset, assetPath);
                 // SECURITY: Log relative asset path to avoid absolute path disclosure
-                Debug.Log($"Created character asset: {assetPath}");
+                Debug.Log("Created character asset: " + assetPath);
             }
 
             AssetDatabase.SaveAssets();

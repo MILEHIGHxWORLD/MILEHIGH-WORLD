@@ -19,25 +19,12 @@ namespace Milehigh.Data
         public int systemParity;
         public float voidSaturationLevel;
 
-        /// <summary>
-        /// 🛡️ Sentinel: Security validation to ensure deserialized data meets business constraints.
-        /// </summary>
         public bool IsValid()
         {
-            // Void saturation must be within a safe 0.0 to 1.0 range.
-            if (voidSaturationLevel < 0.0f || voidSaturationLevel > 1.0f)
-            {
-                Debug.LogError($"[Security] Metadata validation failed: voidSaturationLevel {voidSaturationLevel} is out of range [0.0, 1.0]");
-        /// Validates metadata integrity and safety bounds.
-        /// </summary>
-        public bool IsValid()
-        {
-            // SECURITY: Ensure voidSaturationLevel is within the expected [0.0, 1.0] range
-            if (voidSaturationLevel < 0f || voidSaturationLevel > 1f)
-            {
-                Debug.LogError($"Invalid voidSaturationLevel detected: {voidSaturationLevel}. Must be between 0.0 and 1.0.");
-                return false;
-            }
+            if (string.IsNullOrEmpty(environment)) return false;
+            if (environment.Length > 128) return false;
+            if (voidSaturationLevel < 0.0f) return false;
+            if (voidSaturationLevel > 1.0f) return false;
             return true;
         }
     }
@@ -47,8 +34,20 @@ namespace Milehigh.Data
     {
         public string name;
         public string role;
-        public string[] traits;
         public string behaviorScript;
+        public string[] traits;
+
+        public bool IsValid()
+        {
+            if (string.IsNullOrEmpty(name)) return false;
+            if (name.Length > 64) return false;
+            if (string.IsNullOrEmpty(role)) return false;
+            if (role.Length > 64) return false;
+            if (string.IsNullOrEmpty(behaviorScript)) return false;
+            if (behaviorScript.Length > 64) return false;
+            if (traits != null && traits.Length > 10) return false;
+            return true;
+        }
     }
 
     [Serializable]
@@ -56,7 +55,6 @@ namespace Milehigh.Data
     {
         public string objectId;
         public string action;
-
         public bool isVector;
         public float floatValue;
         public float x;
@@ -67,6 +65,15 @@ namespace Milehigh.Data
         {
             return new Vector3(x, y, z);
         }
+
+        public bool IsValid()
+        {
+            if (string.IsNullOrEmpty(objectId)) return false;
+            if (objectId.Length > 128) return false;
+            if (string.IsNullOrEmpty(action)) return false;
+            if (action.Length > 128) return false;
+            return true;
+        }
     }
 
     [Serializable]
@@ -75,6 +82,15 @@ namespace Milehigh.Data
         public string speaker;
         public string text;
         public string trigger;
+
+        public bool IsValid()
+        {
+            if (string.IsNullOrEmpty(speaker)) return false;
+            if (speaker.Length > 64) return false;
+            if (string.IsNullOrEmpty(text)) return false;
+            if (text.Length > 1024) return false;
+            return true;
+        }
     }
 
     [Serializable]
@@ -84,6 +100,32 @@ namespace Milehigh.Data
         public string description;
         public List<ObjectInteraction> interactiveObjects;
         public List<Dialogue> dialogue;
+
+        public bool IsValid()
+        {
+            if (string.IsNullOrEmpty(scenarioId)) return false;
+            if (scenarioId.Length > 128) return false;
+
+            if (interactiveObjects != null)
+            {
+                if (interactiveObjects.Count > 50) return false;
+                foreach (var obj in interactiveObjects)
+                {
+                    if (obj == null || !obj.IsValid()) return false;
+                }
+            }
+
+            if (dialogue != null)
+            {
+                if (dialogue.Count > 50) return false;
+                foreach (var d in dialogue)
+                {
+                    if (d == null || !d.IsValid()) return false;
+                }
+            }
+
+            return true;
+        }
     }
 
     [Serializable]
@@ -94,34 +136,27 @@ namespace Milehigh.Data
         public List<CharacterProfile> characters;
         public List<SceneScenario> scenarios;
 
-        /// <summary>
-        /// 🛡️ Sentinel: Performs integrity and security validation on the entire campaign dataset.
-        /// </summary>
-        public bool IsValid()
-        {
-            if (metadata == null)
-            {
-                Debug.LogError("[Security] Game data validation failed: Metadata is missing.");
-                return false;
-            }
-
-            if (!metadata.IsValid())
-            {
-                return false;
-            }
-
-            if (characters == null || characters.Count == 0)
-            {
-                Debug.LogError("[Security] Game data validation failed: No character profiles defined.");
-                return false;
-            }
-        /// Validates the deserialized game data for security and integrity.
-        /// </summary>
         public bool IsValid()
         {
             if (metadata == null) return false;
             if (!metadata.IsValid()) return false;
-            if (characters == null || scenarios == null) return false;
+
+            if (characters == null) return false;
+            if (characters.Count == 0) return false;
+            if (characters.Count > 50) return false;
+            foreach (var character in characters)
+            {
+                if (character == null || !character.IsValid()) return false;
+            }
+
+            if (scenarios != null)
+            {
+                if (scenarios.Count > 100) return false;
+                foreach (var scenario in scenarios)
+                {
+                    if (scenario == null || !scenario.IsValid()) return false;
+                }
+            }
 
             return true;
         }
