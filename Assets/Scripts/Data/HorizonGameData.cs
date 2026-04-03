@@ -4,12 +4,7 @@ using UnityEngine;
 
 namespace Milehigh.Data
 {
-    public enum LightingState
-    {
-        Day,
-        Night,
-        Dynamic
-    }
+    public enum LightingState { Day, Night, Dynamic }
 
     [Serializable]
     public class Metadata
@@ -19,71 +14,51 @@ namespace Milehigh.Data
         public int systemParity;
         public float voidSaturationLevel;
 
-        /// <summary>
-        /// 🛡️ Sentinel: Security validation to ensure deserialized data meets business constraints.
-        /// </summary>
-        public bool IsValid()
-        {
-            // Void saturation must be within a safe 0.0 to 1.0 range.
-            if (voidSaturationLevel < 0.0f || voidSaturationLevel > 1.0f)
-            {
-                Debug.LogError($"[Security] Metadata validation failed: voidSaturationLevel {voidSaturationLevel} is out of range [0.0, 1.0]");
-        /// Validates metadata integrity and safety bounds.
-        /// </summary>
-        public bool IsValid()
-        {
-            // SECURITY: Ensure voidSaturationLevel is within the expected [0.0, 1.0] range
-            if (voidSaturationLevel < 0f || voidSaturationLevel > 1f)
-            {
-                Debug.LogError($"Invalid voidSaturationLevel detected: {voidSaturationLevel}. Must be between 0.0 and 1.0.");
-                return false;
-            }
-            return true;
-        }
+        public bool IsValid() => !string.IsNullOrEmpty(environment) && environment.Length <= 128 &&
+                                 voidSaturationLevel >= 0f && voidSaturationLevel <= 1f;
     }
 
     [Serializable]
     public class CharacterProfile
     {
-        public string name;
-        public string role;
+        public string name, role, behaviorScript;
         public string[] traits;
-        public string behaviorScript;
+
+        public bool IsValid() => !string.IsNullOrEmpty(name) && name.Length <= 64 &&
+                                 !string.IsNullOrEmpty(role) && role.Length <= 64 &&
+                                 !string.IsNullOrEmpty(behaviorScript) && behaviorScript.Length <= 64 &&
+                                 (traits == null || traits.Length <= 10);
     }
 
     [Serializable]
     public class ObjectInteraction
     {
-        public string objectId;
-        public string action;
-
+        public string objectId, action;
         public bool isVector;
-        public float floatValue;
-        public float x;
-        public float y;
-        public float z;
-
-        public Vector3 GetVectorValue()
-        {
-            return new Vector3(x, y, z);
-        }
+        public float floatValue, x, y, z;
+        public Vector3 GetVectorValue() => new Vector3(x, y, z);
+        public bool IsValid() => !string.IsNullOrEmpty(objectId) && objectId.Length <= 128 &&
+                                 !string.IsNullOrEmpty(action) && action.Length <= 128;
     }
 
     [Serializable]
     public class Dialogue
     {
-        public string speaker;
-        public string text;
-        public string trigger;
+        public string speaker, text, trigger;
+        public bool IsValid() => !string.IsNullOrEmpty(speaker) && speaker.Length <= 64 &&
+                                 !string.IsNullOrEmpty(text) && text.Length <= 1024;
     }
 
     [Serializable]
     public class SceneScenario
     {
-        public string scenarioId;
-        public string description;
+        public string scenarioId, description;
         public List<ObjectInteraction> interactiveObjects;
         public List<Dialogue> dialogue;
+
+        public bool IsValid() => !string.IsNullOrEmpty(scenarioId) && scenarioId.Length <= 128 &&
+                                 (interactiveObjects == null || (interactiveObjects.Count <= 50 && !interactiveObjects.Exists(o => !o.IsValid()))) &&
+                                 (dialogue == null || (dialogue.Count <= 50 && !dialogue.Exists(d => !d.IsValid())));
     }
 
     [Serializable]
@@ -94,36 +69,8 @@ namespace Milehigh.Data
         public List<CharacterProfile> characters;
         public List<SceneScenario> scenarios;
 
-        /// <summary>
-        /// 🛡️ Sentinel: Performs integrity and security validation on the entire campaign dataset.
-        /// </summary>
-        public bool IsValid()
-        {
-            if (metadata == null)
-            {
-                Debug.LogError("[Security] Game data validation failed: Metadata is missing.");
-                return false;
-            }
-
-            if (!metadata.IsValid())
-            {
-                return false;
-            }
-
-            if (characters == null || characters.Count == 0)
-            {
-                Debug.LogError("[Security] Game data validation failed: No character profiles defined.");
-                return false;
-            }
-        /// Validates the deserialized game data for security and integrity.
-        /// </summary>
-        public bool IsValid()
-        {
-            if (metadata == null) return false;
-            if (!metadata.IsValid()) return false;
-            if (characters == null || scenarios == null) return false;
-
-            return true;
-        }
+        public bool IsValid() => metadata != null && metadata.IsValid() &&
+                                 characters != null && characters.Count > 0 && characters.Count <= 50 && !characters.Exists(c => !c.IsValid()) &&
+                                 (scenarios == null || (scenarios.Count <= 100 && !scenarios.Exists(s => !s.IsValid())));
     }
 }
