@@ -34,6 +34,7 @@
 //
 // 7. Ensure your project has TextMeshPro imported (Window -> TextMeshPro -> Import TMP Essential Resources).
 
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -109,6 +110,7 @@ public class Cinematic_IntoTheVoid : MonoBehaviour
 
     private Coroutine typingCoroutine;
     private float currentTypingSpeed;
+    private string currentSpeakerColorTag;
     private bool skipRequested;
 
     // Cache for WaitForSeconds to eliminate GC allocations during coroutine execution
@@ -163,15 +165,19 @@ public class Cinematic_IntoTheVoid : MonoBehaviour
         {
             case "Sky.ix":
                 SpeakerNameText.color = Color.cyan;
+                currentSpeakerColorTag = "#00FFFF";
                 break;
             case "Kai":
                 SpeakerNameText.color = new Color(1f, 0.84f, 0f); // Gold
+                currentSpeakerColorTag = "#FFD700";
                 break;
             case "Delilah":
                 SpeakerNameText.color = new Color(0.6f, 0.1f, 0.9f); // Void Purple
+                currentSpeakerColorTag = "#991AE6";
                 break;
             default:
                 SpeakerNameText.color = Color.white;
+                currentSpeakerColorTag = "#FFFFFF";
                 break;
         }
 
@@ -209,7 +215,33 @@ public class Cinematic_IntoTheVoid : MonoBehaviour
                 if (i > 0)
                 {
                     char c = DialogueText.textInfo.characterInfo[i - 1].character;
-                    if (c == '.' || c == '!' || c == '?') delay = currentTypingSpeed * 15f;
+                    if (c == '.' || c == '!' || c == '?')
+                    {
+                        // Check for mid-word periods (e.g., Sky.ix)
+                        bool isMidWord = false;
+                        if (c == '.' && i < totalVisibleCharacters)
+                        {
+                            char nextChar = DialogueText.textInfo.characterInfo[i].character;
+                            if (!char.IsWhiteSpace(nextChar)) isMidWord = true;
+                        }
+
+                        // Check for ellipses (multiple dots)
+                        bool isEllipsis = false;
+                        if (c == '.' && i > 1)
+                        {
+                            char prevChar = DialogueText.textInfo.characterInfo[i - 2].character;
+                            if (prevChar == '.') isEllipsis = true;
+                        }
+                        if (c == '.' && i < totalVisibleCharacters)
+                        {
+                            char nextChar = DialogueText.textInfo.characterInfo[i].character;
+                            if (nextChar == '.') isEllipsis = true;
+                        }
+
+                        if (isMidWord) delay = currentTypingSpeed;
+                        else if (isEllipsis) delay = currentTypingSpeed * 5f;
+                        else delay = currentTypingSpeed * 15f;
+                    }
                     else if (c == ',' || c == ';' || c == ':') delay = currentTypingSpeed * 8f;
                 }
 
@@ -218,7 +250,7 @@ public class Cinematic_IntoTheVoid : MonoBehaviour
         }
 
         // UX Enhancement: Visual progression cue indicating text reveal is complete.
-        DialogueText.text = message + " ▽";
+        DialogueText.text = message + $" <color={currentSpeakerColorTag}>▽</color>";
         DialogueText.maxVisibleCharacters = totalVisibleCharacters + 2;
 
         skipRequested = false;
