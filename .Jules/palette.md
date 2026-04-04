@@ -36,6 +36,10 @@
 **Learning:** In Unity TextMeshPro, iterating over string length for typewriter reveals can break when rich text tags (like <color> or <b>) are present, as the tag characters are revealed one-by-one. Using 'TMP_Text.ForceMeshUpdate()' followed by iterating over 'TMP_Text.textInfo.characterCount' ensures only rendered characters are revealed, maintaining both accessibility (screen readers) and visual polish.
 **Action:** Always use 'textInfo.characterCount' and 'ForceMeshUpdate' for typewriter effects to ensure compatibility with rich text and accurate character-based pacing.
 
+## 2026-03-25 - [Unified Cinematic Skip Pattern]
+**Learning:** A "Unified Skip" (skipping both the typewriter reveal and the subsequent wait period with a single input) is best implemented by NOT resetting the 'skipRequested' flag after the typewriter effect ends. Instead, the flag should be consumed and reset only at the end of the final 'WaitForSecondsOrSkip' delay in the dialogue block. This ensures that player intent is fully honored across multiple yielded coroutines.
+**Action:** In cinematic sequences, manage the 'skipRequested' lifecycle such that it persists through the reveal and is only cleared after the following pause is handled.
+
 ## 2026-03-24 - [Scaling Rhythmic Typewriter and Progression Cues]
 **Learning:** Rhythmic punctuation pauses in typewriter effects are most effective when they occur *after* the punctuation character is revealed (checking index `i-1`) and use multipliers (e.g., 15x, 8x) instead of fixed delays. This ensures the cadence remains natural even when base typing speeds vary by character. Additionally, appending a visual completion cue (like '▽') provides essential feedback that a dialogue block is finished and the user can proceed.
 **Action:** Always use speed multipliers for rhythmic pauses and include a visual completion character after typewriter reveals to improve readability and interaction clarity.
