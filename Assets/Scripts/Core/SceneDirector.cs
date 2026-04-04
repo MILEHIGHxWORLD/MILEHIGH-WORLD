@@ -13,6 +13,9 @@ namespace Milehigh.Core
         // BOLT: Consolidated cache for GameObjects to prevent expensive O(N) GameObject.Find calls
         private Dictionary<string, GameObject> _objectCache = new Dictionary<string, GameObject>();
 
+        // BOLT: Cache for prefab lookups to prevent O(N) list searches with string comparisons
+        private Dictionary<string, GameObject> _prefabCache = new Dictionary<string, GameObject>();
+
         private GameObject GetCachedObject(string objectName)
         {
             if (string.IsNullOrEmpty(objectName)) return null;
@@ -47,6 +50,7 @@ namespace Milehigh.Core
 
             // Clear cache at start of setup to avoid stale references across scenes
             _objectCache.Clear();
+            _prefabCache.Clear();
 
             // Instantiate characters if not already in scene
             foreach (var charProfile in CampaignManager.Instance.currentCampaignData.characters)
@@ -68,7 +72,12 @@ namespace Milehigh.Core
             if (characterObj == null)
             {
                 // Try to find prefab if not in scene
-                GameObject prefab = characterPrefabs?.Find(p => p.name.Contains(profile.name));
+                // BOLT: Lazy evaluation dictionary lookup for prefabs to prevent O(N) list search on every instantiation. Includes negative caching.
+                if (!_prefabCache.TryGetValue(profile.name, out GameObject prefab))
+                {
+                    prefab = characterPrefabs?.Find(p => p.name.Contains(profile.name));
+                    _prefabCache[profile.name] = prefab;
+                }
                 if (prefab != null)
                 {
                     characterObj = Instantiate(prefab, characterSpawnRoot);
