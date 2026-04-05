@@ -18,6 +18,10 @@
 **Action:** Use the `TypeDialogue` coroutine pattern with a standardized character reveal delay (e.g., 0.03s) for all cinematic dialogue in future mission implementations.
 # Palette's Journal - MILEHIGH.WORLD
 
+## 2026-03-25 - [Unified Skip Pattern & Legibility Accessibility]
+**Learning:** In Unity dialogue systems, a 'unified skip' experience (where one input skips the typewriter reveal and a second skips the remaining pause) is best achieved by sharing a persistent 'skipRequested' flag between the typewriter loop and a custom 'WaitForSecondsOrSkip' coroutine. Resetting the flag only at the *end* of the wait prevents race conditions. Additionally, ensuring legibility against unpredictable cinematic backgrounds requires a mandatory black outline (outlineWidth = 0.2f) on all dialogue TMP components.
+**Action:** Always implement 'WaitForSecondsOrSkip' for cinematic pauses and apply text outlines to ensure accessibility standards are met.
+
 ## 2025-05-15 - Initial UX Audit
 **Learning:** Unity UI (TextMeshPro) dialogue sequences often feel static if text appears instantly. A typewriter effect adds a sense of "living" dialogue and helps users pace their reading.
 **Action:** Implement a typewriter effect coroutine for the `Cinematic_IntoTheVoid` script.
