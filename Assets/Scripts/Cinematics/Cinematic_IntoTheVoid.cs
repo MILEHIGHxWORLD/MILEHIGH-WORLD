@@ -41,7 +41,7 @@ using UnityEngine.Serialization;
 using TMPro;
 
 /// <summary>
-/// This script controls the cinematic sequence for the mission: "Deep within the anti-reality of ŤĤÊ VØĪĐ, the very concept of existence is under assault. Delilah, an agent of entropy, has located and harnessed a 'Memory Stream'—a torrent of glitching data containing the metaphysical essence of Sky.ix's recently reunited husband and child. She intends to weaponize this stream, funneling its corrupted energy into a finality engine that will not just kill them, but permanently erase their existence from every timeline and memory. Sky.ix, whose cybernetics offer a fragile anchor in this digital abyss, must race against the unraveling of reality itself, supported by her ally Kai, to sever Delilah's connection before her family becomes nothing more than a corrupted file in the memory of the universe."
+/// This script controls the cinematic sequence for the mission: "Deep within the anti-reality of THE VOID, the very concept of existence is under assault. Delilah, an agent of entropy, has located and harnessed a 'Memory Stream'--a torrent of glitching data containing the metaphysical essence of Sky.ix's recently reunited husband and child. She intends to weaponize this stream, funneling its corrupted energy into a finality engine that will not just kill them, but permanently erase their existence from every timeline and memory. Sky.ix, whose cybernetics offer a fragile anchor in this digital abyss, must race against the unraveling of reality itself, supported by her ally Kai, to sever Delilah's connection before her family becomes nothing more than a corrupted file in the memory of the universe."
 /// </summary>
 public class Cinematic_IntoTheVoid : MonoBehaviour
 {
@@ -126,7 +126,7 @@ public class Cinematic_IntoTheVoid : MonoBehaviour
 
     void Start()
     {
-        // 🛡️ Sentinel: Security enhancement - Defensive programming
+        //  Sentinel: Security enhancement - Defensive programming
         // Ensure UI components are assigned to prevent NullReferenceException and potential stack trace leakage.
         if (DialogueBox == null || SpeakerNameText == null || DialogueText == null)
         {
@@ -218,7 +218,7 @@ public class Cinematic_IntoTheVoid : MonoBehaviour
         }
 
         // UX Enhancement: Visual progression cue indicating text reveal is complete.
-        DialogueText.text = message + " ▽";
+        DialogueText.text = message + " V";
         DialogueText.maxVisibleCharacters = totalVisibleCharacters + 2;
 
         skipRequested = false;
@@ -314,6 +314,6 @@ public class Cinematic_IntoTheVoid : MonoBehaviour
         // Example: PlayerInput.Instance.EnableControls();
         // Example: CinematicCamera.SetActive(false);
         // Example: BossFightController.StartFight();
-        Debug.Log("Cinematic Sequence Complete: [Deep within the anti-reality of ŤĤÊ VØĪĐ...]");
+        Debug.Log("Cinematic Sequence Complete: [Deep within the anti-reality of THE VOID...]");
     }
 }

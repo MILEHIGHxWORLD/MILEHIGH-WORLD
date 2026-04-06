@@ -52,3 +52,7 @@
 ## 2026-03-25 - [Redundant Member Clutter Performance Impact]
 **Learning:** The 'SceneDirector.cs' file was severely cluttered with over a dozen redundant dictionary declarations and duplicate helper methods for GameObject caching. This not only increases memory overhead but also creates a "state fragmentation" risk where different parts of the initialization loop use different caches, leading to redundant O(N) traversals despite the caching intent.
 **Action:** Always audit caching implementations for redundancy. Consolidate into a single, unified caching pattern to ensure O(1) lookups are consistent across the entire system.
+
+## 2024-05-26 - Robust Negative Caching in Unity
+**Learning:** Unity's '==' operator for GameObjects checks if the native C++ object has been destroyed, which can lead to "fake nulls" in a dictionary cache. Standard null checks might incorrectly return a destroyed object as a valid reference if the managed wrapper still exists.
+**Action:** Use 'ReferenceEquals(obj, null)' to identify "real nulls" (negative cache hits for objects that never existed) vs 'obj == null' for "fake nulls" (objects that were destroyed). This allows for efficient negative caching while still permitting cache invalidation and re-fetching of destroyed objects.

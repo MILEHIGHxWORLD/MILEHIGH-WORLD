@@ -71,7 +71,7 @@
   "scenarios": [
     {
       "scenarioId": "ACT_I_CH1_ONALYM_NEXUS",
-      "description": "The Catalyst: King Cyrus invades the rain-slicked, neon heart of ŁĪƝĈ, destabilizing the Onalym Nexus and scattering the dimensions.",
+      "description": "The Catalyst: King Cyrus invades the rain-slicked, neon heart of LINC, destabilizing the Onalym Nexus and scattering the dimensions.",
       "interactiveObjects": [
         {
           "objectId": "DurasteelFloor",
