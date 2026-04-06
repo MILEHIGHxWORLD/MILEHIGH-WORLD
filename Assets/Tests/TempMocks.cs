@@ -39,6 +39,11 @@ namespace UnityEngine
             Logs.Add(message?.ToString() ?? "");
             Console.WriteLine(message);
         }
+        public static void LogError(object message)
+        {
+            Logs.Add("ERROR: " + (message?.ToString() ?? ""));
+            Console.WriteLine("ERROR: " + message);
+        }
     }
 
     public class CreateAssetMenuAttribute : Attribute
@@ -53,6 +58,12 @@ namespace UnityEngine
     }
 
     public class ScriptableObject : Object {}
+
+    public struct Vector3
+    {
+        public float x, y, z;
+        public Vector3(float x, float y, float z) { this.x = x; this.y = y; this.z = z; }
+    }
 }
 
 namespace Milehigh.Data
