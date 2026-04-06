@@ -39,3 +39,7 @@
 ## 2026-03-24 - [Scaling Rhythmic Typewriter and Progression Cues]
 **Learning:** Rhythmic punctuation pauses in typewriter effects are most effective when they occur *after* the punctuation character is revealed (checking index `i-1`) and use multipliers (e.g., 15x, 8x) instead of fixed delays. This ensures the cadence remains natural even when base typing speeds vary by character. Additionally, appending a visual completion cue (like '▽') provides essential feedback that a dialogue block is finished and the user can proceed.
 **Action:** Always use speed multipliers for rhythmic pauses and include a visual completion character after typewriter reveals to improve readability and interaction clarity.
+
+## 2026-04-06 - [Context-Aware Punctuation Pauses]
+**Learning:** Standard punctuation-aware typewriter pauses can be disruptive if they trigger on mid-word periods (e.g., in character names like 'Sky.ix') or feel too slow during ellipses. Look-ahead logic (checking the next character for whitespace) and specialized multipliers for consecutive dots (e.g., 5x) ensure the rhythm remains natural and uninterrupted in specialized narrative contexts.
+**Action:** Implement look-ahead checks for non-whitespace characters after periods and specialized ellipsis detection in rhythmic typewriter effects to maintain conversational flow.
