@@ -66,17 +66,6 @@ namespace UnityEngine
     }
 }
 
-namespace Milehigh.Data
-{
-    public class CharacterData : UnityEngine.ScriptableObject
-    {
-        public string characterName = "";
-        public string role = "";
-        public string[] traits = Array.Empty<string>();
-        public string behaviorScript = "";
-    }
-}
-
 namespace NUnit.Framework
 {
     public class TestFixtureAttribute : Attribute {}
