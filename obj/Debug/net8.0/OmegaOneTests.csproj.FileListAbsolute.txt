@@ -1,0 +1,15 @@
+/app/obj/Debug/net8.0/OmegaOneTests.GeneratedMSBuildEditorConfig.editorconfig
+/app/obj/Debug/net8.0/OmegaOneTests.AssemblyInfoInputs.cache
+/app/obj/Debug/net8.0/OmegaOneTests.AssemblyInfo.cs
+/app/obj/Debug/net8.0/OmegaOneTests.csproj.CoreCompileInputs.cache
+/app/obj/Debug/net8.0/OmegaOneTests.sourcelink.json
+/app/bin/Debug/net8.0/OmegaOneTests
+/app/bin/Debug/net8.0/OmegaOneTests.deps.json
+/app/bin/Debug/net8.0/OmegaOneTests.runtimeconfig.json
+/app/bin/Debug/net8.0/OmegaOneTests.dll
+/app/bin/Debug/net8.0/OmegaOneTests.pdb
+/app/obj/Debug/net8.0/OmegaOneTests.dll
+/app/obj/Debug/net8.0/refint/OmegaOneTests.dll
+/app/obj/Debug/net8.0/OmegaOneTests.pdb
+/app/obj/Debug/net8.0/OmegaOneTests.genruntimeconfig.cache
+/app/obj/Debug/net8.0/ref/OmegaOneTests.dll

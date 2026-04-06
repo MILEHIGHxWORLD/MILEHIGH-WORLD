@@ -1,0 +1,5 @@
+/app/obj/Debug/net8.0/FullBuildCheck.GeneratedMSBuildEditorConfig.editorconfig
+/app/obj/Debug/net8.0/FullBuildCheck.AssemblyInfoInputs.cache
+/app/obj/Debug/net8.0/FullBuildCheck.AssemblyInfo.cs
+/app/obj/Debug/net8.0/FullBuildCheck.csproj.CoreCompileInputs.cache
+/app/obj/Debug/net8.0/FullBuildCheck.sourcelink.json

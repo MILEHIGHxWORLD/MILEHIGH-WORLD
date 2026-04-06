@@ -1,0 +1,23 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v8.0",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v8.0": {
+      "OmegaOneTests/1.0.0": {
+        "runtime": {
+          "OmegaOneTests.dll": {}
+        }
+      }
+    }
+  },
+  "libraries": {
+    "OmegaOneTests/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    }
+  }
+}

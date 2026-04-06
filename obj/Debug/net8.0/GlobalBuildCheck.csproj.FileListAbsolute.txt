@@ -1,0 +1,5 @@
+/app/obj/Debug/net8.0/GlobalBuildCheck.GeneratedMSBuildEditorConfig.editorconfig
+/app/obj/Debug/net8.0/GlobalBuildCheck.AssemblyInfoInputs.cache
+/app/obj/Debug/net8.0/GlobalBuildCheck.AssemblyInfo.cs
+/app/obj/Debug/net8.0/GlobalBuildCheck.csproj.CoreCompileInputs.cache
+/app/obj/Debug/net8.0/GlobalBuildCheck.sourcelink.json
