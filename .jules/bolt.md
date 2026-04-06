@@ -52,3 +52,6 @@
 ## 2026-03-25 - [Redundant Member Clutter Performance Impact]
 **Learning:** The 'SceneDirector.cs' file was severely cluttered with over a dozen redundant dictionary declarations and duplicate helper methods for GameObject caching. This not only increases memory overhead but also creates a "state fragmentation" risk where different parts of the initialization loop use different caches, leading to redundant O(N) traversals despite the caching intent.
 **Action:** Always audit caching implementations for redundancy. Consolidate into a single, unified caching pattern to ensure O(1) lookups are consistent across the entire system.
+## 2024-05-24 - Unity List.Find Performance Bottleneck in Setup Loops
+**Learning:** Using `List.Find` with string comparisons (like `.Contains()`) inside a scene initialization loop creates an O(N*M) performance bottleneck, as it repeatedly scans the list with string matching operations for every entity being setup.
+**Action:** Always replace O(N) list searches for prefabs inside setup loops with a `Dictionary<string, GameObject>` cache. Use lazy evaluation to perform the O(N) lookup only on a cache miss, mapping the result to the search string for subsequent O(1) lookups.
