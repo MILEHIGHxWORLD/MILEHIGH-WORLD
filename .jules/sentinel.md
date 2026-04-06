@@ -27,3 +27,7 @@
 **Vulnerability:** Untrusted external data (JSON) was being used directly by the application without validation, potentially leading to out-of-bounds values or corrupted application state.
 **Learning:** Even if data is "local", it should be treated as untrusted input once it crosses the boundary from a file into the application.
 **Prevention:** Implement an `IsValid()` pattern in data models to perform security and integrity checks immediately after deserialization. This ensures the application fails fast and securely when encountering malicious or corrupted data.
+## 2025-05-24 - Broken Security Validation Framework and Lack of Resource Limits
+**Vulnerability:** The security validation framework was broken due to botched merge edits in `HorizonGameData.cs`, `CampaignManager.cs`, and `CharacterFactory.cs`, including duplicate `else` blocks and malformed methods. Additionally, the system lacked resource exhaustion protection for deserialized data.
+**Learning:** Incomplete or unverified security patches can leave the system in a vulnerable state by breaking intended validation logic. Centralized recursive validation must include explicit limits on collection sizes and string lengths to mitigate DoS risks from external data.
+**Prevention:** Maintain a single, robust `IsValid()` implementation per data class. Enforce string length and collection size limits in these methods. Always verify C# syntax and compilation (even via mocking) after applying security fixes to critical path components.
