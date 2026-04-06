@@ -20,7 +20,7 @@ namespace Milehigh.Editor
             string json = File.ReadAllText(path);
             HorizonGameData data = JsonUtility.FromJson<HorizonGameData>(json);
 
-            // 🛡️ Sentinel: Security validation of deserialized data.
+            //  Sentinel: Security validation of deserialized data.
             // SECURITY: Always validate data after deserialization
             if (data == null || !data.IsValid())
             {
@@ -46,7 +46,7 @@ namespace Milehigh.Editor
                 asset.traits = charProfile.traits;
                 asset.behaviorScript = charProfile.behaviorScript;
 
-                // 🛡️ Sentinel: Sanitize character name to prevent Path Traversal vulnerabilities
+                //  Sentinel: Sanitize character name to prevent Path Traversal vulnerabilities
                 // Malicious JSON could use "../" to write assets outside the intended directory.
                 // We use Path.GetFileName to ensure only the final component is used, and replace invalid chars.
                 // Follows standardized path sanitization sequence: replace invalid chars, GetFileName, then space to underscore.

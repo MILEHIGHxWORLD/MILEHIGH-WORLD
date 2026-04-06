@@ -92,7 +92,7 @@ Shader "Milehigh/HyperPBRCharacter_4D"
         float3 Iridescence(float thickness, float NdotV)
         {
             float3 interference = sin(2.0 * 3.14159 * thickness * float3(1.0, 0.8, 0.6) / NdotV) * 0.5 + 0.5;
-            // ⚡ Bolt: Replace pow(interference, 2.0) with interference * interference for performance
+            //  Bolt: Replace pow(interference, 2.0) with interference * interference for performance
             return interference * interference;
         }
 
@@ -101,7 +101,7 @@ Shader "Milehigh/HyperPBRCharacter_4D"
             fixed4 albedo = tex2D(_MainTex, IN.uv_MainTex) * _Color;
             clip(albedo.a - _Cutoff);
 
-            // ⚡ BOLT: Optimized albedo assignment.
+            //  BOLT: Optimized albedo assignment.
             // By assigning early, we ensure that subsequent additive effects like SSS
             // are properly blended rather than being discarded or overwritten at the end.
             o.Albedo = albedo.rgb;
@@ -126,7 +126,7 @@ Shader "Milehigh/HyperPBRCharacter_4D"
                 half noise = tex3D(_NoiseTex, noiseCoord.xyz + noiseCoord.w).r;
 
                 // Add emissive glow based on noise
-                // ⚡ Bolt: Replace pow(noise, 3.0) with noise * noise * noise for performance
+                //  Bolt: Replace pow(noise, 3.0) with noise * noise * noise for performance
                 o.Emission = _EffectColor.rgb * (noise * noise * noise) * effectMask * 2.0;
             }
 
@@ -147,7 +147,7 @@ Shader "Milehigh/HyperPBRCharacter_4D"
                 // A more advanced SSS would use a proper lighting model.
                 // This is a stylistic approximation.
                 half NdotL = dot(o.Normal, _WorldSpaceLightPos0.xyz);
-                // ⚡ Bolt: Replace pow(..., 8.0) with nested squares for performance
+                //  Bolt: Replace pow(..., 8.0) with nested squares for performance
                 half sss_base = saturate(dot(IN.viewDir, -_WorldSpaceLightPos0.xyz));
                 half sss_sq = sss_base * sss_base;
                 half sss_4 = sss_sq * sss_sq;
