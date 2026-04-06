@@ -99,6 +99,13 @@ namespace Milehigh.Core
 
         private void ApplyInteraction(ObjectInteraction interaction)
         {
+            // SECURITY: Exact string matching to prevent IDOR-like tampering of critical system objects
+            if (interaction.objectId == "CampaignManager" || interaction.objectId == "SceneDirector")
+            {
+                Debug.LogWarning($"[Security] Blocked unauthorized interaction attempt on critical system object: {interaction.objectId}");
+                return;
+            }
+
             GameObject target = GetCachedObject(interaction.objectId);
 
             if (target != null)
