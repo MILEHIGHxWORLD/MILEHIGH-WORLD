@@ -27,3 +27,11 @@
 **Vulnerability:** Untrusted external data (JSON) was being used directly by the application without validation, potentially leading to out-of-bounds values or corrupted application state.
 **Learning:** Even if data is "local", it should be treated as untrusted input once it crosses the boundary from a file into the application.
 **Prevention:** Implement an `IsValid()` pattern in data models to perform security and integrity checks immediately after deserialization. This ensures the application fails fast and securely when encountering malicious or corrupted data.
+## 2026-04-06 - Restoration of Hierarchical Security Validation and Resource Exhaustion Protection
+**Vulnerability:** Found , , and  in a broken state due to poor merge edits, with duplicate  methods and broken logic. This disabled critical security checks for imported campaign data.
+**Learning:** Security frameworks are fragile if not properly maintained. A broken  check is equivalent to no check at all, potentially allowing malformed or malicious data to compromise application state.
+**Prevention:** Implement hierarchical  checks across all data models. Enforce resource limits (string lengths, collection sizes) at the point of deserialization to prevent DoS via resource exhaustion. Ensure each data class is responsible for its own validation.
+## 2026-04-06 - Restoration of Hierarchical Security Validation and Resource Exhaustion Protection
+**Vulnerability:** Found `HorizonGameData.cs`, `CampaignManager.cs`, and `CharacterFactory.cs` in a broken state due to poor merge edits, with duplicate `IsValid` methods and broken logic. This disabled critical security checks for imported campaign data.
+**Learning:** Security frameworks are fragile if not properly maintained. A broken `IsValid` check is equivalent to no check at all, potentially allowing malformed or malicious data to compromise application state.
+**Prevention:** Implement hierarchical `IsValid()` checks across all data models. Enforce resource limits (string lengths, collection sizes) at the point of deserialization to prevent DoS via resource exhaustion. Ensure each data class is responsible for its own validation.
