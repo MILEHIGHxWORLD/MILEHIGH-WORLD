@@ -39,3 +39,7 @@
 ## 2026-03-24 - [Scaling Rhythmic Typewriter and Progression Cues]
 **Learning:** Rhythmic punctuation pauses in typewriter effects are most effective when they occur *after* the punctuation character is revealed (checking index `i-1`) and use multipliers (e.g., 15x, 8x) instead of fixed delays. This ensures the cadence remains natural even when base typing speeds vary by character. Additionally, appending a visual completion cue (like '▽') provides essential feedback that a dialogue block is finished and the user can proceed.
 **Action:** Always use speed multipliers for rhythmic pauses and include a visual completion character after typewriter reveals to improve readability and interaction clarity.
+
+## 2026-03-25 - [Robust Cinematic UI Animations]
+**Learning:** Scale-based "pop" effects for speaker identification in Unity should use 'Time.unscaledDeltaTime' to ensure consistent behavior regardless of game pauses or time-scale shifts during cinematics. Capturing the initial 'localScale' in 'Start' is critical to ensure compatibility with dynamic layouts and prevent permanent scale drift when stopping and starting overlapping animations.
+**Action:** Always use 'Time.unscaledDeltaTime' for UI juice effects and capture base transform states before starting lerp-based coroutines.

@@ -111,6 +111,10 @@ public class Cinematic_IntoTheVoid : MonoBehaviour
     private float currentTypingSpeed;
     private bool skipRequested;
 
+    private Vector3 _originalSpeakerScale;
+    private string _lastSpeaker;
+    private Coroutine _popCoroutine;
+
     // Cache for WaitForSeconds to eliminate GC allocations during coroutine execution
     private static readonly Dictionary<float, WaitForSeconds> _waitForSecondsCache = new Dictionary<float, WaitForSeconds>();
 
@@ -134,6 +138,9 @@ public class Cinematic_IntoTheVoid : MonoBehaviour
             return;
         }
 
+        // PALETTE: Capture original scale for animations
+        _originalSpeakerScale = SpeakerNameText.transform.localScale;
+
         StartCoroutine(Cinematic_IntoTheVoid_Sequence());
     }
 
@@ -148,6 +155,14 @@ public class Cinematic_IntoTheVoid : MonoBehaviour
     public void ShowDialogue(string speaker, string message)
     {
         if (typingCoroutine != null) StopCoroutine(typingCoroutine);
+
+        // PALETTE: Trigger "Pop" scale effect when speaker changes for visual delight
+        if (speaker != _lastSpeaker)
+        {
+            if (_popCoroutine != null) StopCoroutine(_popCoroutine);
+            _popCoroutine = StartCoroutine(PopEffect(SpeakerNameText.transform, _originalSpeakerScale));
+        }
+        _lastSpeaker = speaker;
 
         SpeakerNameText.text = speaker;
 
@@ -176,6 +191,22 @@ public class Cinematic_IntoTheVoid : MonoBehaviour
         }
 
         typingCoroutine = StartCoroutine(TypeDialogue(message));
+    }
+
+    private IEnumerator PopEffect(Transform target, Vector3 baseScale)
+    {
+        float duration = 0.2f;
+        float elapsed = 0f;
+        while (elapsed < duration)
+        {
+            elapsed += Time.unscaledDeltaTime;
+            float percent = elapsed / duration;
+            // Subtle pop using a sine wave: scales up to 1.1x and back down
+            float curve = Mathf.Sin(percent * Mathf.PI);
+            target.localScale = baseScale * (1f + 0.1f * curve);
+            yield return null;
+        }
+        target.localScale = baseScale;
     }
 
     private IEnumerator TypeDialogue(string message)
