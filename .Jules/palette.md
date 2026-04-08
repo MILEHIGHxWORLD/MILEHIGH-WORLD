@@ -39,3 +39,7 @@
 ## 2026-03-24 - [Scaling Rhythmic Typewriter and Progression Cues]
 **Learning:** Rhythmic punctuation pauses in typewriter effects are most effective when they occur *after* the punctuation character is revealed (checking index `i-1`) and use multipliers (e.g., 15x, 8x) instead of fixed delays. This ensures the cadence remains natural even when base typing speeds vary by character. Additionally, appending a visual completion cue (like '▽') provides essential feedback that a dialogue block is finished and the user can proceed.
 **Action:** Always use speed multipliers for rhythmic pauses and include a visual completion character after typewriter reveals to improve readability and interaction clarity.
+
+## 2026-03-25 - [Pop Scale Animation for Speaker UI]
+**Learning:** Adding a subtle 'Pop' scale animation to the speaker name text when it changes provides immediate visual feedback and delight. Using a sine wave with `Time.unscaledDeltaTime` ensures the animation is smooth and independent of game time scale. To prevent "scale drift" during rapid interruptions, it is critical to capture the `initialScale` at the start of the coroutine and explicitly reset it at the end.
+**Action:** Implement 'PopScale' animations for UI state changes (like speaker transitions) and always ensure scale state is restored to its baseline after completion.

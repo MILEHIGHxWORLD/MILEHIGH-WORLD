@@ -108,6 +108,8 @@ public class Cinematic_IntoTheVoid : MonoBehaviour
     public float skyixSpeedMultiplier = 1.2f;
 
     private Coroutine typingCoroutine;
+    private Coroutine namePopCoroutine;
+    private string lastSpeaker;
     private float currentTypingSpeed;
     private bool skipRequested;
 
@@ -149,6 +151,14 @@ public class Cinematic_IntoTheVoid : MonoBehaviour
     {
         if (typingCoroutine != null) StopCoroutine(typingCoroutine);
 
+        // UX Enhancement: Pop animation when the speaker changes
+        if (speaker != lastSpeaker)
+        {
+            if (namePopCoroutine != null) StopCoroutine(namePopCoroutine);
+            namePopCoroutine = StartCoroutine(PopScale(SpeakerNameText.transform, 0.15f, 1.2f));
+            lastSpeaker = speaker;
+        }
+
         SpeakerNameText.text = speaker;
 
         // Apply speaker-specific speed multipliers based on voice profiles
@@ -176,6 +186,25 @@ public class Cinematic_IntoTheVoid : MonoBehaviour
         }
 
         typingCoroutine = StartCoroutine(TypeDialogue(message));
+    }
+
+    private IEnumerator PopScale(Transform target, float duration, float multiplier)
+    {
+        Vector3 initialScale = target.localScale;
+        float elapsed = 0f;
+
+        while (elapsed < duration)
+        {
+            elapsed += Time.unscaledDeltaTime;
+            float progress = elapsed / duration;
+            // Use a sine wave for a smooth 'pop' effect (scaling up and back down)
+            float scaleFactor = 1f + Mathf.Sin(progress * Mathf.PI) * (multiplier - 1f);
+            target.localScale = initialScale * scaleFactor;
+            yield return null;
+        }
+
+        target.localScale = initialScale;
+        namePopCoroutine = null;
     }
 
     private IEnumerator TypeDialogue(string message)

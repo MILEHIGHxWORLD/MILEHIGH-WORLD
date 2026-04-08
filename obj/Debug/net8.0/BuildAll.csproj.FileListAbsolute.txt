@@ -1,0 +1,12 @@
+/app/obj/Debug/net8.0/BuildAll.GeneratedMSBuildEditorConfig.editorconfig
+/app/obj/Debug/net8.0/BuildAll.AssemblyInfoInputs.cache
+/app/obj/Debug/net8.0/BuildAll.AssemblyInfo.cs
+/app/obj/Debug/net8.0/BuildAll.csproj.CoreCompileInputs.cache
+/app/obj/Debug/net8.0/BuildAll.sourcelink.json
+/app/bin/Debug/net8.0/BuildAll.deps.json
+/app/bin/Debug/net8.0/BuildAll.dll
+/app/bin/Debug/net8.0/BuildAll.pdb
+/app/obj/Debug/net8.0/BuildAll.dll
+/app/obj/Debug/net8.0/refint/BuildAll.dll
+/app/obj/Debug/net8.0/BuildAll.pdb
+/app/obj/Debug/net8.0/ref/BuildAll.dll
