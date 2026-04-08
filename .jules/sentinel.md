@@ -26,4 +26,7 @@
 ## 2024-05-24 - Data Integrity and Security Validation for Deserialized Assets
 **Vulnerability:** Untrusted external data (JSON) was being used directly by the application without validation, potentially leading to out-of-bounds values or corrupted application state.
 **Learning:** Even if data is "local", it should be treated as untrusted input once it crosses the boundary from a file into the application.
-**Prevention:** Implement an `IsValid()` pattern in data models to perform security and integrity checks immediately after deserialization. This ensures the application fails fast and securely when encountering malicious or corrupted data.
+## 2024-05-24 - IDOR on Unity Singletons from External Data
+**Vulnerability:** External campaign data (JSON) allowed arbitrary modification of critical Singleton objects (CampaignManager, SceneDirector, CameraManager) through uncontrolled object interactions.
+**Learning:** In data-driven Unity projects, system/manager objects can be instantiated dynamically or act as Singletons. If object ID references from external data are not strictly validated, an attacker can manipulate system-level configurations via data tampering.
+**Prevention:** Always implement explicit whitelists or blacklists (using exact string matches, not generic `.Contains()` which can cause functional regressions) when processing object IDs from untrusted sources to block access to system components.
