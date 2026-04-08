@@ -17,6 +17,18 @@ namespace Milehigh.Core
         {
             if (string.IsNullOrEmpty(objectName)) return null;
 
+            // 🛡️ Sentinel: Mitigate DoS via complex GameObject.Find queries.
+            // Restrict name length and characters to prevent expensive scene traversals with complex patterns.
+            if (objectName.Length > 128) return null;
+
+            foreach (char c in objectName)
+            {
+                if (!char.IsLetterOrDigit(c) && c != '_' && c != ' ' && c != '(' && c != ')')
+                {
+                    return null;
+                }
+            }
+
             // BOLT: Perform an O(1) dictionary lookup first.
             // Note: Unity overrides the == operator to check if the underlying native C++ object is destroyed.
             if (_objectCache.TryGetValue(objectName, out GameObject obj) && obj != null)
