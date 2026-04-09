@@ -24,18 +24,10 @@ namespace Milehigh.Data
         /// </summary>
         public bool IsValid()
         {
-            // Void saturation must be within a safe 0.0 to 1.0 range.
+            // SECURITY: Ensure voidSaturationLevel is within the expected [0.0, 1.0] range
             if (voidSaturationLevel < 0.0f || voidSaturationLevel > 1.0f)
             {
                 Debug.LogError($"[Security] Metadata validation failed: voidSaturationLevel {voidSaturationLevel} is out of range [0.0, 1.0]");
-        /// Validates metadata integrity and safety bounds.
-        /// </summary>
-        public bool IsValid()
-        {
-            // SECURITY: Ensure voidSaturationLevel is within the expected [0.0, 1.0] range
-            if (voidSaturationLevel < 0f || voidSaturationLevel > 1f)
-            {
-                Debug.LogError($"Invalid voidSaturationLevel detected: {voidSaturationLevel}. Must be between 0.0 and 1.0.");
                 return false;
             }
             return true;
@@ -49,6 +41,18 @@ namespace Milehigh.Data
         public string role;
         public string[] traits;
         public string behaviorScript;
+
+        /// <summary>
+        /// 🛡️ Sentinel: Security validation for individual character data.
+        /// </summary>
+        public bool IsValid()
+        {
+            // SECURITY: Implement resource exhaustion protection (DoS prevention)
+            if (string.IsNullOrEmpty(name) || name.Length > 128) return false;
+            if (string.IsNullOrEmpty(role) || role.Length > 128) return false;
+            if (behaviorScript != null && behaviorScript.Length > 128) return false;
+            return true;
+        }
     }
 
     [Serializable]
@@ -84,6 +88,15 @@ namespace Milehigh.Data
         public string description;
         public List<ObjectInteraction> interactiveObjects;
         public List<Dialogue> dialogue;
+
+        /// <summary>
+        /// 🛡️ Sentinel: Security validation for individual scenarios.
+        /// </summary>
+        public bool IsValid()
+        {
+            if (string.IsNullOrEmpty(scenarioId) || scenarioId.Length > 128) return false;
+            return true;
+        }
     }
 
     [Serializable]
@@ -95,33 +108,36 @@ namespace Milehigh.Data
         public List<SceneScenario> scenarios;
 
         /// <summary>
-        /// 🛡️ Sentinel: Performs integrity and security validation on the entire campaign dataset.
+        /// 🛡️ Sentinel: Performs recursive integrity and security validation on the entire dataset.
         /// </summary>
         public bool IsValid()
         {
-            if (metadata == null)
+            // SECURITY: Recursive/hierarchical validation to ensure all nested objects are safe
+            if (string.IsNullOrEmpty(sceneId) || sceneId.Length > 128) return false;
+            if (metadata == null || !metadata.IsValid()) return false;
+
+            // SECURITY: Enforce collection limits to prevent memory exhaustion DoS
+            if (characters == null || characters.Count == 0 || characters.Count > 50)
             {
-                Debug.LogError("[Security] Game data validation failed: Metadata is missing.");
+                Debug.LogError("[Security] Game data validation failed: Invalid character count.");
                 return false;
             }
 
-            if (!metadata.IsValid())
+            foreach (var charProfile in characters)
             {
+                if (!charProfile.IsValid()) return false;
+            }
+
+            if (scenarios == null || scenarios.Count > 100)
+            {
+                Debug.LogError("[Security] Game data validation failed: Invalid scenario count.");
                 return false;
             }
 
-            if (characters == null || characters.Count == 0)
+            foreach (var scenario in scenarios)
             {
-                Debug.LogError("[Security] Game data validation failed: No character profiles defined.");
-                return false;
+                if (!scenario.IsValid()) return false;
             }
-        /// Validates the deserialized game data for security and integrity.
-        /// </summary>
-        public bool IsValid()
-        {
-            if (metadata == null) return false;
-            if (!metadata.IsValid()) return false;
-            if (characters == null || scenarios == null) return false;
 
             return true;
         }
