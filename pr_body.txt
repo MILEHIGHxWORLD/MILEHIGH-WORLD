@@ -1,0 +1,5 @@
+🚨 Severity: HIGH
+💡 Vulnerability: IDOR-like vulnerability in SceneDirector.cs where untrusted external object IDs from scenario interactions could manipulate critical system managers like CampaignManager or SceneDirector.
+🎯 Impact: Attackers could potentially modify the position, scale, or state of singleton managers, breaking game logic or bypassing intended security constraints.
+🔧 Fix: Added explicit input validation in `ApplyInteraction` to block interactions targeting "CampaignManager" or "SceneDirector" object IDs.
+✅ Verification: Ensure the game runs and `python validate_implementation.py` passes.
