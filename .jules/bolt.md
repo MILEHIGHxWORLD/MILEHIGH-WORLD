@@ -52,3 +52,7 @@
 ## 2026-03-25 - [Redundant Member Clutter Performance Impact]
 **Learning:** The 'SceneDirector.cs' file was severely cluttered with over a dozen redundant dictionary declarations and duplicate helper methods for GameObject caching. This not only increases memory overhead but also creates a "state fragmentation" risk where different parts of the initialization loop use different caches, leading to redundant O(N) traversals despite the caching intent.
 **Action:** Always audit caching implementations for redundancy. Consolidate into a single, unified caching pattern to ensure O(1) lookups are consistent across the entire system.
+
+## 2024-05-25 - [Unity Scene Setup Optimization: Prefab & Negative Caching]
+**Learning:** In 'SceneDirector.cs', initialization spikes were caused by O(N*M) lookups where N is the number of characters/objects and M is the scene hierarchy size or prefab list size. `GameObject.Find` is especially expensive when it fails, as it scans the entire scene every time.
+**Action:** Use a `Dictionary<string, GameObject>` for both prefab lookups (initialized once) and scene object resolution (with negative caching). In Unity, use `ReferenceEquals(obj, null)` to detect negative cache hits vs. destroyed "fake null" objects to maintain cache integrity.

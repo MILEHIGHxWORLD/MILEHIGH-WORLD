@@ -101,6 +101,12 @@ Shader "Milehigh/HyperPBRCharacter_4D"
             fixed4 albedo = tex2D(_MainTex, IN.uv_MainTex) * _Color;
             clip(albedo.a - _Cutoff);
 
+            // ⚡ Bolt: Initialize Albedo at the start of the surf function.
+            // This ensures additive effects like Subsurface Scattering are correctly accumulated
+            // into the final color instead of being overwritten, and avoids redundant calculations
+            // being discarded as dead work if they were assigned before a final overwrite.
+            o.Albedo = albedo.rgb;
+
             // --- PBR Properties ---
             fixed4 rmai = tex2D(_RMAIMap, IN.uv_MainTex);
             o.Smoothness = rmai.r * _Glossiness;
@@ -149,8 +155,6 @@ Shader "Milehigh/HyperPBRCharacter_4D"
                 half sss = sss_4 * sss_4 * _SSSScale;
                 o.Albedo += _SSSColor.rgb * sss * NdotL * sssMask;
             }
-
-            o.Albedo = albedo.rgb;
         }
         ENDCG
     }
