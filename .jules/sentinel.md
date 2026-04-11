@@ -27,3 +27,8 @@
 **Vulnerability:** Untrusted external data (JSON) was being used directly by the application without validation, potentially leading to out-of-bounds values or corrupted application state.
 **Learning:** Even if data is "local", it should be treated as untrusted input once it crosses the boundary from a file into the application.
 **Prevention:** Implement an `IsValid()` pattern in data models to perform security and integrity checks immediately after deserialization. This ensures the application fails fast and securely when encountering malicious or corrupted data.
+
+## 2024-05-24 - IDOR-like Tampering of Critical System Objects via Scene Interactions
+**Vulnerability:** The `ApplyInteraction` method in `SceneDirector.cs` used object IDs from untrusted JSON configurations directly in `GameObject.Find` lookups (via `GetCachedObject`) without validation. This allowed attackers to manipulate the transforms of critical system objects like `CampaignManager` or `SceneDirector`.
+**Learning:** In data-driven Unity projects, trusting external string IDs for scene object resolution creates an IDOR vulnerability, allowing manipulation of singleton or system objects that should be off-limits.
+**Prevention:** Always sanitize and validate object IDs originating from external sources. Implement explicit access control or blocklists using exact string matching (avoiding broad heuristics like `.Contains("Manager")`) to protect critical system objects from unauthorized interactions.
