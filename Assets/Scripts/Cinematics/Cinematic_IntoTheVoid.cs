@@ -34,6 +34,7 @@
 //
 // 7. Ensure your project has TextMeshPro imported (Window -> TextMeshPro -> Import TMP Essential Resources).
 
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -110,6 +111,7 @@ public class Cinematic_IntoTheVoid : MonoBehaviour
     private Coroutine typingCoroutine;
     private float currentTypingSpeed;
     private bool skipRequested;
+    private string currentSpeakerHex;
 
     // Cache for WaitForSeconds to eliminate GC allocations during coroutine execution
     private static readonly Dictionary<float, WaitForSeconds> _waitForSecondsCache = new Dictionary<float, WaitForSeconds>();
@@ -175,6 +177,7 @@ public class Cinematic_IntoTheVoid : MonoBehaviour
                 break;
         }
 
+        currentSpeakerHex = ColorUtility.ToHtmlStringRGB(SpeakerNameText.color);
         typingCoroutine = StartCoroutine(TypeDialogue(message));
     }
 
@@ -209,16 +212,33 @@ public class Cinematic_IntoTheVoid : MonoBehaviour
                 if (i > 0)
                 {
                     char c = DialogueText.textInfo.characterInfo[i - 1].character;
-                    if (c == '.' || c == '!' || c == '?') delay = currentTypingSpeed * 15f;
+                    if (c == '.' || c == '!' || c == '?')
+                    {
+                        // Rhythmic Look-ahead: Detect ellipses (multiple dots) and mid-word periods (like Sky.ix)
+                        bool isEllipsis = (i < totalVisibleCharacters && DialogueText.textInfo.characterInfo[i].character == '.') ||
+                                          (i > 1 && DialogueText.textInfo.characterInfo[i - 2].character == '.');
+
+                        bool isMidWord = i < totalVisibleCharacters && !char.IsWhiteSpace(DialogueText.textInfo.characterInfo[i].character);
+
+                        if (isEllipsis) delay = currentTypingSpeed * 5f;
+                        else if (isMidWord) delay = currentTypingSpeed; // No extra pause for mid-word punctuation
+                        else delay = currentTypingSpeed * 15f;
+                    }
                     else if (c == ',' || c == ';' || c == ':') delay = currentTypingSpeed * 8f;
                 }
 
                 yield return GetWait(delay);
             }
+            else if (i == totalVisibleCharacters && totalVisibleCharacters > 0)
+            {
+                // Final pause for punctuation endings before the completion cue appears
+                char lastChar = DialogueText.textInfo.characterInfo[totalVisibleCharacters - 1].character;
+                if (lastChar == '.' || lastChar == '!' || lastChar == '?') yield return GetWait(currentTypingSpeed * 15f);
+            }
         }
 
-        // UX Enhancement: Visual progression cue indicating text reveal is complete.
-        DialogueText.text = message + " ▽";
+        // UX Enhancement: Visual progression cue color-coded to the speaker's theme.
+        DialogueText.text = $"{message} <color=#{currentSpeakerHex}>▽</color>";
         DialogueText.maxVisibleCharacters = totalVisibleCharacters + 2;
 
         skipRequested = false;
