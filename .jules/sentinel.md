@@ -27,3 +27,7 @@
 **Vulnerability:** Untrusted external data (JSON) was being used directly by the application without validation, potentially leading to out-of-bounds values or corrupted application state.
 **Learning:** Even if data is "local", it should be treated as untrusted input once it crosses the boundary from a file into the application.
 **Prevention:** Implement an `IsValid()` pattern in data models to perform security and integrity checks immediately after deserialization. This ensures the application fails fast and securely when encountering malicious or corrupted data.
+## 2024-05-24 - IDOR-like Tampering in SceneDirector
+**Vulnerability:** The `ApplyInteraction` method in `SceneDirector.cs` allowed any object in the scene to be manipulated based on an arbitrary string ID provided in external JSON data. This could allow malicious data files to apply unauthorized transformations to critical system objects like the `CampaignManager`.
+**Learning:** Using untrusted strings directly for object lookups and modifications without validation can lead to IDOR-like vulnerabilities where unintended objects are modified.
+**Prevention:** Implement exact string matching checks to block interaction with known critical system objects, ensuring that external data can only manipulate intended game elements.
