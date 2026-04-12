@@ -34,6 +34,7 @@
 //
 // 7. Ensure your project has TextMeshPro imported (Window -> TextMeshPro -> Import TMP Essential Resources).
 
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -109,6 +110,7 @@ public class Cinematic_IntoTheVoid : MonoBehaviour
 
     private Coroutine typingCoroutine;
     private float currentTypingSpeed;
+    private string currentSpeakerHex;
     private bool skipRequested;
 
     // Cache for WaitForSeconds to eliminate GC allocations during coroutine execution
@@ -175,6 +177,7 @@ public class Cinematic_IntoTheVoid : MonoBehaviour
                 break;
         }
 
+        currentSpeakerHex = ColorUtility.ToHtmlStringRGB(SpeakerNameText.color);
         typingCoroutine = StartCoroutine(TypeDialogue(message));
     }
 
@@ -209,7 +212,27 @@ public class Cinematic_IntoTheVoid : MonoBehaviour
                 if (i > 0)
                 {
                     char c = DialogueText.textInfo.characterInfo[i - 1].character;
-                    if (c == '.' || c == '!' || c == '?') delay = currentTypingSpeed * 15f;
+                    if (c == '.' || c == '!' || c == '?')
+                    {
+                        delay = currentTypingSpeed * 15f;
+
+                        if (c == '.')
+                        {
+                            // Ellipsis detection: Check if neighboring characters are also dots
+                            bool isEllipsis = (i > 1 && DialogueText.textInfo.characterInfo[i - 2].character == '.') ||
+                                             (i < totalVisibleCharacters && DialogueText.textInfo.characterInfo[i].character == '.');
+
+                            if (isEllipsis)
+                            {
+                                delay = currentTypingSpeed * 5f;
+                            }
+                            // Mid-word dot detection (e.g., "Sky.ix"): No extra pause if not followed by whitespace
+                            else if (i < totalVisibleCharacters && !char.IsWhiteSpace(DialogueText.textInfo.characterInfo[i].character))
+                            {
+                                delay = currentTypingSpeed;
+                            }
+                        }
+                    }
                     else if (c == ',' || c == ';' || c == ':') delay = currentTypingSpeed * 8f;
                 }
 
@@ -218,7 +241,7 @@ public class Cinematic_IntoTheVoid : MonoBehaviour
         }
 
         // UX Enhancement: Visual progression cue indicating text reveal is complete.
-        DialogueText.text = message + " ▽";
+        DialogueText.text = message + $" <color=#{currentSpeakerHex}>▽</color>";
         DialogueText.maxVisibleCharacters = totalVisibleCharacters + 2;
 
         skipRequested = false;
