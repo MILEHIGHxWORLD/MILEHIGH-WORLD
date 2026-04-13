@@ -75,7 +75,7 @@ namespace Milehigh.Core
             // BOLT: Performance Optimization - Pre-populate cache with a single O(N) pass
             // This eliminates redundant O(N) scene traversals for subsequent lookups.
             _objectCache.Clear();
-            var allObjects = Object.FindObjectsOfType<GameObject>();
+            var allObjects = UnityEngine.Object.FindObjectsOfType<GameObject>();
             foreach (var go in allObjects)
             {
                 if (!_objectCache.ContainsKey(go.name))
