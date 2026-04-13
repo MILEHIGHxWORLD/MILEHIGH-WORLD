@@ -1,0 +1,17 @@
+{
+  "version": 2,
+  "dgSpecHash": "LtuMDVQwG8o=",
+  "success": false,
+  "projectFilePath": "/app/Tests/AeronTests/AeronTests.csproj",
+  "expectedPackageFiles": [],
+  "logs": [
+    {
+      "code": "NU1301",
+      "level": "Error",
+      "message": "Unable to load the service index for source https://api.nuget.org/v3/index.json.\n  The HTTP request to 'GET https://api.nuget.org/v3/index.json' has timed out after 100000ms.",
+      "projectPath": "/app/Tests/AeronTests/AeronTests.csproj",
+      "filePath": "/app/Tests/AeronTests/AeronTests.csproj",
+      "targetGraphs": []
+    }
+  ]
+}
