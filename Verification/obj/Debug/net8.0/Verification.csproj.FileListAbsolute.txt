@@ -1,0 +1,12 @@
+/app/Verification/obj/Debug/net8.0/Verification.GeneratedMSBuildEditorConfig.editorconfig
+/app/Verification/obj/Debug/net8.0/Verification.AssemblyInfoInputs.cache
+/app/Verification/obj/Debug/net8.0/Verification.AssemblyInfo.cs
+/app/Verification/obj/Debug/net8.0/Verification.csproj.CoreCompileInputs.cache
+/app/Verification/obj/Debug/net8.0/Verification.sourcelink.json
+/app/Verification/bin/Debug/net8.0/Verification.deps.json
+/app/Verification/bin/Debug/net8.0/Verification.dll
+/app/Verification/bin/Debug/net8.0/Verification.pdb
+/app/Verification/obj/Debug/net8.0/Verification.dll
+/app/Verification/obj/Debug/net8.0/refint/Verification.dll
+/app/Verification/obj/Debug/net8.0/Verification.pdb
+/app/Verification/obj/Debug/net8.0/ref/Verification.dll

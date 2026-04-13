@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="TempMocks.cs" />
+    <Compile Include="../Assets/Scripts/Cinematics/Cinematic_IntoTheVoid.cs" />
+    <Compile Include="../Assets/Scripts/Data/HorizonGameData.cs" />
+    <Compile Include="../Assets/Scripts/Data/CharacterData.cs" />
+    <Compile Include="../Assets/Scripts/Editor/CharacterFactory.cs" />
+  </ItemGroup>
+</Project>
