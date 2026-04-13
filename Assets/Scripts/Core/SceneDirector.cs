@@ -2,6 +2,7 @@ using UnityEngine;
 using System.Collections.Generic;
 using Milehigh.Data;
 using Milehigh.Characters;
+using System.Text.RegularExpressions;
 
 namespace Milehigh.Core
 {
@@ -13,9 +14,20 @@ namespace Milehigh.Core
         // BOLT: Consolidated cache for GameObjects to prevent expensive O(N) GameObject.Find calls
         private Dictionary<string, GameObject> _objectCache = new Dictionary<string, GameObject>();
 
+        // 🛡️ Sentinel: Regex for white-listing safe characters in object names to prevent DoS via GameObject.Find
+        private static readonly Regex _safeNameRegex = new Regex(@"^[a-zA-Z0-9_\s\(\)\.\-\[\]]+$");
+        private const int MAX_NAME_LENGTH = 128;
+
         private GameObject GetCachedObject(string objectName)
         {
             if (string.IsNullOrEmpty(objectName)) return null;
+
+            // 🛡️ Sentinel: Sanitize input to mitigate DoS risks and ensure data integrity
+            if (objectName.Length > MAX_NAME_LENGTH || !_safeNameRegex.IsMatch(objectName))
+            {
+                Debug.LogWarning($"[Security] GetCachedObject: Rejected potentially unsafe object name '{objectName}'");
+                return null;
+            }
 
             // BOLT: Perform an O(1) dictionary lookup first.
             // Note: Unity overrides the == operator to check if the underlying native C++ object is destroyed.

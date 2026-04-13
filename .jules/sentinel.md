@@ -27,3 +27,8 @@
 **Vulnerability:** Untrusted external data (JSON) was being used directly by the application without validation, potentially leading to out-of-bounds values or corrupted application state.
 **Learning:** Even if data is "local", it should be treated as untrusted input once it crosses the boundary from a file into the application.
 **Prevention:** Implement an `IsValid()` pattern in data models to perform security and integrity checks immediately after deserialization. This ensures the application fails fast and securely when encountering malicious or corrupted data.
+
+## 2025-05-24 - DoS Protection and Resource Limits in Scene Lookups and Data Ingestion
+**Vulnerability:** The application was vulnerable to Denial of Service (DoS) attacks via unsanitized user input in `GameObject.Find` and lack of resource limits (string lengths, object counts) in deserialized campaign data.
+**Learning:** External data, even if trusted as "local assets", must have enforced resource limits to prevent memory exhaustion or CPU-intensive operations (like O(N) scene traversals with complex search patterns).
+**Prevention:** Implement strict length limits and character whitelists for all string inputs used in lookup functions. Enforce bounds on collection sizes and string lengths during data validation immediately after deserialization.
