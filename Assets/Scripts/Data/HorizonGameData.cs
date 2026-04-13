@@ -11,7 +11,7 @@ namespace Milehigh.Data
         Dynamic
     }
 
-    [Serializable]
+    [System.Serializable]
     public class Metadata
     {
         public LightingState lighting;
@@ -27,14 +27,14 @@ namespace Milehigh.Data
             // Void saturation must be within a safe 0.0 to 1.0 range.
             if (voidSaturationLevel < 0.0f || voidSaturationLevel > 1.0f)
             {
-                Debug.LogError($"[Security] Metadata validation failed: voidSaturationLevel {voidSaturationLevel} is out of range [0.0, 1.0]");
+                UnityEngine.Debug.LogError($"[Security] Metadata validation failed: voidSaturationLevel {voidSaturationLevel} is out of range [0.0, 1.0]");
                 return false;
             }
             return true;
         }
     }
 
-    [Serializable]
+    [System.Serializable]
     public class CharacterProfile
     {
         public string name;
@@ -43,7 +43,7 @@ namespace Milehigh.Data
         public string behaviorScript;
     }
 
-    [Serializable]
+    [System.Serializable]
     public class ObjectInteraction
     {
         public string objectId;
@@ -55,13 +55,13 @@ namespace Milehigh.Data
         public float y;
         public float z;
 
-        public Vector3 GetVectorValue()
+        public UnityEngine.Vector3 GetVectorValue()
         {
-            return new Vector3(x, y, z);
+            return new UnityEngine.Vector3(x, y, z);
         }
     }
 
-    [Serializable]
+    [System.Serializable]
     public class Dialogue
     {
         public string speaker;
@@ -69,7 +69,7 @@ namespace Milehigh.Data
         public string trigger;
     }
 
-    [Serializable]
+    [System.Serializable]
     public class SceneScenario
     {
         public string scenarioId;
@@ -78,7 +78,7 @@ namespace Milehigh.Data
         public List<Dialogue> dialogue;
     }
 
-    [Serializable]
+    [System.Serializable]
     public class HorizonGameData
     {
         public string sceneId;
@@ -93,7 +93,7 @@ namespace Milehigh.Data
         {
             if (metadata == null)
             {
-                Debug.LogError("[Security] Game data validation failed: Metadata is missing.");
+                UnityEngine.Debug.LogError("[Security] Game data validation failed: Metadata is missing.");
                 return false;
             }
 
@@ -104,13 +104,13 @@ namespace Milehigh.Data
 
             if (characters == null || characters.Count == 0)
             {
-                Debug.LogError("[Security] Game data validation failed: No character profiles defined.");
+                UnityEngine.Debug.LogError("[Security] Game data validation failed: No character profiles defined.");
                 return false;
             }
 
             if (scenarios == null)
             {
-                Debug.LogError("[Security] Game data validation failed: Scenarios list is missing.");
+                UnityEngine.Debug.LogError("[Security] Game data validation failed: Scenarios list is missing.");
                 return false;
             }
 
