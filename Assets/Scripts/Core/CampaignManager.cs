@@ -59,21 +59,23 @@ namespace Milehigh.Core
 
                     // 🛡️ Sentinel: Security validation of deserialized data.
                     // SECURITY: Perform validation after deserialization to ensure data integrity
-                    if (currentCampaignData != null && currentCampaignData.IsValid())
+                    if (currentCampaignData != null)
                     {
-                        currentVoidSaturationLevel = currentCampaignData.metadata.voidSaturationLevel;
-                        // SECURITY: Log only the file name, not the absolute path, to prevent information disclosure
-                        Debug.Log($"Campaign data loaded and validated from {fileName}");
+                        if (currentCampaignData.IsValid())
+                        {
+                            currentVoidSaturationLevel = currentCampaignData.metadata.voidSaturationLevel;
+                            // SECURITY: Log only the file name, not the absolute path, to prevent information disclosure
+                            Debug.Log($"Campaign data loaded and validated from {fileName}");
+                        }
+                        else
+                        {
+                            Debug.LogError($"Campaign data from {fileName} failed security validation.");
+                            currentCampaignData = null;
+                        }
                     }
                     else
                     {
-                        Debug.LogError($"Failed to parse or validate campaign data from {fileName}.");
-                        currentCampaignData = null; // Ensure we don't use invalid data
-                    }
-                    else
-                    {
-                        Debug.LogError($"Campaign data from {fileName} failed security validation.");
-                        currentCampaignData = null;
+                        Debug.LogError($"Failed to parse campaign data from {fileName}.");
                     }
                 }
                 catch (System.Exception ex)
