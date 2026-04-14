@@ -32,15 +32,15 @@ namespace Milehigh.Core
             if (_objectCache.TryGetValue(objectName, out GameObject obj))
             {
                 // Unity overrides the == operator to check if the underlying native C++ object is destroyed.
-                // We also use ReferenceEquals for a faster check against true null (uninitialized or negative cache).
-                if (!ReferenceEquals(obj, null) && obj != null)
+                // We also use object.ReferenceEquals for a faster check against true null (uninitialized or negative cache).
+                if (!object.ReferenceEquals(obj, null) && obj != null)
                 {
                     return obj;
                 }
 
                 // If the object was destroyed but still in cache (fake null), or it's a legitimate negative hit (real null),
                 // we treat it as "not found" but don't immediately re-search if it was a negative hit.
-                if (ReferenceEquals(obj, null)) return null;
+                if (object.ReferenceEquals(obj, null)) return null;
             }
 
             // BOLT: Fallback to O(N) scene traversal only if not in cache or was a destroyed instance.
@@ -54,7 +54,10 @@ namespace Milehigh.Core
 
         private void Start()
         {
-            if (CampaignManager.Instance.currentCampaignData != null)
+            if (CampaignManager.Instance != null &&
+                CampaignManager.Instance.currentCampaignData != null &&
+                CampaignManager.Instance.currentCampaignData.scenarios != null &&
+                CampaignManager.Instance.currentCampaignData.scenarios.Count > 0)
             {
                 SetupScene(CampaignManager.Instance.currentCampaignData.scenarios[0]);
             }
@@ -62,12 +65,13 @@ namespace Milehigh.Core
 
         public void SetupScene(SceneScenario scenario)
         {
+            if (scenario == null) return;
             Debug.Log($"Setting up scenario: {scenario.scenarioId}");
 
             // BOLT: Performance optimization - Pre-populate the cache with a single O(N) pass
             // instead of calling GameObject.Find (O(N)) repeatedly in loops (O(N*M)).
             _objectCache.Clear();
-            GameObject[] allObjects = Object.FindObjectsOfType<GameObject>();
+            GameObject[] allObjects = UnityEngine.Object.FindObjectsOfType<GameObject>();
             foreach (var go in allObjects)
             {
                 if (go != null) _objectCache[go.name] = go;
@@ -84,26 +88,35 @@ namespace Milehigh.Core
             }
 
             // Instantiate characters if not already in scene
-            foreach (var charProfile in CampaignManager.Instance.currentCampaignData.characters)
+            if (CampaignManager.Instance != null && CampaignManager.Instance.currentCampaignData != null && CampaignManager.Instance.currentCampaignData.characters != null)
             {
-                SpawnOrUpdateCharacter(charProfile);
+                foreach (var charProfile in CampaignManager.Instance.currentCampaignData.characters)
+                {
+                    SpawnOrUpdateCharacter(charProfile);
+                }
             }
 
             // Execute interactive objects logic
-            foreach (var interaction in scenario.interactiveObjects)
+            if (scenario.interactiveObjects != null)
             {
-                ApplyInteraction(interaction);
+                foreach (var interaction in scenario.interactiveObjects)
+                {
+                    ApplyInteraction(interaction);
+                }
             }
         }
 
         private void SpawnOrUpdateCharacter(CharacterProfile profile)
         {
+            if (profile == null || string.IsNullOrEmpty(profile.name)) return;
+
             GameObject characterObj = GetCachedObject(profile.name);
 
             if (characterObj == null)
             {
                 // BOLT: O(1) exact match lookup from prefab cache.
-                if (!_prefabCache.TryGetValue(profile.name, out GameObject prefab))
+                GameObject prefab = null;
+                if (!_prefabCache.TryGetValue(profile.name, out prefab))
                 {
                     // Fallback to O(N) partial match if exact name not found.
                     foreach (var kvp in _prefabCache)
@@ -133,7 +146,7 @@ namespace Milehigh.Core
                 if (controller != null)
                 {
                     // Create a dummy CharacterData for runtime initialization
-                    CharacterData data = ScriptableObject.CreateInstance<CharacterData>();
+                    CharacterData data = UnityEngine.ScriptableObject.CreateInstance<CharacterData>();
                     data.characterName = profile.name;
                     data.role = profile.role;
                     data.traits = profile.traits;
@@ -146,6 +159,8 @@ namespace Milehigh.Core
 
         private void ApplyInteraction(ObjectInteraction interaction)
         {
+            if (interaction == null || string.IsNullOrEmpty(interaction.objectId)) return;
+
             GameObject target = GetCachedObject(interaction.objectId);
 
             if (target != null)

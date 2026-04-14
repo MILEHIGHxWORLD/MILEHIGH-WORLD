@@ -135,7 +135,7 @@ Shader "Milehigh/HyperPBRCharacter_4D"
                 o.Specular = lerp(o.Specular, o.Specular * iridescence, iridescenceMask);
             }
 
-            // ⚡ Bolt: Removed dead Subsurface Scattering logic block that was being overwritten
+            // BOLT: Removed dead Subsurface Scattering logic block that was being overwritten
             // by the final Albedo assignment below. This saves GPU cycles and a texture sample.
 
             o.Albedo = albedo.rgb;
