@@ -13,7 +13,7 @@ namespace Milehigh.Core
             {
                 if (_instance == null)
                 {
-                    _instance = FindObjectOfType<CampaignManager>();
+                    _instance = UnityEngine.Object.FindObjectOfType<CampaignManager>();
                     if (_instance == null)
                     {
                         GameObject go = new GameObject("CampaignManager");
@@ -57,8 +57,7 @@ namespace Milehigh.Core
                     string json = File.ReadAllText(filePath);
                     currentCampaignData = JsonUtility.FromJson<HorizonGameData>(json);
 
-                    // 🛡️ Sentinel: Security validation of deserialized data.
-                    // SECURITY: Perform validation after deserialization to ensure data integrity
+                    // Sentinel: Security validation of deserialized data.
                     if (currentCampaignData != null && currentCampaignData.IsValid())
                     {
                         currentVoidSaturationLevel = currentCampaignData.metadata.voidSaturationLevel;
@@ -70,16 +69,10 @@ namespace Milehigh.Core
                         Debug.LogError($"Failed to parse or validate campaign data from {fileName}.");
                         currentCampaignData = null; // Ensure we don't use invalid data
                     }
-                    else
-                    {
-                        Debug.LogError($"Campaign data from {fileName} failed security validation.");
-                        currentCampaignData = null;
-                    }
                 }
                 catch (System.Exception ex)
                 {
                     // SECURITY: Catch exceptions during file read/JSON parse to fail securely and avoid leaking internal stack traces.
-                    Debug.LogError($"Failed to load or parse campaign data from {fileName}.");
                     // SECURITY: Mask runtime exception stack traces and avoid leaking absolute paths in logs
                     Debug.LogError($"Error loading campaign data from {fileName}: {ex.Message}");
                 }
