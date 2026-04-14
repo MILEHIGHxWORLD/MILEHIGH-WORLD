@@ -262,7 +262,7 @@ public class Cinematic_IntoTheVoid : MonoBehaviour
 
         // UX Enhancement: Visual progression cue indicating text reveal is complete.
         // Color-code the cue to match the speaker's name color for visual cohesion.
-        string hexColor = ColorUtility.ToHtmlStringRGBA(SpeakerNameText.color);
+        string hexColor = UnityEngine.ColorUtility.ToHtmlStringRGBA(SpeakerNameText.color);
         DialogueText.text = message + $" <color=#{hexColor}>▽</color>";
         DialogueText.maxVisibleCharacters = totalVisibleCharacters + 2;
 
