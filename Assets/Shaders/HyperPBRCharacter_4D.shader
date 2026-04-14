@@ -135,20 +135,8 @@ Shader "Milehigh/HyperPBRCharacter_4D"
                 o.Specular = lerp(o.Specular, o.Specular * iridescence, iridescenceMask);
             }
 
-            // --- Subsurface Scattering ---
-            half sssMask = tex2D(_SSSMask, IN.uv_MainTex).r;
-            if (sssMask > 0)
-            {
-                // A more advanced SSS would use a proper lighting model.
-                // This is a stylistic approximation.
-                half NdotL = dot(o.Normal, _WorldSpaceLightPos0.xyz);
-                // ⚡ Bolt: Replace pow(..., 8.0) with nested squares for performance
-                half sss_base = saturate(dot(IN.viewDir, -_WorldSpaceLightPos0.xyz));
-                half sss_sq = sss_base * sss_base;
-                half sss_4 = sss_sq * sss_sq;
-                half sss = sss_4 * sss_4 * _SSSScale;
-                o.Albedo += _SSSColor.rgb * sss * NdotL * sssMask;
-            }
+            // ⚡ Bolt: Removed dead Subsurface Scattering logic block that was being overwritten
+            // by the final Albedo assignment below. This saves GPU cycles and a texture sample.
 
             o.Albedo = albedo.rgb;
         }
