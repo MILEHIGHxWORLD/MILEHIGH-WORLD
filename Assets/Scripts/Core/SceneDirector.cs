@@ -11,26 +11,37 @@ namespace Milehigh.Core
         public Transform characterSpawnRoot;
 
         // BOLT: Consolidated cache for GameObjects to prevent expensive O(N) GameObject.Find calls
-        private Dictionary<string, GameObject> _objectCache = new Dictionary<string, GameObject>();
+        private readonly Dictionary<string, GameObject?> _objectCache = new();
+        // BOLT: Cache for prefabs to avoid repeated string matching in the list
+        private readonly Dictionary<string, GameObject?> _prefabCache = new();
 
-        private GameObject GetCachedObject(string objectName)
+        private GameObject? GetCachedObject(string objectName)
         {
             if (string.IsNullOrEmpty(objectName)) return null;
 
             // BOLT: Perform an O(1) dictionary lookup first.
-            // Note: Unity overrides the == operator to check if the underlying native C++ object is destroyed.
-            if (_objectCache.TryGetValue(objectName, out GameObject obj) && obj != null)
+            // Note: Use ReferenceEquals for the cache check to distinguish between a truly missing
+            // entry and one that was cached as null (negative caching).
+            if (_objectCache.TryGetValue(objectName, out GameObject? obj))
             {
-                return obj;
+                // Unity's == operator returns true for destroyed objects.
+                if (obj != null) return obj;
+
+                // If it's null but the key exists, it means we already searched and found nothing (negative cache),
+                // OR the object was destroyed since being cached.
+                if (System.Object.ReferenceEquals(obj, null)) return null;
             }
 
-            // BOLT: Fallback to O(N) scene traversal only if not cached.
+            // BOLT: Fallback to O(N) scene traversal only if not in cache.
             obj = GameObject.Find(objectName);
-            if (obj != null)
-            {
-                _objectCache[objectName] = obj;
-            }
+            _objectCache[objectName] = obj; // Cache the result, even if null (negative caching)
             return obj;
+        }
+
+        private void OnDestroy()
+        {
+            _objectCache.Clear();
+            _prefabCache.Clear();
         }
 
         private void Start()
@@ -45,8 +56,19 @@ namespace Milehigh.Core
         {
             Debug.Log($"Setting up scenario: {scenario.scenarioId}");
 
-            // Clear cache at start of setup to avoid stale references across scenes
+            // Clear caches at start of setup to avoid stale references across scenes
             _objectCache.Clear();
+            _prefabCache.Clear();
+
+            // BOLT: Pre-populate object cache with a single O(N) pass to avoid multiple GameObject.Find calls
+            var allObjects = Object.FindObjectsByType<GameObject>(FindObjectsInactive.None, FindObjectsSortMode.None);
+            foreach (var go in allObjects)
+            {
+                if (!_objectCache.ContainsKey(go.name))
+                {
+                    _objectCache[go.name] = go;
+                }
+            }
 
             // Instantiate characters if not already in scene
             foreach (var charProfile in CampaignManager.Instance.currentCampaignData.characters)
@@ -63,12 +85,17 @@ namespace Milehigh.Core
 
         private void SpawnOrUpdateCharacter(CharacterProfile profile)
         {
-            GameObject characterObj = GetCachedObject(profile.name);
+            GameObject? characterObj = GetCachedObject(profile.name);
 
             if (characterObj == null)
             {
-                // Try to find prefab if not in scene
-                GameObject prefab = characterPrefabs?.Find(p => p.name.Contains(profile.name));
+                // BOLT: Use prefab cache to avoid repeated string matching in the list
+                if (!_prefabCache.TryGetValue(profile.name, out GameObject? prefab))
+                {
+                    prefab = characterPrefabs?.Find(p => p != null && p.name.Contains(profile.name));
+                    _prefabCache[profile.name] = prefab;
+                }
+
                 if (prefab != null)
                 {
                     characterObj = Instantiate(prefab, characterSpawnRoot);
