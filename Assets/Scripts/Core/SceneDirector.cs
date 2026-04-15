@@ -11,18 +11,18 @@ namespace Milehigh.Core
         public Transform characterSpawnRoot;
 
         // BOLT: Consolidated cache for GameObjects to prevent expensive O(N) GameObject.Find calls
-        private readonly Dictionary<string, GameObject?> _objectCache = new();
+        private readonly Dictionary<string, GameObject> _objectCache = new Dictionary<string, GameObject>();
         // BOLT: Cache for prefabs to avoid repeated string matching in the list
-        private readonly Dictionary<string, GameObject?> _prefabCache = new();
+        private readonly Dictionary<string, GameObject> _prefabCache = new Dictionary<string, GameObject>();
 
-        private GameObject? GetCachedObject(string objectName)
+        private GameObject GetCachedObject(string objectName)
         {
             if (string.IsNullOrEmpty(objectName)) return null;
 
             // BOLT: Perform an O(1) dictionary lookup first.
             // Note: Use ReferenceEquals for the cache check to distinguish between a truly missing
             // entry and one that was cached as null (negative caching).
-            if (_objectCache.TryGetValue(objectName, out GameObject? obj))
+            if (_objectCache.TryGetValue(objectName, out GameObject obj))
             {
                 // Unity's == operator returns true for destroyed objects.
                 if (obj != null) return obj;
@@ -85,12 +85,13 @@ namespace Milehigh.Core
 
         private void SpawnOrUpdateCharacter(CharacterProfile profile)
         {
-            GameObject? characterObj = GetCachedObject(profile.name);
+            GameObject characterObj = GetCachedObject(profile.name);
 
             if (characterObj == null)
             {
                 // BOLT: Use prefab cache to avoid repeated string matching in the list
-                if (!_prefabCache.TryGetValue(profile.name, out GameObject? prefab))
+                GameObject prefab;
+                if (!_prefabCache.TryGetValue(profile.name, out prefab))
                 {
                     prefab = characterPrefabs?.Find(p => p != null && p.name.Contains(profile.name));
                     _prefabCache[profile.name] = prefab;
