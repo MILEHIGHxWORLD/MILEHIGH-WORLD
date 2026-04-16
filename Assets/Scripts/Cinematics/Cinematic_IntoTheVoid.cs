@@ -109,6 +109,7 @@ public class Cinematic_IntoTheVoid : MonoBehaviour
 
     private Coroutine typingCoroutine;
     private float currentTypingSpeed;
+    private string currentSpeakerHex;
     private bool skipRequested;
 
     // Cache for WaitForSeconds to eliminate GC allocations during coroutine execution
@@ -175,6 +176,7 @@ public class Cinematic_IntoTheVoid : MonoBehaviour
                 break;
         }
 
+        currentSpeakerHex = ColorUtility.ToHtmlStringRGB(SpeakerNameText.color);
         typingCoroutine = StartCoroutine(TypeDialogue(message));
     }
 
@@ -209,7 +211,15 @@ public class Cinematic_IntoTheVoid : MonoBehaviour
                 if (i > 0)
                 {
                     char c = DialogueText.textInfo.characterInfo[i - 1].character;
-                    if (c == '.' || c == '!' || c == '?') delay = currentTypingSpeed * 15f;
+
+                    // Ellipsis detection: dot with dot neighbors
+                    bool isEllipsis = c == '.' && (
+                        (i < totalVisibleCharacters && DialogueText.textInfo.characterInfo[i].character == '.') ||
+                        (i > 1 && DialogueText.textInfo.characterInfo[i - 2].character == '.')
+                    );
+
+                    if (isEllipsis) delay = currentTypingSpeed * 5f;
+                    else if (c == '.' || c == '!' || c == '?') delay = currentTypingSpeed * 15f;
                     else if (c == ',' || c == ';' || c == ':') delay = currentTypingSpeed * 8f;
                 }
 
@@ -217,8 +227,19 @@ public class Cinematic_IntoTheVoid : MonoBehaviour
             }
         }
 
+        // UX Enhancement: Post-reveal pause for final punctuation
+        if (totalVisibleCharacters > 0 && !skipRequested)
+        {
+            char lastChar = DialogueText.textInfo.characterInfo[totalVisibleCharacters - 1].character;
+            if (lastChar == '.' || lastChar == '!' || lastChar == '?')
+            {
+                yield return GetWait(currentTypingSpeed * 15f);
+            }
+        }
+
         // UX Enhancement: Visual progression cue indicating text reveal is complete.
-        DialogueText.text = message + " ▽";
+        // Color-coded to match the speaker's theme.
+        DialogueText.text = $"{message} <color=#{currentSpeakerHex}>▽</color>";
         DialogueText.maxVisibleCharacters = totalVisibleCharacters + 2;
 
         skipRequested = false;
