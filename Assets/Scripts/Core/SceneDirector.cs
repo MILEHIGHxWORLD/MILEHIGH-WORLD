@@ -2,6 +2,7 @@ using UnityEngine;
 using System.Collections.Generic;
 using Milehigh.Data;
 using Milehigh.Characters;
+using System.Text.RegularExpressions;
 
 namespace Milehigh.Core
 {
@@ -16,6 +17,20 @@ namespace Milehigh.Core
         private GameObject GetCachedObject(string objectName)
         {
             if (string.IsNullOrEmpty(objectName)) return null;
+
+            // 🛡️ Sentinel: Mitigate Denial of Service (DoS) attacks via expensive GameObject.Find calls.
+            // We restrict object names to a 128-character limit and a whitelist of safe characters.
+            if (objectName.Length > 128)
+            {
+                Debug.LogWarning($"[Security] GetCachedObject aborted: objectName exceeds 128 character limit.");
+                return null;
+            }
+
+            if (!Regex.IsMatch(objectName, @"^[a-zA-Z0-9_\s\(\)\-\.\[\]\/]+$"))
+            {
+                Debug.LogWarning($"[Security] GetCachedObject aborted: objectName contains illegal characters.");
+                return null;
+            }
 
             // BOLT: Perform an O(1) dictionary lookup first.
             // Note: Unity overrides the == operator to check if the underlying native C++ object is destroyed.
@@ -113,6 +128,12 @@ namespace Milehigh.Core
                     target.transform.localScale = Vector3.one * interaction.floatValue;
                 }
             }
+        }
+
+        private void OnDestroy()
+        {
+            // Clear caches to release references
+            _objectCache.Clear();
         }
     }
 }
