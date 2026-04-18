@@ -15,7 +15,7 @@ namespace Milehigh.Data
     public class Metadata
     {
         public LightingState lighting;
-        public string environment;
+        public string environment = null!;
         public int systemParity;
         public float voidSaturationLevel;
 
@@ -24,18 +24,10 @@ namespace Milehigh.Data
         /// </summary>
         public bool IsValid()
         {
-            // Void saturation must be within a safe 0.0 to 1.0 range.
+            // SECURITY: Ensure voidSaturationLevel is within the expected [0.0, 1.0] range
             if (voidSaturationLevel < 0.0f || voidSaturationLevel > 1.0f)
             {
                 Debug.LogError($"[Security] Metadata validation failed: voidSaturationLevel {voidSaturationLevel} is out of range [0.0, 1.0]");
-        /// Validates metadata integrity and safety bounds.
-        /// </summary>
-        public bool IsValid()
-        {
-            // SECURITY: Ensure voidSaturationLevel is within the expected [0.0, 1.0] range
-            if (voidSaturationLevel < 0f || voidSaturationLevel > 1f)
-            {
-                Debug.LogError($"Invalid voidSaturationLevel detected: {voidSaturationLevel}. Must be between 0.0 and 1.0.");
                 return false;
             }
             return true;
@@ -45,17 +37,17 @@ namespace Milehigh.Data
     [Serializable]
     public class CharacterProfile
     {
-        public string name;
-        public string role;
-        public string[] traits;
-        public string behaviorScript;
+        public string name = null!;
+        public string role = null!;
+        public string[] traits = null!;
+        public string behaviorScript = null!;
     }
 
     [Serializable]
     public class ObjectInteraction
     {
-        public string objectId;
-        public string action;
+        public string objectId = null!;
+        public string action = null!;
 
         public bool isVector;
         public float floatValue;
@@ -72,27 +64,27 @@ namespace Milehigh.Data
     [Serializable]
     public class Dialogue
     {
-        public string speaker;
-        public string text;
-        public string trigger;
+        public string speaker = null!;
+        public string text = null!;
+        public string trigger = null!;
     }
 
     [Serializable]
     public class SceneScenario
     {
-        public string scenarioId;
-        public string description;
-        public List<ObjectInteraction> interactiveObjects;
-        public List<Dialogue> dialogue;
+        public string scenarioId = null!;
+        public string description = null!;
+        public List<ObjectInteraction> interactiveObjects = null!;
+        public List<Dialogue> dialogue = null!;
     }
 
     [Serializable]
     public class HorizonGameData
     {
-        public string sceneId;
-        public Metadata metadata;
-        public List<CharacterProfile> characters;
-        public List<SceneScenario> scenarios;
+        public string sceneId = null!;
+        public Metadata metadata = null!;
+        public List<CharacterProfile> characters = null!;
+        public List<SceneScenario> scenarios = null!;
 
         /// <summary>
         /// 🛡️ Sentinel: Performs integrity and security validation on the entire campaign dataset.
@@ -115,13 +107,12 @@ namespace Milehigh.Data
                 Debug.LogError("[Security] Game data validation failed: No character profiles defined.");
                 return false;
             }
-        /// Validates the deserialized game data for security and integrity.
-        /// </summary>
-        public bool IsValid()
-        {
-            if (metadata == null) return false;
-            if (!metadata.IsValid()) return false;
-            if (characters == null || scenarios == null) return false;
+
+            if (scenarios == null || scenarios.Count == 0)
+            {
+                Debug.LogError("[Security] Game data validation failed: No scenarios defined.");
+                return false;
+            }
 
             return true;
         }
