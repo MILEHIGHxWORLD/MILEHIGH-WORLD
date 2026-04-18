@@ -18,16 +18,13 @@ namespace Milehigh.Editor
             }
 
             string json = File.ReadAllText(path);
-            HorizonGameData data = JsonUtility.FromJson<HorizonGameData>(json);
+            HorizonGameData? data = JsonUtility.FromJson<HorizonGameData>(json);
 
             // 🛡️ Sentinel: Security validation of deserialized data.
+            // SECURITY: Always validate data after deserialization to prevent processing of malicious or malformed content.
             if (data == null || !data.IsValid())
             {
                 Debug.LogError("[Security] Character import aborted: Campaign data failed validation.");
-            // SECURITY: Always validate data after deserialization
-            if (data == null || !data.IsValid())
-            {
-                Debug.LogError("Failed to parse or validate campaign data.");
                 return;
             }
 
@@ -44,30 +41,29 @@ namespace Milehigh.Editor
             foreach (var charProfile in data.characters)
             {
                 CharacterData asset = ScriptableObject.CreateInstance<CharacterData>();
-                asset.characterName = charProfile.name;
-                asset.role = charProfile.role;
-                asset.traits = charProfile.traits;
-                asset.behaviorScript = charProfile.behaviorScript;
+                asset.characterName = charProfile.name ?? "unnamed";
+                asset.role = charProfile.role ?? "none";
+                asset.traits = charProfile.traits ?? new string[0];
+                asset.behaviorScript = charProfile.behaviorScript ?? "";
 
-                // 🛡️ Sentinel: Sanitize character name to prevent Path Traversal vulnerabilities
-                // Malicious JSON could use "../" to write assets outside the intended directory.
-                // We use Path.GetFileName to ensure only the final component is used, and replace invalid chars.
+                // 🛡️ Sentinel: Sanitize character name to prevent Path Traversal vulnerabilities.
+                // Malicious JSON could use "../" or absolute paths to write assets outside the intended directory.
                 string baseName = charProfile.name ?? "unnamed_character";
-                string safeFileName = baseName;
-                // Malicious JSON could use "../" to write assets outside the intended directory
-                string sanitizedName = charProfile.name;
+
+                // 1. Replace invalid filename characters with underscores
                 foreach (char c in Path.GetInvalidFileNameChars())
                 {
-                    safeFileName = safeFileName.Replace(c, '_');
+                    baseName = baseName.Replace(c, '_');
                 }
-                safeFileName = Path.GetFileName(safeFileName).Replace(" ", "_");
 
-                // Ensure no directory traversal sequences remain
-                string safeFileName = Path.GetFileName(sanitizedName);
+                // 2. Use Path.GetFileName to strip any remaining directory traversal sequences (like "../")
+                // and replace spaces with underscores for better compatibility.
+                string safeFileName = Path.GetFileName(baseName).Replace(" ", "_");
 
                 string assetPath = $"{folderPath}/{safeFileName}.asset";
-                AssetDatabase.CreateAsset(asset, assetPath);
-                // SECURITY: Log relative asset path to avoid absolute path disclosure
+                AssetDatabase.CreateAsset((UnityEngine.Object)asset, assetPath);
+
+                // SECURITY: Log relative asset path to avoid absolute path disclosure.
                 Debug.Log($"Created character asset: {assetPath}");
             }
 
