@@ -1,0 +1,12 @@
+/app/TempTest/obj/Debug/net8.0/TempTest.GeneratedMSBuildEditorConfig.editorconfig
+/app/TempTest/obj/Debug/net8.0/TempTest.AssemblyInfoInputs.cache
+/app/TempTest/obj/Debug/net8.0/TempTest.AssemblyInfo.cs
+/app/TempTest/obj/Debug/net8.0/TempTest.csproj.CoreCompileInputs.cache
+/app/TempTest/obj/Debug/net8.0/TempTest.sourcelink.json
+/app/TempTest/bin/Debug/net8.0/TempTest.deps.json
+/app/TempTest/bin/Debug/net8.0/TempTest.dll
+/app/TempTest/bin/Debug/net8.0/TempTest.pdb
+/app/TempTest/obj/Debug/net8.0/TempTest.dll
+/app/TempTest/obj/Debug/net8.0/refint/TempTest.dll
+/app/TempTest/obj/Debug/net8.0/TempTest.pdb
+/app/TempTest/obj/Debug/net8.0/ref/TempTest.dll

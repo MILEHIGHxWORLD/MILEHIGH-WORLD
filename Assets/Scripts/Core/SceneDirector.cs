@@ -7,19 +7,19 @@ namespace Milehigh.Core
 {
     public class SceneDirector : MonoBehaviour
     {
-        public List<GameObject> characterPrefabs; // Assign in Inspector
-        public Transform characterSpawnRoot;
+        public List<GameObject> characterPrefabs = null!; // Assign in Inspector
+        public Transform characterSpawnRoot = null!;
 
         // BOLT: Consolidated cache for GameObjects to prevent expensive O(N) GameObject.Find calls
         private Dictionary<string, GameObject> _objectCache = new Dictionary<string, GameObject>();
 
-        private GameObject GetCachedObject(string objectName)
+        private GameObject? GetCachedObject(string objectName)
         {
             if (string.IsNullOrEmpty(objectName)) return null;
 
             // BOLT: Perform an O(1) dictionary lookup first.
             // Note: Unity overrides the == operator to check if the underlying native C++ object is destroyed.
-            if (_objectCache.TryGetValue(objectName, out GameObject obj) && obj != null)
+            if (_objectCache.TryGetValue(objectName, out GameObject? obj) && obj != null)
             {
                 return obj;
             }
@@ -63,12 +63,12 @@ namespace Milehigh.Core
 
         private void SpawnOrUpdateCharacter(CharacterProfile profile)
         {
-            GameObject characterObj = GetCachedObject(profile.name);
+            GameObject? characterObj = GetCachedObject(profile.name);
 
             if (characterObj == null)
             {
                 // Try to find prefab if not in scene
-                GameObject prefab = characterPrefabs?.Find(p => p.name.Contains(profile.name));
+                GameObject? prefab = characterPrefabs?.Find(p => p.name.Contains(profile.name));
                 if (prefab != null)
                 {
                     characterObj = Instantiate(prefab, characterSpawnRoot);
@@ -99,7 +99,7 @@ namespace Milehigh.Core
 
         private void ApplyInteraction(ObjectInteraction interaction)
         {
-            GameObject target = GetCachedObject(interaction.objectId);
+            GameObject? target = GetCachedObject(interaction.objectId);
 
             if (target != null)
             {

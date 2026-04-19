@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="../Assets/Scripts/Core/CampaignManager.cs" />
+    <Compile Include="../Assets/Scripts/Core/SceneDirector.cs" />
+    <Compile Include="../Assets/Scripts/Data/*.cs" />
+    <Compile Include="../Assets/Scripts/Characters/CharacterControllerBase.cs" />
+    <Compile Include="../Assets/Scripts/Cinematics/Cinematic_IntoTheVoid.cs" />
+    <Compile Include="TempMocks.cs" />
+  </ItemGroup>
+</Project>
