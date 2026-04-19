@@ -27,3 +27,7 @@
 **Vulnerability:** Untrusted external data (JSON) was being used directly by the application without validation, potentially leading to out-of-bounds values or corrupted application state.
 **Learning:** Even if data is "local", it should be treated as untrusted input once it crosses the boundary from a file into the application.
 **Prevention:** Implement an `IsValid()` pattern in data models to perform security and integrity checks immediately after deserialization. This ensures the application fails fast and securely when encountering malicious or corrupted data.
+## 2025-01-24 - Prevent IDOR Tampering with Core Unity Singletons
+**Vulnerability:** Insecure Direct Object Reference (IDOR) via GameObject.Find using unsanitized external strings from campaign_master.json.
+**Learning:** Using untrusted strings directly in scene hierarchy queries allows malicious manipulation of core architectural singletons like CampaignManager.
+**Prevention:** Implement exact match blocklists for critical system objects before allowing data-driven interactions, avoiding overly broad .Contains heuristics to prevent functional regressions.
