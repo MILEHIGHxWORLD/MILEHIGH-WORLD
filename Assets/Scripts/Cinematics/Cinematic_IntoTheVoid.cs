@@ -34,6 +34,7 @@
 //
 // 7. Ensure your project has TextMeshPro imported (Window -> TextMeshPro -> Import TMP Essential Resources).
 
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -109,6 +110,7 @@ public class Cinematic_IntoTheVoid : MonoBehaviour
 
     private Coroutine typingCoroutine;
     private float currentTypingSpeed;
+    private string currentSpeakerHex;
     private bool skipRequested;
 
     // Cache for WaitForSeconds to eliminate GC allocations during coroutine execution
@@ -158,6 +160,7 @@ public class Cinematic_IntoTheVoid : MonoBehaviour
 
         currentTypingSpeed = baseTypingSpeed * multiplier;
         skipRequested = false;
+
         // Apply character-specific colors for better speaker identification
         switch (speaker)
         {
@@ -174,6 +177,9 @@ public class Cinematic_IntoTheVoid : MonoBehaviour
                 SpeakerNameText.color = Color.white;
                 break;
         }
+
+        // Capture hex for color-coded UI cues
+        currentSpeakerHex = ColorUtility.ToHtmlStringRGB(SpeakerNameText.color);
 
         typingCoroutine = StartCoroutine(TypeDialogue(message));
     }
@@ -209,7 +215,27 @@ public class Cinematic_IntoTheVoid : MonoBehaviour
                 if (i > 0)
                 {
                     char c = DialogueText.textInfo.characterInfo[i - 1].character;
-                    if (c == '.' || c == '!' || c == '?') delay = currentTypingSpeed * 15f;
+
+                    if (c == '.')
+                    {
+                        // Look ahead to see if it's a mid-word period (like Sky.ix)
+                        bool isMidWord = false;
+                        if (i < totalVisibleCharacters)
+                        {
+                            char nextC = DialogueText.textInfo.characterInfo[i].character;
+                            if (!char.IsWhiteSpace(nextC)) isMidWord = true;
+                        }
+
+                        // Check if it's part of an ellipsis (...)
+                        bool isEllipsis = false;
+                        if (i > 1 && DialogueText.textInfo.characterInfo[i - 2].character == '.') isEllipsis = true;
+                        if (i < totalVisibleCharacters && DialogueText.textInfo.characterInfo[i].character == '.') isEllipsis = true;
+
+                        if (isMidWord && !isEllipsis) delay = currentTypingSpeed;
+                        else if (isEllipsis) delay = currentTypingSpeed * 5f;
+                        else delay = currentTypingSpeed * 15f;
+                    }
+                    else if (c == '!' || c == '?') delay = currentTypingSpeed * 15f;
                     else if (c == ',' || c == ';' || c == ':') delay = currentTypingSpeed * 8f;
                 }
 
@@ -217,8 +243,16 @@ public class Cinematic_IntoTheVoid : MonoBehaviour
             }
         }
 
-        // UX Enhancement: Visual progression cue indicating text reveal is complete.
-        DialogueText.text = message + " ▽";
+        // UX Enhancement: Final pause for punctuation before completion cue.
+        if (totalVisibleCharacters > 0)
+        {
+            char lastChar = DialogueText.textInfo.characterInfo[totalVisibleCharacters - 1].character;
+            if (lastChar == '.' || lastChar == '!' || lastChar == '?')
+                yield return GetWait(currentTypingSpeed * 15f);
+        }
+
+        // UX Enhancement: Visual progression cue color-coded to speaker theme.
+        DialogueText.text = $"{message} <color=#{currentSpeakerHex}>▽</color>";
         DialogueText.maxVisibleCharacters = totalVisibleCharacters + 2;
 
         skipRequested = false;
