@@ -78,13 +78,13 @@ Shader "Milehigh/HyperPBRCharacter_4D"
         void vert (inout appdata_full v, out Input o)
         {
             UNITY_INITIALIZE_OUTPUT(Input, o);
+            o.N = UnityObjectToWorldNormal(v.normal);
             o.T = UnityObjectToWorldDir(v.tangent.xyz);
             o.B = cross(o.N, o.T) * v.tangent.w; // Bitangent
-            o.N = UnityObjectToWorldNormal(v.normal);
 
             // Parallax Occlusion Mapping
             half h = tex2Dlod(_ParallaxMap, float4(v.texcoord.xy, 0, 0)).a;
-            float2 offset = ParallaxOffset(h, _Parallax, v.viewDir);
+            float2 offset = ParallaxOffset(h, _Parallax, ObjSpaceViewDir(v.vertex));
             v.texcoord.xy += offset;
         }
 
@@ -135,21 +135,9 @@ Shader "Milehigh/HyperPBRCharacter_4D"
                 o.Specular = lerp(o.Specular, o.Specular * iridescence, iridescenceMask);
             }
 
-            // --- Subsurface Scattering ---
-            half sssMask = tex2D(_SSSMask, IN.uv_MainTex).r;
-            if (sssMask > 0)
-            {
-                // A more advanced SSS would use a proper lighting model.
-                // This is a stylistic approximation.
-                half NdotL = dot(o.Normal, _WorldSpaceLightPos0.xyz);
-                // ⚡ Bolt: Replace pow(..., 8.0) with nested squares for performance
-                half sss_base = saturate(dot(IN.viewDir, -_WorldSpaceLightPos0.xyz));
-                half sss_sq = sss_base * sss_base;
-                half sss_4 = sss_sq * sss_sq;
-                half sss = sss_4 * sss_4 * _SSSScale;
-                o.Albedo += _SSSColor.rgb * sss * NdotL * sssMask;
-            }
-
+            // ⚡ Bolt: Removed dead SSS calculation block that was previously here.
+            // It was performing expensive texture samples and ALU ops only to be
+            // completely overwritten by the following assignment.
             o.Albedo = albedo.rgb;
         }
         ENDCG
