@@ -15,7 +15,15 @@ namespace Milehigh.Core
 
         private GameObject GetCachedObject(string objectName)
         {
-            if (string.IsNullOrEmpty(objectName)) return null;
+            // 🛡️ Sentinel: Security - Enforce maximum length and whitelist for object names to prevent DoS via expensive Find calls
+            if (string.IsNullOrEmpty(objectName) || objectName.Length > 128) return null;
+
+            // 🛡️ Sentinel: Regex whitelist to prevent injection of malicious path sequences or special characters in Find()
+            if (!System.Text.RegularExpressions.Regex.IsMatch(objectName, @"^[a-zA-Z0-9_\s\(\)\-\.\[\]\/]+$"))
+            {
+                Debug.LogWarning($"[Security] GetCachedObject blocked potentially malicious object name: {objectName}");
+                return null;
+            }
 
             // BOLT: Perform an O(1) dictionary lookup first.
             // Note: Unity overrides the == operator to check if the underlying native C++ object is destroyed.
