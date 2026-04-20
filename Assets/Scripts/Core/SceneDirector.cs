@@ -1,5 +1,6 @@
 using UnityEngine;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 using Milehigh.Data;
 using Milehigh.Characters;
 
@@ -7,18 +8,36 @@ namespace Milehigh.Core
 {
     public class SceneDirector : MonoBehaviour
     {
-        public List<GameObject> characterPrefabs; // Assign in Inspector
-        public Transform characterSpawnRoot;
+        public List<GameObject> characterPrefabs = null!; // Assign in Inspector
+        public Transform characterSpawnRoot = null!;
 
         // BOLT: Consolidated cache for GameObjects to prevent expensive O(N) GameObject.Find calls
         private Dictionary<string, GameObject> _objectCache = new Dictionary<string, GameObject>();
 
-        private GameObject GetCachedObject(string objectName)
+        // 🛡️ Sentinel: Whitelist regex for object names to prevent injection/DoS.
+        // Allows alphanumeric, spaces, parentheses, hyphens, dots, brackets, and forward slashes (for hierarchy).
+        private static readonly Regex _nameWhitelist = new Regex(@"^[a-zA-Z0-9_\s\(\)\-\.\[\]\/]+$", RegexOptions.Compiled);
+
+        private GameObject? GetCachedObject(string objectName)
         {
             if (string.IsNullOrEmpty(objectName)) return null;
 
+            // 🛡️ Sentinel: Input validation to mitigate Denial of Service (DoS) attacks via GameObject.Find.
+            // 1. Length constraint.
+            if (objectName.Length > 128)
+            {
+                Debug.LogWarning($"[Security] GetCachedObject aborted: Object name '{objectName.Substring(0, 10)}...' exceeds 128 character limit.");
+                return null;
+            }
+
+            // 2. Character whitelist validation.
+            if (!_nameWhitelist.IsMatch(objectName))
+            {
+                Debug.LogWarning($"[Security] GetCachedObject aborted: Object name contains illegal characters.");
+                return null;
+            }
+
             // BOLT: Perform an O(1) dictionary lookup first.
-            // Note: Unity overrides the == operator to check if the underlying native C++ object is destroyed.
             if (_objectCache.TryGetValue(objectName, out GameObject obj) && obj != null)
             {
                 return obj;
@@ -49,9 +68,12 @@ namespace Milehigh.Core
             _objectCache.Clear();
 
             // Instantiate characters if not already in scene
-            foreach (var charProfile in CampaignManager.Instance.currentCampaignData.characters)
+            if (CampaignManager.Instance.currentCampaignData != null)
             {
-                SpawnOrUpdateCharacter(charProfile);
+                foreach (var charProfile in CampaignManager.Instance.currentCampaignData.characters)
+                {
+                    SpawnOrUpdateCharacter(charProfile);
+                }
             }
 
             // Execute interactive objects logic
@@ -63,12 +85,12 @@ namespace Milehigh.Core
 
         private void SpawnOrUpdateCharacter(CharacterProfile profile)
         {
-            GameObject characterObj = GetCachedObject(profile.name);
+            GameObject? characterObj = GetCachedObject(profile.name);
 
             if (characterObj == null)
             {
                 // Try to find prefab if not in scene
-                GameObject prefab = characterPrefabs?.Find(p => p.name.Contains(profile.name));
+                GameObject? prefab = characterPrefabs?.Find(p => p.name.Contains(profile.name));
                 if (prefab != null)
                 {
                     characterObj = Instantiate(prefab, characterSpawnRoot);
@@ -99,7 +121,7 @@ namespace Milehigh.Core
 
         private void ApplyInteraction(ObjectInteraction interaction)
         {
-            GameObject target = GetCachedObject(interaction.objectId);
+            GameObject? target = GetCachedObject(interaction.objectId);
 
             if (target != null)
             {
@@ -113,6 +135,12 @@ namespace Milehigh.Core
                     target.transform.localScale = Vector3.one * interaction.floatValue;
                 }
             }
+        }
+
+        private void OnDestroy()
+        {
+            // BOLT: Clear the cache on destroy to release references and prevent memory leaks.
+            _objectCache.Clear();
         }
     }
 }
