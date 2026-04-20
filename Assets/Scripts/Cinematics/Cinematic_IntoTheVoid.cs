@@ -138,6 +138,30 @@ public class Cinematic_IntoTheVoid : MonoBehaviour
         skipRequested = false;
     }
 
+    /// <summary>
+    /// Subtle scaling animation for UI elements to provide visual feedback during state changes.
+    /// </summary>
+    private IEnumerator PopScale(Transform target, float duration, float scaleFactor)
+    {
+        if (target == null) yield break;
+
+        Vector3 originalScale = Vector3.one;
+        Vector3 targetScale = originalScale * (1.0f + scaleFactor);
+        float elapsed = 0f;
+
+        while (elapsed < duration)
+        {
+            float t = elapsed / duration;
+            // Simple sin wave for pop effect
+            float curve = Mathf.Sin(t * Mathf.PI);
+            target.localScale = Vector3.Lerp(originalScale, targetScale, curve);
+            elapsed += Time.deltaTime;
+            yield return null;
+        }
+        target.localScale = originalScale;
+        popCoroutine = null;
+    }
+
     void Start()
     {
         // 🛡️ Sentinel: Security enhancement - Defensive programming
@@ -192,30 +216,6 @@ public class Cinematic_IntoTheVoid : MonoBehaviour
         }
 
         typingCoroutine = StartCoroutine(TypeDialogue(message));
-    }
-
-    /// <summary>
-    /// Subtle scaling animation for UI elements to provide visual feedback during state changes.
-    /// </summary>
-    private IEnumerator PopScale(Transform target, float duration, float scaleFactor)
-    {
-        if (target == null) yield break;
-
-        Vector3 originalScale = Vector3.one;
-        Vector3 targetScale = originalScale * (1.0f + scaleFactor);
-        float elapsed = 0f;
-
-        while (elapsed < duration)
-        {
-            float t = elapsed / duration;
-            // Simple sin wave for pop effect
-            float curve = Mathf.Sin(t * Mathf.PI);
-            target.localScale = Vector3.Lerp(originalScale, targetScale, curve);
-            elapsed += Time.deltaTime;
-            yield return null;
-        }
-        target.localScale = originalScale;
-        popCoroutine = null;
     }
 
     private IEnumerator TypeDialogue(string message)
