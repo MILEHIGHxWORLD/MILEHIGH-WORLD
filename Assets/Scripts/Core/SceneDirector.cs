@@ -17,6 +17,14 @@ namespace Milehigh.Core
         {
             if (string.IsNullOrEmpty(objectName)) return null;
 
+            // 🛡️ Sentinel: Prevent Insecure Direct Object Reference (IDOR) to critical system singletons
+            if (objectName == "CampaignManager" || objectName == "SceneDirector" ||
+                objectName == "CameraManager" || objectName == "AlliancePowerManager")
+            {
+                Debug.LogWarning($"[Security] Access to protected core manager '{objectName}' is denied.");
+                return null;
+            }
+
             // BOLT: Perform an O(1) dictionary lookup first.
             // Note: Unity overrides the == operator to check if the underlying native C++ object is destroyed.
             if (_objectCache.TryGetValue(objectName, out GameObject obj) && obj != null)
