@@ -108,6 +108,7 @@ public class Cinematic_IntoTheVoid : MonoBehaviour
     public float skyixSpeedMultiplier = 1.2f;
 
     private Coroutine? typingCoroutine;
+    private Coroutine? popCoroutine;
     private float currentTypingSpeed;
     private bool skipRequested;
 
@@ -161,8 +162,10 @@ public class Cinematic_IntoTheVoid : MonoBehaviour
     public void ShowDialogue(string speaker, string message)
     {
         if (typingCoroutine != null) StopCoroutine(typingCoroutine);
+        if (popCoroutine != null) StopCoroutine(popCoroutine);
 
         SpeakerNameText.text = speaker;
+        popCoroutine = StartCoroutine(PopScale(SpeakerNameText.transform, 0.2f, 0.15f));
 
         // Apply speaker-specific speed multipliers based on voice profiles
         float multiplier = 1.0f;
@@ -189,6 +192,30 @@ public class Cinematic_IntoTheVoid : MonoBehaviour
         }
 
         typingCoroutine = StartCoroutine(TypeDialogue(message));
+    }
+
+    /// <summary>
+    /// Subtle scaling animation for UI elements to provide visual feedback during state changes.
+    /// </summary>
+    private IEnumerator PopScale(Transform target, float duration, float scaleFactor)
+    {
+        if (target == null) yield break;
+
+        Vector3 originalScale = Vector3.one;
+        Vector3 targetScale = originalScale * (1.0f + scaleFactor);
+        float elapsed = 0f;
+
+        while (elapsed < duration)
+        {
+            float t = elapsed / duration;
+            // Simple sin wave for pop effect
+            float curve = Mathf.Sin(t * Mathf.PI);
+            target.localScale = Vector3.Lerp(originalScale, targetScale, curve);
+            elapsed += Time.deltaTime;
+            yield return null;
+        }
+        target.localScale = originalScale;
+        popCoroutine = null;
     }
 
     private IEnumerator TypeDialogue(string message)
@@ -318,6 +345,7 @@ public class Cinematic_IntoTheVoid : MonoBehaviour
         yield return StartCoroutine(WaitForSecondsOrSkip(7.5f));
 
         if (typingCoroutine != null) StopCoroutine(typingCoroutine);
+        if (popCoroutine != null) StopCoroutine(popCoroutine);
         SpeakerNameText.text = "";
         DialogueText.text = "";
         DialogueBox.SetActive(false);
