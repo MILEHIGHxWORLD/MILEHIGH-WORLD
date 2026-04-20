@@ -18,7 +18,7 @@ namespace Milehigh.Editor
             }
 
             string json = File.ReadAllText(path);
-            HorizonGameData data = JsonUtility.FromJson<HorizonGameData>(json);
+            HorizonGameData? data = JsonUtility.FromJson<HorizonGameData>(json);
 
             // 🛡️ Sentinel: Security validation of deserialized data.
             if (data == null || !data.IsValid())
