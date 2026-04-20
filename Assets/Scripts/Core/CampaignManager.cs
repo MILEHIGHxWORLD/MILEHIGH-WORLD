@@ -6,7 +6,7 @@ namespace Milehigh.Core
 {
     public class CampaignManager : MonoBehaviour
     {
-        private static CampaignManager _instance;
+        private static CampaignManager? _instance;
         public static CampaignManager Instance
         {
             get
@@ -24,7 +24,7 @@ namespace Milehigh.Core
             }
         }
 
-        public HorizonGameData currentCampaignData;
+        public HorizonGameData? currentCampaignData;
         public float currentVoidSaturationLevel;
 
         private void Awake()
@@ -60,7 +60,10 @@ namespace Milehigh.Core
                     // 🛡️ Sentinel: Perform security and integrity validation after deserialization.
                     if (currentCampaignData != null && currentCampaignData.IsValid())
                     {
-                        currentVoidSaturationLevel = currentCampaignData.metadata.voidSaturationLevel;
+                        if (currentCampaignData.metadata != null)
+                        {
+                            currentVoidSaturationLevel = currentCampaignData.metadata.voidSaturationLevel;
+                        }
                         // SECURITY: Log only the filename to avoid exposing absolute filesystem paths.
                         Debug.Log($"Campaign data loaded and validated from {fileName}");
                     }
