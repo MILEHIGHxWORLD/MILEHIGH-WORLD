@@ -52,3 +52,7 @@
 ## 2026-03-25 - [Redundant Member Clutter Performance Impact]
 **Learning:** The 'SceneDirector.cs' file was severely cluttered with over a dozen redundant dictionary declarations and duplicate helper methods for GameObject caching. This not only increases memory overhead but also creates a "state fragmentation" risk where different parts of the initialization loop use different caches, leading to redundant O(N) traversals despite the caching intent.
 **Action:** Always audit caching implementations for redundancy. Consolidate into a single, unified caching pattern to ensure O(1) lookups are consistent across the entire system.
+
+## 2026-03-26 - [Optimized Prefab Spawning and Cache Persistence]
+**Learning:** In data-driven instantiators like 'SceneDirector.cs', `GameObject.Find` lookups (O(N)) are only half the battle. Searching for the correct prefab in a `List<GameObject>` using `.Find` (O(P)) inside a loop of characters (O(C)) creates an O(C*P) bottleneck on every scenario setup. Additionally, aggressively clearing object caches at the start of every scenario forces redundant scene traversals for objects that persist across setups.
+**Action:** Implement a `_prefabLookupCache` to store the mapping of profile names to prefabs, converting the nested search to O(C). Allow surgical lazy-loading caches to persist across scenarios, relying on Unity's native `null` check (operator ==) to safely detect and prune destroyed object references.

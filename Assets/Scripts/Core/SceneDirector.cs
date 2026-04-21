@@ -12,6 +12,15 @@ namespace Milehigh.Core
 
         // BOLT: Consolidated cache for GameObjects to prevent expensive O(N) GameObject.Find calls
         private Dictionary<string, GameObject> _objectCache = new Dictionary<string, GameObject>();
+        // BOLT: Cache for prefab lookups to avoid O(P) list searches during spawning
+        private Dictionary<string, GameObject> _prefabLookupCache = new Dictionary<string, GameObject>();
+
+        private void OnDestroy()
+        {
+            // BOLT: Explicitly clear caches to release Unity object references and prevent memory leaks
+            _objectCache?.Clear();
+            _prefabLookupCache?.Clear();
+        }
 
         private GameObject GetCachedObject(string objectName)
         {
@@ -45,8 +54,8 @@ namespace Milehigh.Core
         {
             Debug.Log($"Setting up scenario: {scenario.scenarioId}");
 
-            // Clear cache at start of setup to avoid stale references across scenes
-            _objectCache.Clear();
+            // BOLT: Removed redundant _objectCache.Clear() to allow surgical lazy-loading to persist.
+            // Unity's == null check in GetCachedObject handles destroyed objects safely.
 
             // Instantiate characters if not already in scene
             foreach (var charProfile in CampaignManager.Instance.currentCampaignData.characters)
@@ -67,8 +76,16 @@ namespace Milehigh.Core
 
             if (characterObj == null)
             {
-                // Try to find prefab if not in scene
-                GameObject prefab = characterPrefabs?.Find(p => p.name.Contains(profile.name));
+                // BOLT: Use prefab lookup cache to avoid expensive O(P) list searches
+                if (!_prefabLookupCache.TryGetValue(profile.name, out GameObject prefab) || prefab == null)
+                {
+                    prefab = characterPrefabs?.Find(p => p.name.Contains(profile.name));
+                    if (prefab != null)
+                    {
+                        _prefabLookupCache[profile.name] = prefab;
+                    }
+                }
+
                 if (prefab != null)
                 {
                     characterObj = Instantiate(prefab, characterSpawnRoot);
