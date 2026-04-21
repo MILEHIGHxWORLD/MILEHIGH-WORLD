@@ -39,3 +39,7 @@
 ## 2026-03-24 - [Scaling Rhythmic Typewriter and Progression Cues]
 **Learning:** Rhythmic punctuation pauses in typewriter effects are most effective when they occur *after* the punctuation character is revealed (checking index `i-1`) and use multipliers (e.g., 15x, 8x) instead of fixed delays. This ensures the cadence remains natural even when base typing speeds vary by character. Additionally, appending a visual completion cue (like '▽') provides essential feedback that a dialogue block is finished and the user can proceed.
 **Action:** Always use speed multipliers for rhythmic pauses and include a visual completion character after typewriter reveals to improve readability and interaction clarity.
+
+## 2026-03-25 - [Responsive Fast Skip & Speaker Pop Animation]
+**Learning:** In dialogue systems, resetting the skip flag at the end of the typewriter reveal prevents users from skipping the subsequent "beat" pause with the same input. Moving the reset to the end of the pause coroutine ('WaitForSecondsOrSkip') creates a much more responsive "fast skip" feel. Additionally, a subtle 0.2s scaling animation (1.15x) on speaker names during transitions provides a vital visual anchor that improves the rhythm of the cinematic.
+**Action:** Use the 'WaitForSecondsOrSkip' pattern for all dialogue beat pauses and apply 'PopScale' animations to character-identifying UI elements during state changes.
