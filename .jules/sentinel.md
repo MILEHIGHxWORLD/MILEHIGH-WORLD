@@ -27,3 +27,13 @@
 **Vulnerability:** Untrusted external data (JSON) was being used directly by the application without validation, potentially leading to out-of-bounds values or corrupted application state.
 **Learning:** Even if data is "local", it should be treated as untrusted input once it crosses the boundary from a file into the application.
 **Prevention:** Implement an `IsValid()` pattern in data models to perform security and integrity checks immediately after deserialization. This ensures the application fails fast and securely when encountering malicious or corrupted data.
+
+## 2024-05-24 - Prevent IDOR-like access to core managers
+**Vulnerability:** Unsanitized external strings from JSON were used directly in `GameObject.Find` wrappers, allowing unauthorized manipulation of core system objects.
+**Learning:** Overly broad string heuristics like `.Contains("Manager")` cause functional regressions by blocking legitimate game elements.
+**Prevention:** Use exact matching for critical singletons like CampaignManager, SceneDirector, CameraManager, and AlliancePowerManager to prevent tampering.
+
+## 2024-05-24 - Prevent Path Traversal in Editor Scripts
+**Vulnerability:** A badly resolved merge conflict introduced a duplicate variable declaration that bypassed the existing path traversal sanitization loop for character names.
+**Learning:** Duplicate variable declarations resulting from merge conflicts can silently disable critical security logic, such as sanitization routines.
+**Prevention:** When resolving merge conflicts, carefully verify that previously implemented security logic (e.g., path traversal sanitization loops) is not accidentally overwritten or bypassed by duplicate variable declarations.
