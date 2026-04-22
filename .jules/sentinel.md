@@ -27,3 +27,13 @@
 **Vulnerability:** Untrusted external data (JSON) was being used directly by the application without validation, potentially leading to out-of-bounds values or corrupted application state.
 **Learning:** Even if data is "local", it should be treated as untrusted input once it crosses the boundary from a file into the application.
 **Prevention:** Implement an `IsValid()` pattern in data models to perform security and integrity checks immediately after deserialization. This ensures the application fails fast and securely when encountering malicious or corrupted data.
+
+## 2024-04-22 - IDOR in Scene Object Lookups
+**Vulnerability:** Insecure Direct Object Reference (IDOR) via unsanitized `GameObject.Find` queries in `SceneDirector.cs`.
+**Learning:** External JSON data could provide malicious object IDs (like "CampaignManager") to interact with core architectural singletons, because `GameObject.Find` has uncontrolled access to any scene hierarchy object. Broad string heuristics were avoided to prevent functional regressions.
+**Prevention:** Always sanitize and validate object IDs originating from external sources using exact matches before using them in scene traversal queries.
+
+## 2024-04-22 - IDOR in Scene Object Interactions
+**Vulnerability:** Insecure Direct Object Reference (IDOR) via unsanitized `interaction.objectId` queries in `SceneDirector.cs`.
+**Learning:** External JSON data could provide malicious object IDs (like "CampaignManager") to interact with core architectural singletons, because `ApplyInteraction` uses the uncontrolled string ID to fetch and manipulate the game object. The validation must happen at the boundary where the untrusted input is used, not inside low-level generic retrieval utilities like `GetCachedObject` to avoid breaking internal game logic.
+**Prevention:** Always sanitize and validate object IDs originating from external sources using exact matches before using them to interact with scene objects.

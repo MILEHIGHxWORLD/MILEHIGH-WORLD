@@ -1,0 +1,5 @@
+🚨 Severity: HIGH
+💡 Vulnerability: Insecure Direct Object Reference (IDOR) via unsanitized `interaction.objectId` queries.
+🎯 Impact: Attackers could manipulate core architectural singletons (e.g., CampaignManager, SceneDirector) by providing malicious object IDs in external JSON data.
+🔧 Fix: Added exact-match validation to block interactions targeting protected system objects in `ApplyInteraction`.
+✅ Verification: Ensure tests pass and the validation rejects interaction requests for CampaignManager and other singletons.
