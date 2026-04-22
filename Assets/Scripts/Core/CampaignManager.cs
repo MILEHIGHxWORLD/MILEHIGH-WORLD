@@ -6,7 +6,7 @@ namespace Milehigh.Core
 {
     public class CampaignManager : MonoBehaviour
     {
-        private static CampaignManager _instance;
+        private static CampaignManager _instance = null!;
         public static CampaignManager Instance
         {
             get
@@ -24,7 +24,7 @@ namespace Milehigh.Core
             }
         }
 
-        public HorizonGameData currentCampaignData;
+        public HorizonGameData currentCampaignData = null!;
         public float currentVoidSaturationLevel;
 
         private void Awake()
@@ -68,12 +68,7 @@ namespace Milehigh.Core
                     else
                     {
                         Debug.LogError($"Failed to parse or validate campaign data from {fileName}.");
-                        currentCampaignData = null; // Ensure we don't use invalid data
-                    }
-                    else
-                    {
-                        Debug.LogError($"Campaign data from {fileName} failed security validation.");
-                        currentCampaignData = null;
+                        currentCampaignData = null!; // Ensure we don't use invalid data
                     }
                 }
                 catch (System.Exception ex)
@@ -81,7 +76,7 @@ namespace Milehigh.Core
                     // SECURITY: Catch exceptions during file read/JSON parse to fail securely and avoid leaking internal stack traces.
                     Debug.LogError($"Failed to load or parse campaign data from {fileName}.");
                     // SECURITY: Mask runtime exception stack traces and avoid leaking absolute paths in logs
-                    Debug.LogError($"Error loading campaign data from {fileName}: {ex.Message}");
+                    Debug.LogException(ex); // Unity's standard way to log exceptions securely in builds
                 }
             }
             else
