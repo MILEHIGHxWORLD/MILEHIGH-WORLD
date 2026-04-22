@@ -63,8 +63,8 @@ public class Cinematic_IntoTheVoid : MonoBehaviour
      * Tone & Style: Driven, Loving, Determined. Underlying sorrow/weariness.
      * Keywords: Digital, Bionic, Precise, Loving, Clear Articulation, Subtle Filter.
     */
-    public GameObject Skyix_Character;
-    public AudioSource Skyix_VoiceSource;
+    public GameObject Skyix_Character = null!;
+    public AudioSource Skyix_VoiceSource = null!;
 
 
     // Protagonist: Kai the The Child of Prophecy
@@ -79,8 +79,8 @@ public class Cinematic_IntoTheVoid : MonoBehaviour
      * Tone & Style: Cryptic, Calm, Profound, and Fatalistic. Speaks in metaphor.
      * Keywords: Ancient, Layered, Slow, Resonant, Cryptic, Contemplative.
     */
-    public GameObject Kai_Character;
-    public AudioSource Kai_VoiceSource;
+    public GameObject Kai_Character = null!;
+    public AudioSource Kai_VoiceSource = null!;
 
 
     // Antagonist: Delilah the The Desolate
@@ -90,13 +90,13 @@ public class Cinematic_IntoTheVoid : MonoBehaviour
     /* VOICE PROFILE:
      * Not available.
     */
-    public GameObject Delilah_Character;
-    public AudioSource Delilah_VoiceSource;
+    public GameObject Delilah_Character = null!;
+    public AudioSource Delilah_VoiceSource = null!;
 
     [Header("UI Components")]
-    public GameObject DialogueBox;
-    public TextMeshProUGUI SpeakerNameText;
-    public TextMeshProUGUI DialogueText;
+    public GameObject DialogueBox = null!;
+    public TextMeshProUGUI SpeakerNameText = null!;
+    public TextMeshProUGUI DialogueText = null!;
 
     [Header("UX Settings")]
     [FormerlySerializedAs("typingSpeed")]
