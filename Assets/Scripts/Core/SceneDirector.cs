@@ -37,21 +37,21 @@ namespace Milehigh.Core
             }
         }
 
-        private GameObject GetCachedObject(string objectName)
+        private GameObject? GetCachedObject(string objectName)
         {
             if (string.IsNullOrEmpty(objectName)) return null;
 
-            if (_objectCache.TryGetValue(objectName, out GameObject obj) && obj != null)
+            if (_objectCache.TryGetValue(objectName, out GameObject? obj) && obj != null)
             {
                 return obj;
             }
 
-            obj = GameObject.Find(objectName);
-            if (obj != null)
+            GameObject? foundObj = GameObject.Find(objectName);
+            if (foundObj != null)
             {
-                _objectCache[objectName] = obj;
+                _objectCache[objectName] = foundObj;
             }
-            return obj;
+            return foundObj;
         }
 
         private void Start()
@@ -71,7 +71,7 @@ namespace Milehigh.Core
         {
             Debug.Log($"⚡ Bolt: Setting up scenario asynchronously: {scenario.scenarioId}");
 
-            // BOLT: Removed _objectCache.Clear() to allow surgical lazy-loading persistence
+            if (CampaignManager.Instance.currentCampaignData == null) yield break;
 
             // Instantiate characters across multiple frames if needed to prevent spikes
             var characters = CampaignManager.Instance.currentCampaignData.characters;
@@ -83,20 +83,23 @@ namespace Milehigh.Core
             }
 
             // Execute interactive objects logic
-            foreach (var interaction in scenario.interactiveObjects)
+            if (scenario.interactiveObjects != null)
             {
-                ApplyInteraction(interaction);
+                foreach (var interaction in scenario.interactiveObjects)
+                {
+                    ApplyInteraction(interaction);
+                }
             }
         }
 
         private void SpawnOrUpdateCharacter(CharacterProfile profile)
         {
-            GameObject characterObj = GetCachedObject(profile.name);
+            GameObject? characterObj = GetCachedObject(profile.name);
 
             if (characterObj == null)
             {
                 // BOLT: Try to get from pool first
-                if (_characterPool.TryGetValue(profile.name, out var pool) && pool.Count > 0)
+                if (_characterPool.TryGetValue(profile.name, out Stack<GameObject>? pool) && pool != null && pool.Count > 0)
                 {
                     characterObj = pool.Pop();
                     characterObj.SetActive(true);
@@ -105,12 +108,12 @@ namespace Milehigh.Core
                 else
                 {
                     // BOLT: Use O(1) prefab lookup cache
-                    _prefabLookupCache.TryGetValue(profile.name, out GameObject prefab);
+                    _prefabLookupCache.TryGetValue(profile.name, out GameObject? prefab);
 
                     // Fallback to partial match if exact match fails (legacy behavior)
                     if (prefab == null && characterPrefabs != null)
                     {
-                        prefab = characterPrefabs.Find(p => p.name.Contains(profile.name));
+                        prefab = characterPrefabs.Find(p => p != null && p.name.Contains(profile.name));
                     }
 
                     if (prefab != null)
@@ -141,7 +144,7 @@ namespace Milehigh.Core
         // BOLT: Public method to return characters to pool
         public void DespawnCharacter(string characterName)
         {
-            if (_objectCache.TryGetValue(characterName, out GameObject obj))
+            if (_objectCache.TryGetValue(characterName, out GameObject? obj) && obj != null)
             {
                 obj.SetActive(false);
                 _objectCache.Remove(characterName);
@@ -156,7 +159,7 @@ namespace Milehigh.Core
 
         private void ApplyInteraction(ObjectInteraction interaction)
         {
-            GameObject target = GetCachedObject(interaction.objectId);
+            GameObject? target = GetCachedObject(interaction.objectId);
 
             if (target != null)
             {
