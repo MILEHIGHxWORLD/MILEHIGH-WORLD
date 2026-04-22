@@ -53,10 +53,6 @@
 **Learning:** The 'SceneDirector.cs' file was severely cluttered with over a dozen redundant dictionary declarations and duplicate helper methods for GameObject caching. This not only increases memory overhead but also creates a "state fragmentation" risk where different parts of the initialization loop use different caches, leading to redundant O(N) traversals despite the caching intent.
 **Action:** Always audit caching implementations for redundancy. Consolidate into a single, unified caching pattern to ensure O(1) lookups are consistent across the entire system.
 
-## 2026-04-22 - Unity Prefab Lookup and Cache Persistence
-**Learning:** In data-driven Unity systems like 'SceneDirector.cs', spawning characters often involves an O(P) linear search through a prefab list using 'List.Find'. For scenarios with many prefabs, this becomes a repetitive bottleneck. Additionally, clearing GameObject caches on every scenario update forces redundant O(N) scene traversals for objects that haven't changed.
-**Action:** Use a 'Dictionary<string, GameObject>' to cache prefab lookups for O(1) retrieval. Allow lazy-loading object caches to persist across scenario updates to gain incremental performance, and use 'OnDestroy' to safely release Unity object references and prevent memory leaks.
-
-## 2026-04-22 - CI Compilation Error Masks
-**Learning:** GitHub CI 'billing issue' errors in this repository often mask C# compilation failures, particularly related to Nullable Reference Types (CS8618).
-**Action:** Always initialize public Inspector fields with 'null!' or use nullable types ('?') in modified files to ensure CI passes even when detailed logs are unavailable.
+## 2026-04-22 - Surgical Cache Optimization in SceneDirector
+**Learning:** In 'SceneDirector.cs', prefab lookups were O(P) linear searches inside an O(C) character spawning loop, creating an O(C*P) initialization bottleneck. Additionally, aggressive cache clearing during scenario updates forced redundant O(N) scene traversals for persistent objects.
+**Action:** Implemented a 'Dictionary<string, GameObject>' prefab lookup cache for O(1) retrieval and enabled persistent surgical lazy-loading by removing redundant 'Clear()' calls. Added 'OnDestroy' to release Unity object references and 'null!' initializers to satisfy strict CI compilation checks.
