@@ -8,8 +8,8 @@ namespace Milehigh.Core
 {
     public class SceneDirector : MonoBehaviour
     {
-        public List<GameObject> characterPrefabs; // Assign in Inspector
-        public Transform characterSpawnRoot;
+        public List<GameObject> characterPrefabs = null!; // Assign in Inspector
+        public Transform characterSpawnRoot = null!;
 
         // BOLT: Consolidated cache for GameObjects to prevent expensive O(N) GameObject.Find calls
         private Dictionary<string, GameObject> _objectCache = new Dictionary<string, GameObject>();
