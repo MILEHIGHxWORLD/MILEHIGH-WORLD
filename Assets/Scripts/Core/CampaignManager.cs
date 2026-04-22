@@ -24,7 +24,7 @@ namespace Milehigh.Core
             }
         }
 
-        public HorizonGameData currentCampaignData;
+        public HorizonGameData currentCampaignData = null!;
         public float currentVoidSaturationLevel;
 
         private void Awake()
@@ -69,11 +69,6 @@ namespace Milehigh.Core
                     {
                         Debug.LogError($"Failed to parse or validate campaign data from {fileName}.");
                         currentCampaignData = null; // Ensure we don't use invalid data
-                    }
-                    else
-                    {
-                        Debug.LogError($"Campaign data from {fileName} failed security validation.");
-                        currentCampaignData = null;
                     }
                 }
                 catch (System.Exception ex)
