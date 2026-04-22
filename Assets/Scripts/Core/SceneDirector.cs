@@ -12,6 +12,8 @@ namespace Milehigh.Core
 
         // BOLT: Consolidated cache for GameObjects to prevent expensive O(N) GameObject.Find calls
         private Dictionary<string, GameObject> _objectCache = new Dictionary<string, GameObject>();
+        // BOLT: Cache for prefab lookups to avoid O(P) linear searches
+        private Dictionary<string, GameObject> _prefabLookupCache = new Dictionary<string, GameObject>();
 
         private GameObject GetCachedObject(string objectName)
         {
@@ -45,8 +47,8 @@ namespace Milehigh.Core
         {
             Debug.Log($"Setting up scenario: {scenario.scenarioId}");
 
-            // Clear cache at start of setup to avoid stale references across scenes
-            _objectCache.Clear();
+            // BOLT: Removed redundant _objectCache.Clear() to allow surgical lazy-loading cache
+            // to persist across multiple scenario updates for incremental performance.
 
             // Instantiate characters if not already in scene
             foreach (var charProfile in CampaignManager.Instance.currentCampaignData.characters)
@@ -67,8 +69,16 @@ namespace Milehigh.Core
 
             if (characterObj == null)
             {
-                // Try to find prefab if not in scene
-                GameObject prefab = characterPrefabs?.Find(p => p.name.Contains(profile.name));
+                // BOLT: Use dictionary for O(1) prefab lookup instead of O(P) linear search
+                if (!_prefabLookupCache.TryGetValue(profile.name, out GameObject prefab))
+                {
+                    prefab = characterPrefabs?.Find(p => p.name.Contains(profile.name));
+                    if (prefab != null)
+                    {
+                        _prefabLookupCache[profile.name] = prefab;
+                    }
+                }
+
                 if (prefab != null)
                 {
                     characterObj = Instantiate(prefab, characterSpawnRoot);
@@ -113,6 +123,13 @@ namespace Milehigh.Core
                     target.transform.localScale = Vector3.one * interaction.floatValue;
                 }
             }
+        }
+
+        private void OnDestroy()
+        {
+            // BOLT: Explicitly clear dictionaries to release Unity object references for GC
+            _objectCache?.Clear();
+            _prefabLookupCache?.Clear();
         }
     }
 }
