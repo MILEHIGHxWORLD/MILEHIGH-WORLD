@@ -5,7 +5,7 @@ namespace Milehigh.Characters
 {
     public abstract class CharacterControllerBase : MonoBehaviour
     {
-        public CharacterData characterData;
+        public CharacterData characterData = null!;
 
         public virtual void Initialize(CharacterData data)
         {
