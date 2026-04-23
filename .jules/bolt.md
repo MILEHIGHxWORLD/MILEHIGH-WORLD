@@ -52,3 +52,7 @@
 ## 2026-03-25 - [Redundant Member Clutter Performance Impact]
 **Learning:** The 'SceneDirector.cs' file was severely cluttered with over a dozen redundant dictionary declarations and duplicate helper methods for GameObject caching. This not only increases memory overhead but also creates a "state fragmentation" risk where different parts of the initialization loop use different caches, leading to redundant O(N) traversals despite the caching intent.
 **Action:** Always audit caching implementations for redundancy. Consolidate into a single, unified caching pattern to ensure O(1) lookups are consistent across the entire system.
+
+## 2026-04-19 - TextMeshPro .text Setter Bottleneck in Typewriter Effects
+**Learning:** In Unity TextMeshPro, setting the '.text' property is an expensive operation that triggers a full layout rebuild and mesh regeneration. For typewriter effects that append a completion cue (like ' ▽'), setting the text twice (once for the message and once to add the cue) results in redundant CPU overhead and unnecessary string allocations.
+**Action:** Pre-concatenate any static trailing cues and set the '.text' property exactly once at the start of the typewriter coroutine. Use '.maxVisibleCharacters' to control the reveal sequence, ensuring minimal layout rebuilds per dialogue line.

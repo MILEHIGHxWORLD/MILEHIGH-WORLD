@@ -180,27 +180,27 @@ public class Cinematic_IntoTheVoid : MonoBehaviour
 
     private IEnumerator TypeDialogue(string message)
     {
-        DialogueText.text = message;
+        // BOLT: Optimization - Pre-concatenate cue and set text once to avoid redundant layout rebuilds and extra allocations.
+        DialogueText.text = message + " ▽";
         DialogueText.maxVisibleCharacters = 0;
         DialogueText.ForceMeshUpdate();
 
-        // BOLT: Typewriter effect optimized for performance.
         // We use the existing GetWait(float) method to ensure zero-allocation yields,
         // avoiding GC pressure during dialogue sequences.
-        int totalVisibleCharacters = DialogueText.textInfo.characterCount;
+        int totalWithCue = DialogueText.textInfo.characterCount;
+        int messageLength = totalWithCue - 2;
 
-        for (int i = 0; i <= totalVisibleCharacters; i++)
+        for (int i = 0; i <= messageLength; i++)
         {
             // UX Enhancement: Robust skip logic using persistent flag
             if (skipRequested)
             {
-                DialogueText.maxVisibleCharacters = totalVisibleCharacters;
                 break;
             }
 
             DialogueText.maxVisibleCharacters = i;
 
-            if (i < totalVisibleCharacters)
+            if (i < messageLength)
             {
                 float delay = currentTypingSpeed;
 
@@ -218,8 +218,7 @@ public class Cinematic_IntoTheVoid : MonoBehaviour
         }
 
         // UX Enhancement: Visual progression cue indicating text reveal is complete.
-        DialogueText.text = message + " ▽";
-        DialogueText.maxVisibleCharacters = totalVisibleCharacters + 2;
+        DialogueText.maxVisibleCharacters = totalWithCue;
 
         skipRequested = false;
         typingCoroutine = null;
