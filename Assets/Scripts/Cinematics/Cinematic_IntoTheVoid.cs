@@ -111,15 +111,17 @@ public class Cinematic_IntoTheVoid : MonoBehaviour
     private float currentTypingSpeed;
     private bool skipRequested;
 
-    // Cache for WaitForSeconds to eliminate GC allocations during coroutine execution
-    private static readonly Dictionary<float, WaitForSeconds> _waitForSecondsCache = new Dictionary<float, WaitForSeconds>();
+    // BOLT: Cache for WaitForSeconds using int (milliseconds) to eliminate GC allocations during coroutine execution.
+    // Using int keys instead of float prevents cache misses caused by floating-point precision errors.
+    private static readonly Dictionary<int, WaitForSeconds> _waitForSecondsCache = new Dictionary<int, WaitForSeconds>();
 
     private WaitForSeconds GetWait(float time)
     {
-        if (!_waitForSecondsCache.TryGetValue(time, out var wait))
+        int msKey = Mathf.RoundToInt(time * 1000f);
+        if (!_waitForSecondsCache.TryGetValue(msKey, out var wait))
         {
             wait = new WaitForSeconds(time);
-            _waitForSecondsCache[time] = wait;
+            _waitForSecondsCache[msKey] = wait;
         }
         return wait;
     }
