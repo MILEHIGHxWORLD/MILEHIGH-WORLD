@@ -183,16 +183,21 @@ public class Cinematic_IntoTheVoid : MonoBehaviour
 
     private IEnumerator TypeDialogue(string message)
     {
-        DialogueText.text = message;
+        // UX Enhancement: Include the completion cue from the start to prevent layout shifts
+        // when the symbol is revealed. We use rich text to color-code it.
+        string fullText = $"{message} <color=#{currentSpeakerHex}>▽</color>";
+        DialogueText.text = fullText;
         DialogueText.maxVisibleCharacters = 0;
         DialogueText.ForceMeshUpdate();
 
         // BOLT: Typewriter effect optimized for performance.
         // We use the existing GetWait(float) method to ensure zero-allocation yields,
         // avoiding GC pressure during dialogue sequences.
-        int totalVisibleCharacters = DialogueText.textInfo.characterCount;
+        // Note: textInfo.characterCount includes the '▽' but excludes rich text tags.
+        int totalCharacters = DialogueText.textInfo.characterCount;
+        int messageCharacters = totalCharacters - 1; // Everything except the '▽'
 
-        for (int i = 0; i <= totalVisibleCharacters; i++)
+        for (int i = 0; i <= messageCharacters; i++)
         {
             // UX Enhancement: Robust skip logic using persistent flag
             if (skipRequested)
@@ -253,9 +258,8 @@ public class Cinematic_IntoTheVoid : MonoBehaviour
         }
 
         // UX Enhancement: Visual progression cue indicating text reveal is complete.
-        // We color-code the symbol to match the speaker's theme for better visual cohesion.
-        DialogueText.text = $"{message} <color=#{currentSpeakerHex}>▽</color>";
-        DialogueText.maxVisibleCharacters = totalVisibleCharacters + 2;
+        // The symbol is already in the text, we just need to reveal it.
+        DialogueText.maxVisibleCharacters = totalCharacters;
 
         skipRequested = false;
         typingCoroutine = null;
