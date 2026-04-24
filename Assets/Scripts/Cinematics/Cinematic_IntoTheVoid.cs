@@ -110,6 +110,7 @@ public class Cinematic_IntoTheVoid : MonoBehaviour
     private Coroutine typingCoroutine;
     private float currentTypingSpeed;
     private bool skipRequested;
+    private string currentSpeakerHex;
 
     // Cache for WaitForSeconds to eliminate GC allocations during coroutine execution
     private static readonly Dictionary<float, WaitForSeconds> _waitForSecondsCache = new Dictionary<float, WaitForSeconds>();
@@ -174,13 +175,15 @@ public class Cinematic_IntoTheVoid : MonoBehaviour
                 SpeakerNameText.color = Color.white;
                 break;
         }
+        currentSpeakerHex = ColorUtility.ToHtmlStringRGB(SpeakerNameText.color);
 
         typingCoroutine = StartCoroutine(TypeDialogue(message));
     }
 
     private IEnumerator TypeDialogue(string message)
     {
-        DialogueText.text = message;
+        // UX Enhancement: Set the full text (including themed completion cue) at the start to prevent layout shifts.
+        DialogueText.text = $"{message} <color=#{currentSpeakerHex}>▽</color>";
         DialogueText.maxVisibleCharacters = 0;
         DialogueText.ForceMeshUpdate();
 
@@ -209,17 +212,31 @@ public class Cinematic_IntoTheVoid : MonoBehaviour
                 if (i > 0)
                 {
                     char c = DialogueText.textInfo.characterInfo[i - 1].character;
-                    if (c == '.' || c == '!' || c == '?') delay = currentTypingSpeed * 15f;
+                    if (c == '.' || c == '!' || c == '?')
+                    {
+                        delay = currentTypingSpeed * 15f;
+
+                        if (i < totalVisibleCharacters)
+                        {
+                            char nextChar = DialogueText.textInfo.characterInfo[i].character;
+                            // Look-ahead: handle ellipsis (...) with shorter rhythmic delays between dots
+                            if (c == '.' && nextChar == '.')
+                            {
+                                delay = currentTypingSpeed * 5f;
+                            }
+                            // Look-ahead: avoid long delays for mid-word periods (e.g., Sky.ix)
+                            else if (char.IsLetterOrDigit(nextChar))
+                            {
+                                delay = currentTypingSpeed;
+                            }
+                        }
+                    }
                     else if (c == ',' || c == ';' || c == ':') delay = currentTypingSpeed * 8f;
                 }
 
                 yield return GetWait(delay);
             }
         }
-
-        // UX Enhancement: Visual progression cue indicating text reveal is complete.
-        DialogueText.text = message + " ▽";
-        DialogueText.maxVisibleCharacters = totalVisibleCharacters + 2;
 
         skipRequested = false;
         typingCoroutine = null;
