@@ -39,7 +39,3 @@
 ## 2026-03-24 - [Scaling Rhythmic Typewriter and Progression Cues]
 **Learning:** Rhythmic punctuation pauses in typewriter effects are most effective when they occur *after* the punctuation character is revealed (checking index `i-1`) and use multipliers (e.g., 15x, 8x) instead of fixed delays. This ensures the cadence remains natural even when base typing speeds vary by character. Additionally, appending a visual completion cue (like '▽') provides essential feedback that a dialogue block is finished and the user can proceed.
 **Action:** Always use speed multipliers for rhythmic pauses and include a visual completion character after typewriter reveals to improve readability and interaction clarity.
-
-## 2026-04-24 - [Responsive Dialogue Skip Pattern]
-**Learning:** In narrative-heavy Unity sequences, users often want to skip both the typewriter animation AND the post-dialogue pause with a single input. Moving the 'skipRequested' flag reset from the end of the text reveal to the end of the subsequent pause (via a custom 'WaitForSecondsOrSkip' coroutine) creates a much more responsive and satisfying 'fast-skip' experience.
-**Action:** Use 'WaitForSecondsOrSkip' for all cinematic dialogue beats and ensure the skip flag persists across the typing and pausing phases.
