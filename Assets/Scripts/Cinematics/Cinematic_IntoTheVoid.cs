@@ -109,6 +109,7 @@ public class Cinematic_IntoTheVoid : MonoBehaviour
 
     private Coroutine typingCoroutine;
     private float currentTypingSpeed;
+    private string speakerHexColor;
     private bool skipRequested;
 
     // Cache for WaitForSeconds to eliminate GC allocations during coroutine execution
@@ -158,29 +159,33 @@ public class Cinematic_IntoTheVoid : MonoBehaviour
 
         currentTypingSpeed = baseTypingSpeed * multiplier;
         skipRequested = false;
+
+        Color speakerColor = Color.white;
         // Apply character-specific colors for better speaker identification
         switch (speaker)
         {
             case "Sky.ix":
-                SpeakerNameText.color = Color.cyan;
+                speakerColor = Color.cyan;
                 break;
             case "Kai":
-                SpeakerNameText.color = new Color(1f, 0.84f, 0f); // Gold
+                speakerColor = new Color(1f, 0.84f, 0f); // Gold
                 break;
             case "Delilah":
-                SpeakerNameText.color = new Color(0.6f, 0.1f, 0.9f); // Void Purple
-                break;
-            default:
-                SpeakerNameText.color = Color.white;
+                speakerColor = new Color(0.6f, 0.1f, 0.9f); // Void Purple
                 break;
         }
+
+        SpeakerNameText.color = speakerColor;
+        speakerHexColor = ColorUtility.ToHtmlStringRGB(speakerColor);
 
         typingCoroutine = StartCoroutine(TypeDialogue(message));
     }
 
     private IEnumerator TypeDialogue(string message)
     {
-        DialogueText.text = message;
+        // UX Enhancement: Reveal with completion cue already appended to prevent layout shifts.
+        // The cue is color-coded to match the speaker for a subtle touch of polish.
+        DialogueText.text = $"{message} <color=#{speakerHexColor}>▽</color>";
         DialogueText.maxVisibleCharacters = 0;
         DialogueText.ForceMeshUpdate();
 
@@ -209,17 +214,27 @@ public class Cinematic_IntoTheVoid : MonoBehaviour
                 if (i > 0)
                 {
                     char c = DialogueText.textInfo.characterInfo[i - 1].character;
-                    if (c == '.' || c == '!' || c == '?') delay = currentTypingSpeed * 15f;
+
+                    // Advanced Rhythmic Pacing: Natural speech patterns via punctuation pauses.
+                    if (c == '.' || c == '!' || c == '?')
+                    {
+                        delay = currentTypingSpeed * 15f;
+
+                        // Look-ahead logic: Avoid long pauses for mid-word periods (e.g., Sky.ix)
+                        if (i < totalVisibleCharacters)
+                        {
+                            char nextChar = DialogueText.textInfo.characterInfo[i].character;
+                            if (!char.IsWhiteSpace(nextChar)) delay = currentTypingSpeed;
+                        }
+                    }
                     else if (c == ',' || c == ';' || c == ':') delay = currentTypingSpeed * 8f;
+                    // Detect ellipsis by checking previous characters
+                    else if (c == '.' && i > 1 && DialogueText.textInfo.characterInfo[i - 2].character == '.') delay = currentTypingSpeed * 5f;
                 }
 
                 yield return GetWait(delay);
             }
         }
-
-        // UX Enhancement: Visual progression cue indicating text reveal is complete.
-        DialogueText.text = message + " ▽";
-        DialogueText.maxVisibleCharacters = totalVisibleCharacters + 2;
 
         skipRequested = false;
         typingCoroutine = null;
