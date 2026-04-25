@@ -107,11 +107,10 @@ namespace Milehigh.Core
             _objectCache.Clear();
             _controllerCache.Clear();
 
-            var campaignData = CampaignManager.Instance.currentCampaignData;
-            if (campaignData != null && campaignData.characters != null)
+            // Instantiate characters if not already in scene
+            if (CampaignManager.Instance?.currentCampaignData != null)
             {
-                // Instantiate characters if not already in scene
-                foreach (var charProfile in campaignData.characters)
+                foreach (var charProfile in CampaignManager.Instance.currentCampaignData.characters)
                 {
                     SpawnOrUpdateCharacter(charProfile);
                 }

@@ -20,7 +20,7 @@ namespace Milehigh.Data
         public float voidSaturationLevel;
 
         /// <summary>
-        /// 🛡️ Sentinel: Security validation to ensure deserialized data meets business constraints.
+        /// 🛡️ Sentinel: Validates metadata integrity and safety bounds.
         /// </summary>
         public bool IsValid()
         {
