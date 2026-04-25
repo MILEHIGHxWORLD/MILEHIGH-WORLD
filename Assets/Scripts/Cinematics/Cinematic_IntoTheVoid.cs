@@ -204,6 +204,27 @@ public class Cinematic_IntoTheVoid : MonoBehaviour
             {
                 float delay = currentTypingSpeed;
 
+                // UX Enhancement: Rhythmic punctuation pauses for natural reading
+                // Note: Delay occurs *after* character reveal for natural rhythm.
+                if (c == '.' || c == '!' || c == '?') delay += 0.4f;
+                else if (c == ',' || c == ';' || c == ':') delay += 0.2f;
+
+                yield return GetWait(delay);
+            }
+            // ⚡ Bolt: Use cached WaitForSeconds to avoid GC allocations in the typewriter loop
+            yield return wait;
+
+        for (int i = 0; i <= message.Length; i++)
+        {
+            DialogueText.maxVisibleCharacters = i;
+            // ⚡ Bolt: Use cached wait to prevent per-character GC allocation
+            yield return wait;
+
+            // Rhythmic typewriter effect: longer pauses for punctuation to mimic natural speech
+            if (i > 0)
+            {
+                char c = message[i - 1];
+                if (c == '.' || c == '?' || c == '!')
                 // UX Enhancement: Rhythmic punctuation pauses for natural reading.
                 // We check the previous character (i-1) to pause *after* it has been revealed.
                 if (i > 0)
