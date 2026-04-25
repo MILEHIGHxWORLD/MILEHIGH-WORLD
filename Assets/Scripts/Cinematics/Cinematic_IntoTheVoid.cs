@@ -124,6 +124,13 @@ public class Cinematic_IntoTheVoid : MonoBehaviour
         return wait;
     }
 
+    void Update()
+    {
+        // Poll for skip input to ensure responsiveness
+        if (Input.GetKeyDown(KeyCode.Space) || Input.GetMouseButtonDown(0))
+        {
+            skipRequested = true;
+        }
     /// <summary>
     /// Yields for the specified duration but returns immediately if a skip is requested.
     /// Resets the skip flag upon completion.
@@ -199,7 +206,32 @@ public class Cinematic_IntoTheVoid : MonoBehaviour
         string hexColor = ColorUtility.ToHtmlStringRGB(SpeakerNameText.color);
         DialogueText.text = $"{message} <color=#{hexColor}>▽</color>";
 
-        DialogueText.maxVisibleCharacters = 0;
+        DialogueText.maxVisibleCharacters = 0;i
+
+        // Ensure TMP is updated to get accurate character info
+        DialogueText.ForceMeshUpdate();
+        TMP_TextInfo textInfo = DialogueText.textInfo;
+        int totalCharacters = textInfo.characterCount;
+
+        for (int i = 0; i < totalCharacters; i++)
+        {
+            if (skipRequested) break;
+
+            DialogueText.maxVisibleCharacters = i + 1;
+
+            char c = textInfo.characterInfo[i].character;
+            float delay = typingSpeed;
+
+            if (c == '.' || c == '!' || c == '?')
+                delay = punctuationPause;
+            else if (c == ',')
+                delay = commaPause;
+
+            yield return GetWait(delay);
+        }
+
+        DialogueText.maxVisibleCharacters = totalCharacters;
+        skipRequested = false;
         DialogueText.ForceMeshUpdate();
 
         // BOLT: Typewriter effect optimized for performance.
