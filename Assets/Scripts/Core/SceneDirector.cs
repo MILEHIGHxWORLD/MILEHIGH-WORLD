@@ -25,38 +25,18 @@ namespace Milehigh.Core
             if (string.IsNullOrEmpty(objectName)) return null;
 
             // BOLT: Perform an O(1) dictionary lookup first.
-1            // Note: Unity overrides the == operator to check if the underlying native C++ object is destroyed.
-            if (_objectCache.TryGetValue(objectName, out GameObject obj))
-            {
-                // BOLT: Check if the cached reference is a destroyed Unity object (fake null)
-                // vs a legitimate negative cache entry (real null).
-                if (obj == null && !ReferenceEquals(obj, null))
-                {
-                    _objectCache.Remove(objectName);
-                }
-                else
-                {
-                    return obj;
-                }
             // Unity overrides the == operator to check if the underlying native C++ object is destroyed.
             if (_objectCache.TryGetValue(objectName, out GameObject obj) && obj != null)
-            if (_objectCache.TryGetValue(objectName, out GameObject? obj))
             {
-                // BOLT: Surgical negative caching. We use ReferenceEquals to distinguish between
-                // a 'true' null (explicitly cached as missing) and a 'Unity' null (destroyed object).
-                if (System.Object.ReferenceEquals(obj, null)) return null;
-
-                // If it's a Unity null (native object destroyed), we should try to find it again
-                // or just return the Unity null which behaves like null.
-                if (obj == null) return null;
-
                 return obj;
             }
 
             // BOLT: Fallback to O(N) scene traversal only if not in cache or if the cached object was destroyed.
             obj = GameObject.Find(objectName);
-            // BOLT: Cache result even if null (negative caching) to avoid future O(N) traversals
-            _objectCache[objectName] = obj;
+            if (obj != null)
+            {
+                _objectCache[objectName] = obj;
+            }
             return obj;
         }
 
