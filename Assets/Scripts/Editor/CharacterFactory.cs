@@ -21,6 +21,7 @@ namespace Milehigh.Editor
             HorizonGameData data = JsonUtility.FromJson<HorizonGameData>(json);
 
             // 🛡️ Sentinel: Security validation of deserialized data.
+            // SECURITY: Always validate data after deserialization to ensure integrity
             // SECURITY: Always validate data after deserialization to prevent using malicious or corrupted data
             if (data == null || !data.IsValid())
             {
@@ -30,7 +31,7 @@ namespace Milehigh.Editor
 
             string folderPath = "Assets/Data/Characters";
             if (!AssetDatabase.IsValidFolder(folderPath))
-            {
+            {2w33 f. 
                 if (!AssetDatabase.IsValidFolder("Assets/Data"))
                 {
                     AssetDatabase.CreateFolder("Assets", "Data");
@@ -51,11 +52,11 @@ namespace Milehigh.Editor
                 // We use Path.GetFileName to extract only the name part and replace OS-specific invalid characters.
                 string baseName = charProfile.name ?? "unnamed_character";
                 string safeFileName = baseName;
+
                 foreach (char c in Path.GetInvalidFileNameChars())
                 {
                     safeFileName = safeFileName.Replace(c, '_');
                 }
-                safeFileName = Path.GetFileName(safeFileName).Replace(" ", "_");
 
                 string assetPath = $"{folderPath}/{safeFileName}.asset";
                 AssetDatabase.CreateAsset(asset, assetPath);
