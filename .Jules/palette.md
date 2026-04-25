@@ -25,6 +25,9 @@
 **Learning:** Consolidating multiple, often conflicting, dialogue implementations into a single 'ShowDialogue' pattern using 'TextMeshProUGUI.maxVisibleCharacters' significantly improves UI stability and performance. Reusing 'WaitForSeconds' objects via a cache (e.g., GetWait helper) is essential for minimizing GC pressure in character-by-character text reveal loops.
 **Action:** Always prefer 'maxVisibleCharacters' over manual string concatenation for text reveal animations and implement a 'GetWait' caching pattern for all high-frequency coroutine yields.
 
+## 2026-03-24 - [Natural Pacing and Skip Support for Cinematic Dialogue]
+**Learning:** A "one-speed-fits-all" typewriter effect can feel robotic. Adding subtle delays after punctuation (periods, question marks, commas) significantly improves the "readability" and natural feel of dialogue. Furthermore, providing a responsive "skip to end" interaction is critical for accessibility and user agency. This is best implemented by polling for input in `Update()` to set a flag, ensuring the skip is caught even during long punctuation pauses.
+**Action:** Implement `punctuationPause` and `commaPause` logic and an asynchronous `skipRequested` flag for all cinematic dialogue systems.
 ## 2024-05-20 - [Robust Dialogue Skip & Unity Serialization]
 **Learning:** For responsive skip mechanics in Unity coroutines that include punctuation pauses, polling input in 'Update' to set a persistent flag is more reliable than per-frame 'Input' checks within the loop. Additionally, when renaming serialized UX settings (like 'typingSpeed'), using '[FormerlySerializedAs]' is critical to prevent data loss in the Unity Inspector.
 **Action:** Use a 'skipRequested' flag pattern and 'FormerlySerializedAs' for all Unity UI/UX script refactors.
@@ -40,6 +43,6 @@
 **Learning:** Rhythmic punctuation pauses in typewriter effects are most effective when they occur *after* the punctuation character is revealed (checking index `i-1`) and use multipliers (e.g., 15x, 8x) instead of fixed delays. This ensures the cadence remains natural even when base typing speeds vary by character. Additionally, appending a visual completion cue (like '▽') provides essential feedback that a dialogue block is finished and the user can proceed.
 **Action:** Always use speed multipliers for rhythmic pauses and include a visual completion character after typewriter reveals to improve readability and interaction clarity.
 
-## 2026-03-25 - [Rhythmic Ellipsis Handling in Typewriter Effects]
-**Learning:** In rhythmic typewriter effects that use punctuation-aware delays, standard sentence-end characters ('.', '?', '!') usually trigger long pauses (e.g., 15x base speed) to mimic natural speech. However, applying this same delay to each dot in an ellipsis (`...`) results in a jarring, sluggish experience. By specifically detecting consecutive dots and reducing the delay multiplier (e.g., to 5x) for those characters, we maintain the rhythmic "breath" of an ellipsis without stalling the dialogue flow or frustrating the user.
-**Action:** Always check for consecutive punctuation marks (ellipses) in typewriter logic and apply a reduced delay multiplier to maintain narrative momentum.
+## 2026-03-25 - [Refined Rhythmic Pacing and Speaker-Matched UI Cues]
+**Learning:** Pacing in dialogue-heavy cinematics is significantly improved by distinguishing between sentence endings (long pause), ellipses (medium pause), and mid-word periods (no pause, e.g., 'Sky.ix'). Furthermore, color-coding progress indicators (like the '▽' cue) to match the speaker's theme strengthens the visual association between the narrative content and the character, reducing cognitive load for the player.
+**Action:** Implement look-ahead/look-behind logic for punctuation to refine pacing, and use speaker-specific colors for interactive UI cues via TMP rich text tags.
