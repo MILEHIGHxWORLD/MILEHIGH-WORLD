@@ -20,7 +20,8 @@ namespace Milehigh.Core
                         _instance = go.AddComponent<CampaignManager>();
                     }
                 }
-                return _instance;
+                // 🛡️ Sentinel: Use null-forgiving operator as the logic above guarantees _instance is not null.
+                return _instance!;
             }
         }
 

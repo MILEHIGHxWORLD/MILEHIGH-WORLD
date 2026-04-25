@@ -35,7 +35,7 @@ namespace Milehigh.Core
 
         private void Start()
         {
-            if (CampaignManager.Instance?.currentCampaignData != null)
+            if (CampaignManager.Instance.currentCampaignData != null)
             {
                 SetupScene(CampaignManager.Instance.currentCampaignData.scenarios[0]);
             }
@@ -49,7 +49,7 @@ namespace Milehigh.Core
             _objectCache.Clear();
 
             // Instantiate characters if not already in scene
-            if (CampaignManager.Instance?.currentCampaignData != null)
+            if (CampaignManager.Instance.currentCampaignData != null)
             {
                 foreach (var charProfile in CampaignManager.Instance.currentCampaignData.characters)
                 {
