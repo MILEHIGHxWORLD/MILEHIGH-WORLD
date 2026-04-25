@@ -6,7 +6,7 @@ namespace Milehigh.Core
 {
     public class CampaignManager : MonoBehaviour
     {
-        private static CampaignManager _instance;
+        private static CampaignManager? _instance;
         public static CampaignManager Instance
         {
             get
@@ -20,11 +20,11 @@ namespace Milehigh.Core
                         _instance = go.AddComponent<CampaignManager>();
                     }
                 }
-                return _instance;
+                return _instance!;
             }
         }
 
-        public HorizonGameData currentCampaignData;
+        public HorizonGameData? currentCampaignData;
         public float currentVoidSaturationLevel;
 
         private void Awake()
@@ -56,36 +56,35 @@ namespace Milehigh.Core
                 {
                     string json = File.ReadAllText(filePath);
                     currentCampaignData = JsonUtility.FromJson<HorizonGameData>(json);
-                    if (currentCampaignData != null && currentCampaignData.metadata != null)
+
+                    // 🛡️ Sentinel: Perform validation after deserialization to ensure data integrity.
+                    if (currentCampaignData != null && currentCampaignData.IsValid())
                     {
                         currentVoidSaturationLevel = currentCampaignData.metadata.voidSaturationLevel;
-                        Debug.Log($"Campaign data loaded from {fileName}"); // Security: Don't log full paths
+                        // SECURITY: Log only the file name, not the absolute path, to prevent information disclosure
+                        Debug.Log($"Campaign data loaded and validated from {fileName}");
+                    }
+                    else
+                    {
+                        Debug.LogError($"Failed to parse or validate campaign data from {fileName}.");
+                        // SECURITY: Log the validation failure without exposing internal paths
+                        Debug.LogError($"Campaign data from {fileName} failed security validation or is malformed.");
+                        Debug.LogError($"Campaign data from {fileName} failed security validation.");
+                        currentCampaignData = null; // Ensure we don't use invalid data
                     }
                 }
                 catch (System.Exception ex)
                 {
-                    Debug.LogError($"Error loading campaign data: {ex.Message}"); // Security: Mask stack trace
-                        // SECURITY: Log only the file name, not the absolute path, to prevent information disclosure
-                        Debug.Log($"Campaign data loaded from {fileName}");
-                    }
-                }
-                catch (System.Exception)
-                {
-                    Debug.LogError($"Failed to load or parse campaign data from {fileName}.");
-                    // SECURITY: Catch exceptions during file read/JSON parse to fail securely and avoid leaking stack traces
-                    Debug.LogError($"Failed to load campaign data from {fileName}. Error parsing file.");
+                    // SECURITY: Catch exceptions during file read/JSON parse to fail securely and avoid leaking internal stack traces.
+                    // SECURITY: Mask runtime exception stack traces and avoid leaking absolute paths in logs
+                    Debug.LogError($"Error loading campaign data from {fileName}: {ex.Message}");
+                    currentCampaignData = null;
                 }
             }
             else
             {
-                Debug.LogError($"Campaign master JSON not found at {fileName}"); // Security: Don't log full paths
                 // SECURITY: Log only the file name, not the absolute path, to prevent information disclosure
                 Debug.LogError($"Campaign master JSON not found: {fileName}");
-
-                // Fallback for current environment if needed
-                if (!Application.isEditor) {
-                     // In some platforms we might need to use UnityWebRequest for StreamingAssets
-                }
             }
         }
 
