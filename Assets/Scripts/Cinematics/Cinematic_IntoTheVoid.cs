@@ -63,8 +63,8 @@ public class Cinematic_IntoTheVoid : MonoBehaviour
      * Tone & Style: Driven, Loving, Determined. Underlying sorrow/weariness.
      * Keywords: Digital, Bionic, Precise, Loving, Clear Articulation, Subtle Filter.
     */
-    public GameObject Skyix_Character;
-    public AudioSource Skyix_VoiceSource;
+    public GameObject Skyix_Character = null!;
+    public AudioSource Skyix_VoiceSource = null!;
 
 
     // Protagonist: Kai the The Child of Prophecy
@@ -79,8 +79,8 @@ public class Cinematic_IntoTheVoid : MonoBehaviour
      * Tone & Style: Cryptic, Calm, Profound, and Fatalistic. Speaks in metaphor.
      * Keywords: Ancient, Layered, Slow, Resonant, Cryptic, Contemplative.
     */
-    public GameObject Kai_Character;
-    public AudioSource Kai_VoiceSource;
+    public GameObject Kai_Character = null!;
+    public AudioSource Kai_VoiceSource = null!;
 
 
     // Antagonist: Delilah the The Desolate
@@ -90,13 +90,13 @@ public class Cinematic_IntoTheVoid : MonoBehaviour
     /* VOICE PROFILE:
      * Not available.
     */
-    public GameObject Delilah_Character;
-    public AudioSource Delilah_VoiceSource;
+    public GameObject Delilah_Character = null!;
+    public AudioSource Delilah_VoiceSource = null!;
 
     [Header("UI Components")]
-    public GameObject DialogueBox;
-    public TextMeshProUGUI SpeakerNameText;
-    public TextMeshProUGUI DialogueText;
+    public GameObject DialogueBox = null!;
+    public TextMeshProUGUI SpeakerNameText = null!;
+    public TextMeshProUGUI DialogueText = null!;
 
     [Header("UX Settings")]
     [FormerlySerializedAs("typingSpeed")]
@@ -107,7 +107,7 @@ public class Cinematic_IntoTheVoid : MonoBehaviour
     [Tooltip("Delay multiplier for Skyix (Steady/Precise tempo).")]
     public float skyixSpeedMultiplier = 1.2f;
 
-    private Coroutine typingCoroutine;
+    private Coroutine? typingCoroutine;
     private float currentTypingSpeed;
     private bool skipRequested;
 
@@ -182,25 +182,26 @@ public class Cinematic_IntoTheVoid : MonoBehaviour
     {
         DialogueText.text = message;
         DialogueText.maxVisibleCharacters = 0;
+        DialogueText.ForceMeshUpdate();
 
-        // ⚡ Bolt: Cache WaitForSeconds outside the loop to prevent GC allocation per character.
-        WaitForSeconds wait = new WaitForSeconds(typingSpeed);
-        // ⚡ Bolt: Cache WaitForSeconds outside the loop to prevent GC allocations per character typed.
-        var wait = new WaitForSeconds(typingSpeed);
-        for (int i = 0; i <= message.Length; i++)
+        // BOLT: Typewriter effect optimized for performance.
+        // We use the existing GetWait(float) method to ensure zero-allocation yields,
+        // avoiding GC pressure during dialogue sequences.
+        int totalVisibleCharacters = DialogueText.textInfo.characterCount;
+
+        for (int i = 0; i <= totalVisibleCharacters; i++)
         {
             // UX Enhancement: Robust skip logic using persistent flag
             if (skipRequested)
             {
-                DialogueText.maxVisibleCharacters = message.Length;
+                DialogueText.maxVisibleCharacters = totalVisibleCharacters;
                 break;
             }
 
             DialogueText.maxVisibleCharacters = i;
 
-            if (i < message.Length)
+            if (i < totalVisibleCharacters)
             {
-                char c = message[i];
                 float delay = currentTypingSpeed;
 
                 // UX Enhancement: Rhythmic punctuation pauses for natural reading
@@ -224,25 +225,42 @@ public class Cinematic_IntoTheVoid : MonoBehaviour
             {
                 char c = message[i - 1];
                 if (c == '.' || c == '?' || c == '!')
+                // UX Enhancement: Rhythmic punctuation pauses for natural reading.
+                // We check the previous character (i-1) to pause *after* it has been revealed.
+                if (i > 0)
                 {
-                    yield return GetWait(typingSpeed * 15f);
+                    char c = DialogueText.textInfo.characterInfo[i - 1].character;
+                    if (c == '.' || c == '!' || c == '?')
+                    {
+                        delay = currentTypingSpeed * 15f;
+
+                        // Refined ellipsis detection: if neighboring characters are also dots, it's an ellipsis
+                        bool isEllipsis = false;
+                        if (c == '.')
+                        {
+                            if (i > 1 && DialogueText.textInfo.characterInfo[i - 2].character == '.') isEllipsis = true;
+                            if (i < totalVisibleCharacters && DialogueText.textInfo.characterInfo[i].character == '.') isEllipsis = true;
+                        }
+
+                        if (isEllipsis) delay = currentTypingSpeed * 5f;
+                        // Special case: mid-word period (e.g., Sky.ix) should have no extra delay
+                        else if (c == '.' && i < totalVisibleCharacters && !char.IsWhiteSpace(DialogueText.textInfo.characterInfo[i].character))
+                        {
+                            delay = currentTypingSpeed;
+                        }
+                    }
+                    else if (c == ',' || c == ';' || c == ':') delay = currentTypingSpeed * 8f;
                 }
-                else if (c == ',' || c == ';' || c == ':')
-                {
-                    yield return GetWait(typingSpeed * 8f);
-                }
-                else
-                {
-                    yield return GetWait(typingSpeed);
-                }
+
+                yield return GetWait(delay);
             }
-            else
-            {
-                yield return GetWait(typingSpeed);
-            }
-            // ⚡ Bolt: Use cached WaitForSeconds to avoid GC allocations per character
-            yield return GetWait(typingSpeed);
         }
+
+        // UX Enhancement: Visual progression cue indicating text reveal is complete.
+        // The cue is color-coded to the speaker for better visual association.
+        string hexColor = ColorUtility.ToHtmlStringRGB(SpeakerNameText.color);
+        DialogueText.text = message + $" <color=#{hexColor}>▽</color>";
+        DialogueText.maxVisibleCharacters = totalVisibleCharacters + 2;
 
         skipRequested = false;
         typingCoroutine = null;
