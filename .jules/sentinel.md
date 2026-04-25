@@ -27,3 +27,7 @@
 **Vulnerability:** Untrusted external data (JSON) was being used directly by the application without validation, potentially leading to out-of-bounds values or corrupted application state.
 **Learning:** Even if data is "local", it should be treated as untrusted input once it crosses the boundary from a file into the application.
 **Prevention:** Implement an `IsValid()` pattern in data models to perform security and integrity checks immediately after deserialization. This ensures the application fails fast and securely when encountering malicious or corrupted data.
+## 2025-05-24 - Syntax Regressions from Mangled Security Patches
+**Vulnerability:** Redundant, overlapping, and syntactically invalid security checks (duplicate 'else' blocks and 'IsValid' methods) were found in core managers and data models.
+**Learning:** Rapid, repeated application of targeted search-and-replace tools on similar code blocks can lead to "syntax soup" where security logic is present but broken or duplicated, potentially masking actual vulnerabilities or causing build failures.
+**Prevention:** Always consolidate security validation into single, well-defined paths and verify the resulting source code for syntactic integrity after automated edits.
