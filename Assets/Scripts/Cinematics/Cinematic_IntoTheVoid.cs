@@ -63,8 +63,8 @@ public class Cinematic_IntoTheVoid : MonoBehaviour
      * Tone & Style: Driven, Loving, Determined. Underlying sorrow/weariness.
      * Keywords: Digital, Bionic, Precise, Loving, Clear Articulation, Subtle Filter.
     */
-    public GameObject Skyix_Character = null!;
-    public AudioSource Skyix_VoiceSource = null!;
+    public GameObject Skyix_Character;
+    public AudioSource Skyix_VoiceSource;
 
 
     // Protagonist: Kai the The Child of Prophecy
@@ -79,8 +79,8 @@ public class Cinematic_IntoTheVoid : MonoBehaviour
      * Tone & Style: Cryptic, Calm, Profound, and Fatalistic. Speaks in metaphor.
      * Keywords: Ancient, Layered, Slow, Resonant, Cryptic, Contemplative.
     */
-    public GameObject Kai_Character = null!;
-    public AudioSource Kai_VoiceSource = null!;
+    public GameObject Kai_Character;
+    public AudioSource Kai_VoiceSource;
 
 
     // Antagonist: Delilah the The Desolate
@@ -90,13 +90,13 @@ public class Cinematic_IntoTheVoid : MonoBehaviour
     /* VOICE PROFILE:
      * Not available.
     */
-    public GameObject Delilah_Character = null!;
-    public AudioSource Delilah_VoiceSource = null!;
+    public GameObject Delilah_Character;
+    public AudioSource Delilah_VoiceSource;
 
     [Header("UI Components")]
-    public GameObject DialogueBox = null!;
-    public TextMeshProUGUI SpeakerNameText = null!;
-    public TextMeshProUGUI DialogueText = null!;
+    public GameObject DialogueBox;
+    public TextMeshProUGUI SpeakerNameText;
+    public TextMeshProUGUI DialogueText;
 
     [Header("UX Settings")]
     [FormerlySerializedAs("typingSpeed")]
@@ -107,7 +107,7 @@ public class Cinematic_IntoTheVoid : MonoBehaviour
     [Tooltip("Delay multiplier for Skyix (Steady/Precise tempo).")]
     public float skyixSpeedMultiplier = 1.2f;
 
-    private Coroutine? typingCoroutine;
+    private Coroutine typingCoroutine;
     private float currentTypingSpeed;
     private bool skipRequested;
 
@@ -209,25 +209,7 @@ public class Cinematic_IntoTheVoid : MonoBehaviour
                 if (i > 0)
                 {
                     char c = DialogueText.textInfo.characterInfo[i - 1].character;
-                    if (c == '.' || c == '!' || c == '?')
-                    {
-                        delay = currentTypingSpeed * 15f;
-
-                        // Refined ellipsis detection: if neighboring characters are also dots, it's an ellipsis
-                        bool isEllipsis = false;
-                        if (c == '.')
-                        {
-                            if (i > 1 && DialogueText.textInfo.characterInfo[i - 2].character == '.') isEllipsis = true;
-                            if (i < totalVisibleCharacters && DialogueText.textInfo.characterInfo[i].character == '.') isEllipsis = true;
-                        }
-
-                        if (isEllipsis) delay = currentTypingSpeed * 5f;
-                        // Special case: mid-word period (e.g., Sky.ix) should have no extra delay
-                        else if (c == '.' && i < totalVisibleCharacters && !char.IsWhiteSpace(DialogueText.textInfo.characterInfo[i].character))
-                        {
-                            delay = currentTypingSpeed;
-                        }
-                    }
+                    if (c == '.' || c == '!' || c == '?') delay = currentTypingSpeed * 15f;
                     else if (c == ',' || c == ';' || c == ':') delay = currentTypingSpeed * 8f;
                 }
 
@@ -236,9 +218,7 @@ public class Cinematic_IntoTheVoid : MonoBehaviour
         }
 
         // UX Enhancement: Visual progression cue indicating text reveal is complete.
-        // The cue is color-coded to the speaker for better visual association.
-        string hexColor = ColorUtility.ToHtmlStringRGB(SpeakerNameText.color);
-        DialogueText.text = message + $" <color=#{hexColor}>▽</color>";
+        DialogueText.text = message + " ▽";
         DialogueText.maxVisibleCharacters = totalVisibleCharacters + 2;
 
         skipRequested = false;
