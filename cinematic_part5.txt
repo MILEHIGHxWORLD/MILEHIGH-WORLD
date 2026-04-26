@@ -1,0 +1,40 @@
+        // [CAMERA: Fast dolly track, following Sky.ix's movement. Add motion blur.]
+        // [SFX: Play sound of cybernetic dash and energy whoosh.]
+        yield return WaitForSecondsOrSkip(2.0f);
+
+        // --- Dialogue Line 6: Kai ---
+        // [ANIMATION: Kai_Character.GetComponent<Animator>().SetTrigger("React_Alarmed");]
+        // [CAMERA: Cut to Kai, a holographic display in front of them shows a massive energy spike warning.]
+        yield return WaitForSecondsOrSkip(0.5f);
+        ShowDialogue("Kai", "The energy spike is massive! Your shields won't hold for long!");
+        // Kai_VoiceSource.Play();
+        yield return WaitForSecondsOrSkip(3.5f);
+
+        // --- Dialogue Line 7: Delilah ---
+        // [ANIMATION: Delilah_Character.GetComponent<Animator>().SetTrigger("Taunt_OpenArms");]
+        // [CAMERA: Wide shot showing Sky.ix nearing the objective, with Delilah in the background, arms spread in a mocking invitation.]
+        yield return WaitForSecondsOrSkip(1.5f);
+        ShowDialogue("Delilah", "Come then. Offer your existence to the glitch. Join your precious family in the great deletion.");
+        // Delilah_VoiceSource.Play();
+        yield return WaitForSecondsOrSkip(5.5f);
+
+        // --- Dialogue Line 8: Sky.ix ---
+        // [ANIMATION: Skyix_Character.GetComponent<Animator>().SetTrigger("Determined_Resolve");]
+        // [CAMERA: Extreme close-up on Sky.ix's eyes, reflecting the corrupted energy, but her expression is resolute.]
+        yield return WaitForSecondsOrSkip(1.0f);
+        ShowDialogue("Sky.ix", "My family is my anchor. They are the reason I can walk through this hell and not become a monster like you. And I am bringing them home.");
+        // Skyix_VoiceSource.Play();
+        yield return WaitForSecondsOrSkip(7.5f);
+
+        if (typingCoroutine != null) StopCoroutine(typingCoroutine);
+        SpeakerNameText.text = "";
+        DialogueText.text = "";
+        DialogueBox.SetActive(false);
+
+        // [SCENE CLEANUP: Re-enable player controls, reset cameras, transition to gameplay/boss fight]
+        // Example: PlayerInput.Instance.EnableControls();
+        // Example: CinematicCamera.SetActive(false);
+        // Example: BossFightController.StartFight();
+        Debug.Log("Cinematic Sequence Complete: [Deep within the anti-reality of ŤĤÊ VØĪĐ...]");
+    }
+}
