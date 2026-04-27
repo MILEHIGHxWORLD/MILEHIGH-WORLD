@@ -39,3 +39,8 @@
 **Vulnerability:** The project had multiple broken "security fixes" that introduced syntax errors and redundant logic, specifically around deserialized data validation and character asset creation paths. The `IsValid()` pattern was partially implemented but broken, and path traversal mitigation was duplicated and syntactically incorrect.
 **Learning:** Incomplete or improperly merged security fixes can be as dangerous as the original vulnerabilities, as they may lead to compilation failures or bypassed security checks. Centralizing validation logic and ensuring clean path sanitization is critical.
 **Prevention:** Always perform a full code review and basic sanity check (even if just manual brace counting) after applying security fixes to ensure no regressions or syntax errors are introduced.
+
+## 2024-05-24 - Prevent Insecure Direct Object Reference (IDOR) via GameObject.Find
+**Vulnerability:** External JSON data could manipulate critical game objects (like `CampaignManager`, `SceneDirector`) via `ApplyInteraction` because `GameObject.Find` was used on unsanitized strings.
+**Learning:** In data-driven Unity architectures, generic string-based lookups can grant uncontrolled access to the entire scene hierarchy, bypassing intended interaction boundaries.
+**Prevention:** Apply strict validation and exact-match blocklists for protected objects at the application boundary (e.g., when untrusted external input is first processed) rather than in low-level retrieval utilities.
