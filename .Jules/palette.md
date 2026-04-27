@@ -46,3 +46,7 @@
 ## 2026-03-25 - [Refined Rhythmic Pacing and Speaker-Matched UI Cues]
 **Learning:** Pacing in dialogue-heavy cinematics is significantly improved by distinguishing between sentence endings (long pause), ellipses (medium pause), and mid-word periods (no pause, e.g., 'Sky.ix'). Furthermore, color-coding progress indicators (like the '▽' cue) to match the speaker's theme strengthens the visual association between the narrative content and the character, reducing cognitive load for the player.
 **Action:** Implement look-ahead/look-behind logic for punctuation to refine pacing, and use speaker-specific colors for interactive UI cues via TMP rich text tags.
+
+## 2026-03-27 - [Unified Typewriter and Skip Logic Consolidation]
+**Learning:** Overlapping and redundant implementation of typewriter effects and input polling leads to unpredictable UI behavior and syntax errors. Consolidating these into a single, clean 'TypeDialogue' coroutine and a unified 'Update' handler significantly improves reliability and maintainability.
+**Action:** Always perform a structural audit of cinematic scripts to eliminate duplicate members and logic blocks before layering micro-UX improvements.
