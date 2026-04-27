@@ -86,7 +86,7 @@ namespace Milehigh.Core
                 }
             }
 
-            var campaignData = CampaignManager.Instance?.currentCampaignData;
+            var campaignData = CampaignManager.Instance.currentCampaignData;
             if (campaignData != null && campaignData.scenarios != null && campaignData.scenarios.Count > 0)
             {
                 SetupScene(campaignData.scenarios[0]);
@@ -102,11 +102,8 @@ namespace Milehigh.Core
             _controllerCache.Clear();
 
             // BOLT: Pre-populate object cache with existing scene objects to avoid lazy O(N) lookups
-#if UNITY_2022_1_OR_NEWER
-            foreach (var go in FindObjectsByType<GameObject>(FindObjectsSortMode.None))
-#else
+            // Note: FindObjectsOfType is legacy but highly compatible across Unity versions.
             foreach (var go in FindObjectsOfType<GameObject>())
-#endif
             {
                 if (go != null && !string.IsNullOrEmpty(go.name) && !_objectCache.ContainsKey(go.name))
                 {
@@ -115,7 +112,7 @@ namespace Milehigh.Core
             }
 
             // Instantiate characters if not already in scene
-            if (CampaignManager.Instance?.currentCampaignData != null)
+            if (CampaignManager.Instance.currentCampaignData != null)
             {
                 foreach (var charProfile in CampaignManager.Instance.currentCampaignData.characters)
                 {
