@@ -46,3 +46,7 @@
 ## 2026-03-25 - [Refined Rhythmic Pacing and Speaker-Matched UI Cues]
 **Learning:** Pacing in dialogue-heavy cinematics is significantly improved by distinguishing between sentence endings (long pause), ellipses (medium pause), and mid-word periods (no pause, e.g., 'Sky.ix'). Furthermore, color-coding progress indicators (like the '▽' cue) to match the speaker's theme strengthens the visual association between the narrative content and the character, reducing cognitive load for the player.
 **Action:** Implement look-ahead/look-behind logic for punctuation to refine pacing, and use speaker-specific colors for interactive UI cues via TMP rich text tags.
+
+## 2026-03-26 - [Smart Rhythmic Dialogue Pacing]
+**Learning:** In dialogue-heavy Unity cinematics, standard punctuation pauses can be disruptive if they trigger on technical notation or mid-word periods (e.g., 'Sky.ix'). Implementing a look-ahead check for following whitespace ensures rhythmic delays only occur at natural sentence breaks, significantly improving reading flow without breaking immersion.
+**Action:** Always include look-ahead validation for punctuation pauses and use speaker-themed completion cues to provide clear interaction signals.
