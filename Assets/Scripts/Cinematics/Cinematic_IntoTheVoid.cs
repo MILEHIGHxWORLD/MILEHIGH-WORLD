@@ -110,8 +110,8 @@ public class Cinematic_IntoTheVoid : MonoBehaviour
     private Coroutine? typingCoroutine;
     private float currentTypingSpeed;
     private bool skipRequested;
-    private string _currentCompletionCue = "";
-    private string _currentSpeakerHex = "FFFFFF";
+    private string _currentCompletionCue = null!;
+    private string _currentSpeakerHex = null!;
 
     // Cache for WaitForSeconds to eliminate GC allocations during coroutine execution
     private static readonly Dictionary<float, WaitForSeconds> _waitForSecondsCache = new Dictionary<float, WaitForSeconds>();
