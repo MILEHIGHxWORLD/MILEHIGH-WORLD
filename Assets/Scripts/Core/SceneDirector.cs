@@ -12,7 +12,7 @@ namespace Milehigh.Core
 
         // BOLT: Consolidated cache for GameObjects to prevent expensive O(N) GameObject.Find calls
         private Dictionary<string, GameObject> _objectCache = new Dictionary<string, GameObject>();
-1        // BOLT: Prefab cache to avoid O(P) list searches and delegate allocations
+        // BOLT: Prefab cache to avoid O(P) list searches and delegate allocations
         private Dictionary<string, GameObject> _prefabCache = new Dictionary<string, GameObject>();
         // BOLT: Component cache to avoid redundant GetComponent calls. Key is InstanceID (int) to avoid string allocations.
         private Dictionary<int, CharacterControllerBase> _controllerCache = new Dictionary<int, CharacterControllerBase>();
@@ -25,7 +25,7 @@ namespace Milehigh.Core
             if (string.IsNullOrEmpty(objectName)) return null;
 
             // BOLT: Perform an O(1) dictionary lookup first.
-1            // Note: Unity overrides the == operator to check if the underlying native C++ object is destroyed.
+            // Note: Unity overrides the == operator to check if the underlying native C++ object is destroyed.
             if (_objectCache.TryGetValue(objectName, out GameObject obj))
             {
                 // BOLT: Check if the cached reference is a destroyed Unity object (fake null)
