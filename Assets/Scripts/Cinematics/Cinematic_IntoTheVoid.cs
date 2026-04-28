@@ -108,8 +108,10 @@ public class Cinematic_IntoTheVoid : MonoBehaviour
     public float skyixSpeedMultiplier = 1.2f;
 
     private Coroutine? typingCoroutine;
+    private Coroutine? popScaleCoroutine;
     private float currentTypingSpeed;
     private bool skipRequested;
+    private Vector3 originalScale;
 
     // Cache for WaitForSeconds to eliminate GC allocations during coroutine execution
     private static readonly Dictionary<float, WaitForSeconds> _waitForSecondsCache = new Dictionary<float, WaitForSeconds>();
@@ -126,14 +128,16 @@ public class Cinematic_IntoTheVoid : MonoBehaviour
 
     void Update()
     {
-        // Poll for skip input to ensure responsiveness
-        if (Input.GetKeyDown(KeyCode.Space) || Input.GetMouseButtonDown(0))
+        // Poll for skip input to ensure responsiveness across all input types
+        if (Input.anyKeyDown)
         {
             skipRequested = true;
         }
+    }
+
     /// <summary>
     /// Yields for the specified duration but returns immediately if a skip is requested.
-    /// Resets the skip flag upon completion.
+    /// Resets the skip flag upon completion to ensure it doesn't bleed into the next reveal.
     /// </summary>
     private IEnumerator WaitForSecondsOrSkip(float duration)
     {
@@ -155,12 +159,10 @@ public class Cinematic_IntoTheVoid : MonoBehaviour
             return;
         }
 
-        StartCoroutine(Cinematic_IntoTheVoid_Sequence());
-    }
+        // UX Enhancement: Cache the original scale of the speaker text to prevent animation drift
+        originalScale = SpeakerNameText.transform.localScale;
 
-    void Update()
-    {
-        if (Input.anyKeyDown) skipRequested = true;
+        StartCoroutine(Cinematic_IntoTheVoid_Sequence());
     }
 
     /// <summary>
@@ -169,6 +171,13 @@ public class Cinematic_IntoTheVoid : MonoBehaviour
     public void ShowDialogue(string speaker, string message)
     {
         if (typingCoroutine != null) StopCoroutine(typingCoroutine);
+
+        // UX Enhancement: Trigger a subtle "Pop" animation when the speaker changes
+        if (SpeakerNameText.text != speaker)
+        {
+            if (popScaleCoroutine != null) StopCoroutine(popScaleCoroutine);
+            popScaleCoroutine = StartCoroutine(PopScaleEffect());
+        }
 
         SpeakerNameText.text = speaker;
 
@@ -179,6 +188,7 @@ public class Cinematic_IntoTheVoid : MonoBehaviour
 
         currentTypingSpeed = baseTypingSpeed * multiplier;
         skipRequested = false;
+
         // Apply character-specific colors for better speaker identification
         Color speakerColor;
         switch (speaker)
@@ -198,8 +208,27 @@ public class Cinematic_IntoTheVoid : MonoBehaviour
         }
 
         SpeakerNameText.color = speakerColor;
-
         typingCoroutine = StartCoroutine(TypeDialogue(message));
+    }
+
+    private IEnumerator PopScaleEffect()
+    {
+        float elapsed = 0f;
+        float duration = 0.2f;
+        float targetScale = 1.15f;
+
+        while (elapsed < duration)
+        {
+            elapsed += Time.deltaTime;
+            float percent = elapsed / duration;
+            // Simple ease-out curve using Sin
+            float curve = Mathf.Sin(percent * Mathf.PI);
+            SpeakerNameText.transform.localScale = originalScale * (1f + (targetScale - 1f) * curve);
+            yield return null;
+        }
+
+        SpeakerNameText.transform.localScale = originalScale;
+        popScaleCoroutine = null;
     }
 
     private IEnumerator TypeDialogue(string message)
@@ -208,140 +237,68 @@ public class Cinematic_IntoTheVoid : MonoBehaviour
         // We append it immediately to ensure the full layout is calculated upfront, preventing "jumping".
         string hexColor = ColorUtility.ToHtmlStringRGB(SpeakerNameText.color);
         DialogueText.text = $"{message} <color=#{hexColor}>▽</color>";
-
-        DialogueText.maxVisibleCharacters = 0;i
+        DialogueText.maxVisibleCharacters = 0;
 
         // Ensure TMP is updated to get accurate character info
         DialogueText.ForceMeshUpdate();
         TMP_TextInfo textInfo = DialogueText.textInfo;
         int totalCharacters = textInfo.characterCount;
 
-        for (int i = 0; i < totalCharacters; i++)
+        // The message length excluding the cue (▽ is 1 char)
+        int messageChars = totalCharacters - 1;
+
+        for (int i = 0; i <= messageChars; i++)
         {
+            // UX Enhancement: Robust skip logic using persistent flag
             if (skipRequested) break;
 
-            DialogueText.maxVisibleCharacters = i + 1;
+            DialogueText.maxVisibleCharacters = i;
 
-            char c = textInfo.characterInfo[i].character;
-            float delay = typingSpeed;
+            if (i < messageChars)
+            {
+                char c = textInfo.characterInfo[i].character;
+                float delay = currentTypingSpeed;
 
-            if (c == '.' || c == '!' || c == '?')
-                delay = punctuationPause;
-            else if (c == ',')
-                delay = commaPause;
+                // UX Enhancement: Rhythmic punctuation pauses for natural reading.
+                // Delay occurs after character reveal for natural rhythm.
+                if (c == '.' || c == '!' || c == '?')
+                {
+                    // Refined ellipsis detection: if neighboring characters are also dots, it's an ellipsis
+                    bool isEllipsis = false;
+                    if (c == '.')
+                    {
+                        if (i > 0 && textInfo.characterInfo[i - 1].character == '.') isEllipsis = true;
+                        if (i < messageChars - 1 && textInfo.characterInfo[i + 1].character == '.') isEllipsis = true;
+                    }
 
-            yield return GetWait(delay);
+                    if (isEllipsis)
+                    {
+                        delay = currentTypingSpeed * 5f;
+                    }
+                    else
+                    {
+                        // Smart Punctuation: Look ahead to avoid pauses in middle of words (like Sky.ix)
+                        bool isEndOfSentence = true;
+                        if (i < messageChars - 1)
+                        {
+                            char nextChar = textInfo.characterInfo[i + 1].character;
+                            if (!char.IsWhiteSpace(nextChar)) isEndOfSentence = false;
+                        }
+
+                        if (isEndOfSentence) delay = currentTypingSpeed * 15f;
+                    }
+                }
+                else if (c == ',' || c == ';' || c == ':')
+                {
+                    delay = currentTypingSpeed * 8f;
+                }
+
+                // ⚡ Bolt: Use cached WaitForSeconds to avoid GC allocations in the typewriter loop
+                yield return GetWait(delay);
+            }
         }
 
         DialogueText.maxVisibleCharacters = totalCharacters;
-        skipRequested = false;
-        DialogueText.ForceMeshUpdate();
-
-        // BOLT: Typewriter effect optimized for performance.
-        // We use the existing GetWait(float) method to ensure zero-allocation yields,
-        // avoiding GC pressure during dialogue sequences.
-        int totalVisibleCharacters = DialogueText.textInfo.characterCount;
-
-        for (int i = 0; i <= totalVisibleCharacters; i++)
-        {
-            // UX Enhancement: Robust skip logic using persistent flag
-            if (skipRequested)
-            {
-                DialogueText.maxVisibleCharacters = totalVisibleCharacters;
-                break;
-            }
-
-            DialogueText.maxVisibleCharacters = i;
-
-            if (i < totalVisibleCharacters)
-            {
-                float delay = currentTypingSpeed;
-
-                // UX Enhancement: Rhythmic punctuation pauses for natural reading
-                // Note: Delay occurs *after* character reveal for natural rhythm.
-                if (c == '.' || c == '!' || c == '?') delay += 0.4f;
-                else if (c == ',' || c == ';' || c == ':') delay += 0.2f;
-
-                yield return GetWait(delay);
-            }
-            // ⚡ Bolt: Use cached WaitForSeconds to avoid GC allocations in the typewriter loop
-            yield return wait;
-
-        for (int i = 0; i <= message.Length; i++)
-        {
-            DialogueText.maxVisibleCharacters = i;
-            // ⚡ Bolt: Use cached wait to prevent per-character GC allocation
-            yield return wait;
-
-            // Rhythmic typewriter effect: longer pauses for punctuation to mimic natural speech
-            if (i > 0)
-            {
-                char c = message[i - 1];
-                if (c == '.' || c == '?' || c == '!')
-                // UX Enhancement: Rhythmic punctuation pauses for natural reading.
-                // We check the previous character (i-1) to pause *after* it has been revealed.
-                if (i > 0)
-                {
-                    char c = DialogueText.textInfo.characterInfo[i - 1].character;
-                    if (c == '.' || c == '!' || c == '?')
-                    {
-                        // Check for ellipsis (consecutive dots) to avoid excessive pausing
-                        bool isEllipsis = (c == '.' && ((i > 1 && DialogueText.textInfo.characterInfo[i - 2].character == '.') || (i < totalVisibleCharacters && DialogueText.textInfo.characterInfo[i].character == '.')));
-                        delay = currentTypingSpeed * (isEllipsis ? 5f : 15f);
-
-                    // Smart Punctuation: Look ahead to avoid pauses in middle of words (like Sky.ix)
-                    bool isEndOfSentence = true;
-                    if (i < totalVisibleCharacters)
-                    {
-                        char nextChar = DialogueText.textInfo.characterInfo[i].character;
-                        if (!char.IsWhiteSpace(nextChar)) isEndOfSentence = false;
-                    }
-
-                    if (c == '.' || c == '!' || c == '?')
-                    {
-                        // Handle ellipsis or end of sentence
-                        if (i < totalVisibleCharacters && DialogueText.textInfo.characterInfo[i].character == '.')
-                            delay = currentTypingSpeed * 5f; // Faster dot-dot-dot
-                        else if (isEndOfSentence)
-                            delay = currentTypingSpeed * 15f;
-                    }
-                    else if (c == ',' || c == ';' || c == ':')
-                    {
-                        delay = currentTypingSpeed * 8f;
-                    }
-                    if (c == '.' || c == '!' || c == '?')
-                    {
-                        delay = currentTypingSpeed * 15f;
-
-                        // Refined ellipsis detection: if neighboring characters are also dots, it's an ellipsis
-                        bool isEllipsis = false;
-                        if (c == '.')
-                        {
-                            if (i > 1 && DialogueText.textInfo.characterInfo[i - 2].character == '.') isEllipsis = true;
-                            if (i < totalVisibleCharacters && DialogueText.textInfo.characterInfo[i].character == '.') isEllipsis = true;
-                        }
-
-                        if (isEllipsis) delay = currentTypingSpeed * 5f;
-                        // Special case: mid-word period (e.g., Sky.ix) should have no extra delay
-                        else if (c == '.' && i < totalVisibleCharacters && !char.IsWhiteSpace(DialogueText.textInfo.characterInfo[i].character))
-                        {
-                            delay = currentTypingSpeed;
-                        }
-                    }
-                    else if (c == ',' || c == ';' || c == ':') delay = currentTypingSpeed * 8f;
-                }
-
-                yield return GetWait(delay);
-            }
-        }
-
-        skipRequested = false;
-        // UX Enhancement: Visual progression cue indicating text reveal is complete.
-        // The cue is color-coded to the speaker for better visual association.
-        string hexColor = ColorUtility.ToHtmlStringRGB(SpeakerNameText.color);
-        DialogueText.text = message + $" <color=#{hexColor}>▽</color>";
-        DialogueText.maxVisibleCharacters = totalVisibleCharacters + 2;
-
         // Note: skipRequested is NOT reset here to allow the subsequent WaitForSecondsOrSkip to also be skipped.
         typingCoroutine = null;
     }
