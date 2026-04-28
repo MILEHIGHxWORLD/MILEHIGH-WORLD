@@ -97,6 +97,7 @@ public class Cinematic_IntoTheVoid : MonoBehaviour
     public GameObject DialogueBox = null!;
     public TextMeshProUGUI SpeakerNameText = null!;
     public TextMeshProUGUI DialogueText = null!;
+    public TextMeshProUGUI? SkipHintText;
 
     [Header("UX Settings")]
     [FormerlySerializedAs("typingSpeed")]
@@ -110,6 +111,7 @@ public class Cinematic_IntoTheVoid : MonoBehaviour
     private Coroutine? typingCoroutine;
     private float currentTypingSpeed;
     private bool skipRequested;
+    private bool playerInteracted;
 
     // Cache for WaitForSeconds to eliminate GC allocations during coroutine execution
     private static readonly Dictionary<float, WaitForSeconds> _waitForSecondsCache = new Dictionary<float, WaitForSeconds>();
@@ -124,13 +126,6 @@ public class Cinematic_IntoTheVoid : MonoBehaviour
         return wait;
     }
 
-    void Update()
-    {
-        // Poll for skip input to ensure responsiveness
-        if (Input.GetKeyDown(KeyCode.Space) || Input.GetMouseButtonDown(0))
-        {
-            skipRequested = true;
-        }
     /// <summary>
     /// Yields for the specified duration but returns immediately if a skip is requested.
     /// Resets the skip flag upon completion.
@@ -155,12 +150,26 @@ public class Cinematic_IntoTheVoid : MonoBehaviour
             return;
         }
 
+        // Palette: Find SkipHint programmatically if not assigned
+        if (SkipHintText == null && DialogueBox != null)
+        {
+            Transform hintTransform = DialogueBox.transform.Find("SkipHint");
+            if (hintTransform != null) SkipHintText = hintTransform.GetComponent<TextMeshProUGUI>();
+        }
+
+        if (SkipHintText != null) SkipHintText.gameObject.SetActive(false);
+
         StartCoroutine(Cinematic_IntoTheVoid_Sequence());
     }
 
     void Update()
     {
-        if (Input.anyKeyDown) skipRequested = true;
+        if (Input.anyKeyDown || Input.GetMouseButtonDown(0))
+        {
+            skipRequested = true;
+            playerInteracted = true;
+            if (SkipHintText != null) SkipHintText.gameObject.SetActive(false);
+        }
     }
 
     /// <summary>
@@ -209,18 +218,32 @@ public class Cinematic_IntoTheVoid : MonoBehaviour
         string hexColor = ColorUtility.ToHtmlStringRGB(SpeakerNameText.color);
         DialogueText.text = $"{message} <color=#{hexColor}>▽</color>";
 
-        DialogueText.maxVisibleCharacters = 0;i
+        DialogueText.maxVisibleCharacters = 0;
 
         // Ensure TMP is updated to get accurate character info
         DialogueText.ForceMeshUpdate();
         TMP_TextInfo textInfo = DialogueText.textInfo;
         int totalCharacters = textInfo.characterCount;
 
+        float startTime = Time.time;
+        bool hintShown = false;
+
         for (int i = 0; i < totalCharacters; i++)
         {
             if (skipRequested) break;
 
             DialogueText.maxVisibleCharacters = i + 1;
+
+            // Palette: Show skip hint if player is idle for 2 seconds
+            if (!playerInteracted && !hintShown && Time.time - startTime > 2f)
+            {
+                if (SkipHintText != null)
+                {
+                    SkipHintText.text = "[Space] Skip";
+                    SkipHintText.gameObject.SetActive(true);
+                    hintShown = true;
+                }
+            }
 
             char c = textInfo.characterInfo[i].character;
             float delay = typingSpeed;
