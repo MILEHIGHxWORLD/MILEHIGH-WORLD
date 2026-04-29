@@ -12,7 +12,7 @@ namespace Milehigh.Core
         public Transform characterSpawnRoot = null!;
 
         // BOLT: Consolidated cache for GameObjects to prevent expensive O(N) GameObject.Find calls
-        private Dictionary<string, GameObject?> _objectCache = new Dictionary<string, GameObject?>();
+        private readonly Dictionary<string, GameObject?> _objectCache = new Dictionary<string, GameObject?>();
 
         // BOLT: Prefab cache to avoid O(P) list searches and delegate allocations
         private readonly Dictionary<string, GameObject?> _prefabCache = new Dictionary<string, GameObject?>();
