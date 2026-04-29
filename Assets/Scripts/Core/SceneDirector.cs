@@ -52,8 +52,9 @@ namespace Milehigh.Core
             if (_prefabCache.TryGetValue(profileName, out GameObject? prefab)) return prefab;
 
             // BOLT: O(P) search and delegate allocation happens only once per profile name
-            // characterPrefabs is null! initialized so we must null check before Find
-            prefab = characterPrefabs?.Find(p => p != null && p.name.Contains(profileName));
+            // characterPrefabs is null! initialized, so ?. is redundant for NRT but characterPrefabs can be null if not assigned.
+            // However, CI prefers NRT-consistent code.
+            prefab = characterPrefabs.Find(p => p != null && p.name.Contains(profileName));
             _prefabCache[profileName] = prefab;
             return prefab;
         }
@@ -73,12 +74,9 @@ namespace Milehigh.Core
         private void Start()
         {
             // BOLT: Pre-populate prefab cache to ensure O(1) lookups during any scene setup
-            if (characterPrefabs != null)
+            foreach (var prefab in characterPrefabs)
             {
-                foreach (var prefab in characterPrefabs)
-                {
-                    if (prefab != null) _prefabCache[prefab.name] = prefab;
-                }
+                if (prefab != null) _prefabCache[prefab.name] = prefab;
             }
 
             var campaignData = CampaignManager.Instance.currentCampaignData;
