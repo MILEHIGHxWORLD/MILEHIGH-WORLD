@@ -27,15 +27,21 @@ namespace Milehigh.Core
             // BOLT: Perform an O(1) dictionary lookup first.
             if (_objectCache.TryGetValue(objectName, out GameObject? obj))
             {
-                // BOLT: Surgical negative caching. We use ReferenceEquals to distinguish between
-                // a 'true' null (explicitly cached as missing) and a 'Unity' null (destroyed object).
-                if (System.Object.ReferenceEquals(obj, null)) return null;
+                // Note: Unity overrides == to treat destroyed native objects as null.
+                // First handle both managed-null and Unity-null in one check...
+                if (obj == null)
+                {
+                    // ...then distinguish explicit negative cache (true managed null)
+                    // from destroyed Unity object (managed ref not actually null).
+                    if (System.Object.ReferenceEquals(obj, null)) return null;
 
-                // Note: Unity overrides the == operator to check if the underlying native C++ object is destroyed.
-                if (obj != null) return obj;
-
-                // If it was destroyed, remove from cache so we can try to find/instantiate it again
-                _objectCache.Remove(objectName);
+                    // Destroyed object: remove stale cache entry so we can find/instantiate again.
+                    _objectCache.Remove(objectName);
+                }
+                else
+                {
+                    return obj;
+                }
             }
 
             // BOLT: Fallback to O(N) scene traversal only if not found in cache.
