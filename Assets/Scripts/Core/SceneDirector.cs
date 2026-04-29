@@ -121,12 +121,9 @@ namespace Milehigh.Core
         private void CacheHierarchyRecursive(Transform t)
         {
             // Match GameObject.Find behavior: only cache active objects
-            if (t.gameObject.activeInHierarchy)
+            if (t.gameObject.activeInHierarchy && !_objectCache.ContainsKey(t.name))
             {
-                if (!_objectCache.ContainsKey(t.name))
-                {
-                    _objectCache[t.name] = t.gameObject;
-                }
+                _objectCache[t.name] = t.gameObject;
             }
 
             for (int i = 0; i < t.childCount; i++)
