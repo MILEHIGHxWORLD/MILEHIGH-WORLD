@@ -4,6 +4,7 @@ using Milehigh.Data;
 
 namespace Milehigh.Core
 {
+    [DefaultExecutionOrder(-100)]
     public class CampaignManager : MonoBehaviour
     {
         private static CampaignManager? _instance;
@@ -11,16 +12,18 @@ namespace Milehigh.Core
         {
             get
             {
-                if (_instance == null)
-                {
-                    _instance = FindObjectOfType<CampaignManager>();
-                    if (_instance == null)
-                    {
-                        GameObject go = new GameObject("CampaignManager");
-                        _instance = go.AddComponent<CampaignManager>();
-                    }
-                }
+                if (_instance == null) InitializeInstance();
                 return _instance!;
+            }
+        }
+
+        private static void InitializeInstance()
+        {
+            _instance = FindObjectOfType<CampaignManager>();
+            if (_instance == null)
+            {
+                GameObject go = new GameObject("CampaignManager");
+                _instance = go.AddComponent<CampaignManager>();
             }
         }
 
@@ -67,11 +70,9 @@ namespace Milehigh.Core
                     else
                     {
                         // SECURITY: Fail securely and don't use invalid data
-                        Debug.LogError($"Failed to parse or validate campaign data from {fileName}.");
-                        currentCampaignData = null;
                         // SECURITY: Mask runtime exception details and avoid leaking absolute paths in logs
                         Debug.LogError($"Failed to parse or security-validate campaign data from {fileName}.");
-                        currentCampaignData = null; // Ensure we don't use invalid data
+                        currentCampaignData = null;
                     }
                 }
                 catch (System.Exception ex)
