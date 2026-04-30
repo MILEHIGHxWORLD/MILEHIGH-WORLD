@@ -182,6 +182,16 @@ namespace Milehigh.Core
 
         private void ApplyInteraction(ObjectInteraction interaction)
         {
+            // SECURITY: Prevent IDOR tampering with core system managers via untrusted JSON data
+            if (interaction.objectId == "CampaignManager" ||
+                interaction.objectId == "SceneDirector" ||
+                interaction.objectId == "CameraManager" ||
+                interaction.objectId == "AlliancePowerManager")
+            {
+                Debug.LogWarning("Security: Blocked unauthorized interaction with core system manager.");
+                return;
+            }
+
             GameObject? target = GetCachedObject(interaction.objectId);
 
             if (target != null)

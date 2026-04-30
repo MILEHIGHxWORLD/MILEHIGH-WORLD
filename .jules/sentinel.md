@@ -39,3 +39,8 @@
 **Vulnerability:** The project had multiple broken "security fixes" that introduced syntax errors and redundant logic, specifically around deserialized data validation and character asset creation paths. The `IsValid()` pattern was partially implemented but broken, and path traversal mitigation was duplicated and syntactically incorrect.
 **Learning:** Incomplete or improperly merged security fixes can be as dangerous as the original vulnerabilities, as they may lead to compilation failures or bypassed security checks. Centralizing validation logic and ensuring clean path sanitization is critical.
 **Prevention:** Always perform a full code review and basic sanity check (even if just manual brace counting) after applying security fixes to ensure no regressions or syntax errors are introduced.
+
+## 2024-05-24 - IDOR Vulnerability via Unsanitized JSON Data in Scene Interactions
+**Vulnerability:** Insecure Direct Object Reference (IDOR) in `SceneDirector.cs` where untrusted external data (JSON `interaction.objectId`) was used to locate and manipulate arbitrary GameObjects via `GameObject.Find`, potentially allowing tampering with critical system managers.
+**Learning:** In data-driven Unity architectures, using unsanitized strings directly from external sources to look up GameObjects creates severe vulnerabilities if critical components lack protection boundaries.
+**Prevention:** Always validate and sanitize external object IDs. Implement explicit blocklists or allowlists at the application boundary (e.g., `ApplyInteraction`) using exact string matching to protect core architectural singletons from unauthorized manipulation.
