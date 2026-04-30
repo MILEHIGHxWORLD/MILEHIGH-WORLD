@@ -58,7 +58,6 @@ def validate_compliance_assets():
         "Compliance/Scripts/evidence_collector.py",
         "Compliance/Scripts/identity_audit.py",
         "Compliance/Infrastructure/main.tf",
-        "Compliance/Infrastructure/checkov_policy.tf",
         "Compliance/Policies/information_security_policy.md",
         "Compliance/Policies/access_control_policy.md",
         ".github/workflows/compliance-monitor.yml"

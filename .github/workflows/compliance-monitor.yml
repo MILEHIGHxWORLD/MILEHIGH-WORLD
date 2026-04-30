@@ -17,7 +17,7 @@ jobs:
           fetch-depth: 0
 
       - name: Run Checkov SOC 2 Audit
-        uses: bridgecrewio/checkov-action@master
+        uses: bridgecrewio/checkov-action@v12
         with:
           directory: Compliance/Infrastructure
           framework: terraform
@@ -25,6 +25,7 @@ jobs:
           quiet: true
           soft_fail: false # Blocks non-compliant PRs
           download_external_modules: true
+          # 🛡️ Sentinel: Ensuring we run with a secure, pinned version.
 
   security-audit:
     name: SOC 2 Script Audit
