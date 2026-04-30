@@ -210,7 +210,9 @@ public class Cinematic_IntoTheVoid : MonoBehaviour
         DialogueText.ForceMeshUpdate();
 
         int totalVisibleCharacters = DialogueText.textInfo.characterCount;
-        int messageLength = message.Length;
+        // Calculation: characterCount includes the completion cue '▽'.
+        // We only want to apply rhythmic pacing to the message itself.
+        int messageVisibleCount = totalVisibleCharacters - 2; // Subtracting ' ▽'
 
         for (int i = 0; i <= totalVisibleCharacters; i++)
         {
@@ -227,10 +229,10 @@ public class Cinematic_IntoTheVoid : MonoBehaviour
                 float delay = currentTypingSpeed;
 
                 // UX Enhancement: Rhythmic punctuation pauses for natural reading.
-                // We check the previous character to pause *after* it has been revealed.
-                if (i > 0 && i <= messageLength)
+                // Use characterInfo for robust detection that handles rich text correctly.
+                if (i > 0 && i <= messageVisibleCount)
                 {
-                    char c = message[i - 1];
+                    char c = DialogueText.textInfo.characterInfo[i - 1].character;
                     if (c == '.' || c == '!' || c == '?')
                     {
                         delay = currentTypingSpeed * 15f;
@@ -239,12 +241,12 @@ public class Cinematic_IntoTheVoid : MonoBehaviour
                         bool isEllipsis = false;
                         if (c == '.')
                         {
-                            if (i > 1 && message[i - 2] == '.') isEllipsis = true;
-                            if (i < messageLength && message[i] == '.') isEllipsis = true;
+                            if (i > 1 && DialogueText.textInfo.characterInfo[i - 2].character == '.') isEllipsis = true;
+                            if (i < messageVisibleCount && DialogueText.textInfo.characterInfo[i].character == '.') isEllipsis = true;
                         }
 
                         if (isEllipsis) delay = currentTypingSpeed * 5f;
-                        else if (c == '.' && i < messageLength && !char.IsWhiteSpace(message[i]))
+                        else if (c == '.' && i < messageVisibleCount && !char.IsWhiteSpace(DialogueText.textInfo.characterInfo[i].character))
                         {
                             delay = currentTypingSpeed; // Mid-word (e.g. Sky.ix)
                         }
