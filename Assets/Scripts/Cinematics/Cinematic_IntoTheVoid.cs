@@ -40,6 +40,8 @@ using UnityEngine;
 using UnityEngine.Serialization;
 using TMPro;
 
+namespace Milehigh.Cinematics
+{
 /// <summary>
 /// This script controls the cinematic sequence for the mission: "Deep within the anti-reality of ŤĤÊ VØĪĐ..."
 /// </summary>
@@ -229,4 +231,5 @@ public class Cinematic_IntoTheVoid : MonoBehaviour
 
         Debug.Log("Cinematic Sequence Complete: [Deep within the anti-reality of ŤĤÊ VØĪĐ...]");
     }
+}
 }

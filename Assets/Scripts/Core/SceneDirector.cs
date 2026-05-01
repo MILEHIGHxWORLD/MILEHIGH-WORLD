@@ -93,9 +93,10 @@ namespace Milehigh.Core
                 }
             }
 
-            if (CampaignManager.Instance.currentCampaignData != null)
+            var campaignData = CampaignManager.Instance.currentCampaignData;
+            if (campaignData != null && campaignData.scenarios.Count > 0)
             {
-                SetupScene(CampaignManager.Instance.currentCampaignData.scenarios[0]);
+                SetupScene(campaignData.scenarios[0]);
             }
         }
 
@@ -137,7 +138,7 @@ namespace Milehigh.Core
 
                 if (prefab != null)
                 {
-                    characterObj = Instantiate(prefab, characterSpawnRoot);
+                    characterObj = Instantiate<GameObject>(prefab, characterSpawnRoot);
                     characterObj.name = profile.name;
 
                     // BOLT: Immediately cache the newly instantiated object
