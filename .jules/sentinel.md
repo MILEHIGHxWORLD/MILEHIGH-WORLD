@@ -39,3 +39,8 @@
 **Vulnerability:** The project had multiple broken "security fixes" that introduced syntax errors and redundant logic, specifically around deserialized data validation and character asset creation paths. The `IsValid()` pattern was partially implemented but broken, and path traversal mitigation was duplicated and syntactically incorrect.
 **Learning:** Incomplete or improperly merged security fixes can be as dangerous as the original vulnerabilities, as they may lead to compilation failures or bypassed security checks. Centralizing validation logic and ensuring clean path sanitization is critical.
 **Prevention:** Always perform a full code review and basic sanity check (even if just manual brace counting) after applying security fixes to ensure no regressions or syntax errors are introduced.
+
+## 2025-05-24 - DoS Mitigation via Object Name Whitelisting in Unity Managers
+**Vulnerability:** Expensive scene traversal operations like `GameObject.Find` can be abused if triggered by unvalidated external data (e.g. malformed JSON scenarios). Maliciously long or complex strings can cause significant frame drops or application hangs.
+**Learning:** Performance optimizations (like caching) often overlap with security mitigations (DoS protection). Simply caching is not enough if the lookup itself can be expensive.
+**Prevention:** Implement strict length limits and character whitelisting (Regex) for any string used as a key for scene-wide searches or dynamic resource loading. Pre-compile Regex for performance.
