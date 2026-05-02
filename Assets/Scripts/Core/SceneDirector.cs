@@ -80,9 +80,10 @@ namespace Milehigh.Core
                 }
             }
 
-            if (CampaignManager.Instance.currentCampaignData != null)
+            var data = CampaignManager.Instance.currentCampaignData;
+            if (data != null && data.scenarios != null && data.scenarios.Count > 0)
             {
-                SetupScene(campaignData.scenarios[0]);
+                SetupScene(data.scenarios[0]);
             }
         }
 
