@@ -59,7 +59,3 @@
 ## 2026-03-26 - Unity Negative Caching Pitfalls
 **Learning:** In Unity managers like `SceneDirector.cs` that both find and instantiate objects, "negative caching" (storing `null` in the dictionary when `GameObject.Find` fails) is a dangerous anti-pattern. If an object is instantiated later in the same frame or scenario, subsequent lookups will incorrectly return the cached `null` instead of the newly created object. Furthermore, Unity's `obj != null` check is essential even for cached references to detect if the native C++ object was destroyed.
 **Action:** When caching `GameObject.Find` results, always use the `if (_cache.TryGetValue(key, out obj) && obj != null)` pattern. Do not cache `null` results if there is any chance the object will be created later. Ensure the cache is updated immediately after any `Instantiate` calls.
-
-## 2026-03-27 - [Typewriter Yield Allocation Optimization]
-**Learning:** In TextMeshPro-based typewriter effects, yielding `new WaitForSeconds` for every revealed character creates significant GC pressure in long cinematic sequences. Caching these yield instructions in a `Dictionary<float, WaitForSeconds>` eliminates these allocations.
-**Action:** Always use a static or shared yield instruction cache in coroutines that yield frequently with variable but recurring durations.
