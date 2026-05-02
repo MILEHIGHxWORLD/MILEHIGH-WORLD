@@ -93,6 +93,43 @@ namespace Milehigh.Core
         {
             currentVoidSaturationLevel = Mathf.Clamp01(currentVoidSaturationLevel + amount);
             Debug.Log($"Void Saturation Level: {currentVoidSaturationLevel}");
+            SaveSecureData("VoidSaturation", currentVoidSaturationLevel.ToString());
+        }
+
+        /// <summary>
+        /// 🛡️ Sentinel: Saves persistent data with basic XOR obfuscation to demonstrate
+        /// client-side hardening for SOC 2 CC6.6 (Encryption of Data at Rest).
+        /// Note: For production audits, use an industry-standard cryptographic library (e.g., AES-256).
+        /// </summary>
+        public void SaveSecureData(string key, string data)
+        {
+            if (string.IsNullOrEmpty(key) || string.IsNullOrEmpty(data)) return;
+
+            string obfuscated = ProcessXOR(data);
+            PlayerPrefs.SetString($"SECURE_{key}", obfuscated);
+            PlayerPrefs.Save();
+        }
+
+        public string LoadSecureData(string key)
+        {
+            string obfuscated = PlayerPrefs.GetString($"SECURE_{key}", "");
+            if (string.IsNullOrEmpty(obfuscated)) return "";
+
+            return ProcessXOR(obfuscated);
+        }
+
+        private string ProcessXOR(string textToProcess)
+        {
+            // 🛡️ Sentinel: Deriving a key from device/app properties rather than hardcoding a string secret.
+            string salt = SystemInfo.deviceUniqueIdentifier ?? "MILEHIGH_FALLBACK_SALT";
+            char[] output = new char[textToProcess.Length];
+
+            for (int i = 0; i < textToProcess.Length; i++)
+            {
+                output[i] = (char)(textToProcess[i] ^ salt[i % salt.Length]);
+            }
+
+            return new string(output);
         }
     }
 }
