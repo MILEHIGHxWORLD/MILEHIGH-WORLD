@@ -180,8 +180,25 @@ namespace Milehigh.Core
             }
         }
 
+        // 🛡️ Sentinel: Blocklist of critical system managers to prevent Insecure Direct Object Reference (IDOR)
+        // by stopping untrusted external JSON data from manipulating core application infrastructure.
+        private static readonly HashSet<string> ProtectedManagers = new HashSet<string>
+        {
+            "CampaignManager",
+            "SceneDirector",
+            "CameraManager",
+            "AlliancePowerManager"
+        };
+
         private void ApplyInteraction(ObjectInteraction interaction)
         {
+            // 🛡️ Sentinel: Apply IDOR validation blocklist at the application boundary where external JSON is processed.
+            if (string.IsNullOrEmpty(interaction.objectId) || ProtectedManagers.Contains(interaction.objectId))
+            {
+                Debug.LogWarning($"Security Error: Blocked unauthorized manipulation attempt on protected object '{interaction.objectId}'.");
+                return;
+            }
+
             GameObject? target = GetCachedObject(interaction.objectId);
 
             if (target != null)
