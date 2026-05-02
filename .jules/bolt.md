@@ -59,3 +59,7 @@
 ## 2026-03-26 - Unity Negative Caching Pitfalls
 **Learning:** In Unity managers like `SceneDirector.cs` that both find and instantiate objects, "negative caching" (storing `null` in the dictionary when `GameObject.Find` fails) is a dangerous anti-pattern. If an object is instantiated later in the same frame or scenario, subsequent lookups will incorrectly return the cached `null` instead of the newly created object. Furthermore, Unity's `obj != null` check is essential even for cached references to detect if the native C++ object was destroyed.
 **Action:** When caching `GameObject.Find` results, always use the `if (_cache.TryGetValue(key, out obj) && obj != null)` pattern. Do not cache `null` results if there is any chance the object will be created later. Ensure the cache is updated immediately after any `Instantiate` calls.
+
+## 2024-05-26 - Float Keys in Dictionaries for Yield Instructions
+**Learning:** Caching `WaitForSeconds` in a `Dictionary<float, WaitForSeconds>` causes frequent cache misses due to floating-point imprecision (e.g., `0.1f` might evaluate slightly differently). This leads to unintended instantiations and GC spikes, defeating the purpose of the cache.
+**Action:** Always use an integer key (e.g., milliseconds via `Mathf.RoundToInt(time * 1000f)`) when caching time-based yield instructions in a dictionary to ensure consistent cache hits and zero allocations.
