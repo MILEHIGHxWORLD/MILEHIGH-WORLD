@@ -11,20 +11,27 @@ namespace Milehigh.Core
         public Transform characterSpawnRoot = null!;
 
         // BOLT: Consolidated cache for GameObjects to prevent expensive O(N) GameObject.Find calls
-        private Dictionary<string, GameObject> _objectCache = new Dictionary<string, GameObject>();
+        // We use nullable types to support negative caching (storing a true null for missing objects)
+        private Dictionary<string, GameObject?> _objectCache = new Dictionary<string, GameObject?>();
+
         // BOLT: Prefab cache to avoid O(P) linear searches and delegate allocations
-        private Dictionary<string, GameObject> _prefabCache = new Dictionary<string, GameObject>();
+        private Dictionary<string, GameObject?> _prefabCache = new Dictionary<string, GameObject?>();
+
         // BOLT: Component cache to avoid redundant GetComponent calls. Key is InstanceID (int) to avoid string allocations.
-        private Dictionary<int, CharacterControllerBase> _controllerCache = new Dictionary<int, CharacterControllerBase>();
+        private Dictionary<int, CharacterControllerBase?> _controllerCache = new Dictionary<int, CharacterControllerBase?>();
 
         private GameObject? GetCachedObject(string objectName)
         {
             if (string.IsNullOrEmpty(objectName)) return null;
 
             // BOLT: Perform an O(1) dictionary lookup first.
-            if (_objectCache.TryGetValue(objectName, out GameObject obj))
+            if (_objectCache.TryGetValue(objectName, out GameObject? obj))
             {
-                // BOLT: Check if the cached reference is a destroyed Unity object (fake null)
+                // BOLT: Surgical negative caching using ReferenceEquals.
+                // We distinguish between a 'true' null (cached as missing) and a 'Unity' null (destroyed object).
+                if (System.Object.ReferenceEquals(obj, null)) return null;
+
+                // If it's a Unity null (native object destroyed), we should try to find it again.
                 if (obj == null)
                 {
                     _objectCache.Remove(objectName);
@@ -36,22 +43,22 @@ namespace Milehigh.Core
             }
 
             // BOLT: Fallback to O(N) scene traversal only if not in cache or if the cached object was destroyed.
-            obj = GameObject.Find(objectName);
+            GameObject? foundObj = GameObject.Find(objectName);
             // BOLT: Cache result even if null (negative caching) to avoid future O(N) traversals
-            _objectCache[objectName] = obj;
-            return obj;
+            _objectCache[objectName] = foundObj;
+            return foundObj;
         }
 
         private GameObject? GetPrefab(string profileName)
         {
             if (string.IsNullOrEmpty(profileName)) return null;
-            if (_prefabCache.TryGetValue(profileName, out GameObject prefab)) return prefab;
+            if (_prefabCache.TryGetValue(profileName, out GameObject? prefab)) return prefab;
 
             // BOLT: O(P) linear search as fallback if not pre-cached
-            prefab = characterPrefabs?.Find(p => p != null && p.name.Contains(profileName));
-            if (prefab != null) _prefabCache[profileName] = prefab;
+            GameObject? foundPrefab = characterPrefabs?.Find(p => p != null && p.name.Contains(profileName));
+            _prefabCache[profileName] = foundPrefab;
 
-            return prefab;
+            return foundPrefab;
         }
 
         private CharacterControllerBase? GetCharacterController(GameObject characterObj)
@@ -61,10 +68,10 @@ namespace Milehigh.Core
 
             if (_controllerCache.TryGetValue(objId, out var controller)) return controller;
 
-            controller = characterObj.GetComponent<CharacterControllerBase>();
-            if (controller != null) _controllerCache[objId] = controller;
+            CharacterControllerBase? foundController = characterObj.GetComponent<CharacterControllerBase>();
+            _controllerCache[objId] = foundController;
 
-            return controller;
+            return foundController;
         }
 
         private void Start()
@@ -78,6 +85,7 @@ namespace Milehigh.Core
                 }
             }
 
+            // Use NRT flow analysis pattern: capture singleton property in local variable
             var campaignData = CampaignManager.Instance.currentCampaignData;
             if (campaignData != null && campaignData.scenarios != null && campaignData.scenarios.Count > 0)
             {
@@ -123,7 +131,8 @@ namespace Milehigh.Core
 
                 if (prefab != null)
                 {
-                    characterObj = Instantiate(prefab, characterSpawnRoot);
+                    // Use generic Instantiate<T> for better type safety and flow analysis
+                    characterObj = Instantiate<GameObject>(prefab, characterSpawnRoot);
                     characterObj.name = profile.name;
 
                     // BOLT: Immediately cache the newly instantiated object
