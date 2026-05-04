@@ -70,7 +70,7 @@ namespace Milehigh.Editor
                     safeFileName = "character_" + System.Guid.NewGuid().ToString().Substring(0, 8);
                 }
 
-                string assetPath = $" {folderPath}/{safeFileName}.asset";
+                string assetPath = $"{folderPath}/{safeFileName}.asset";
                 AssetDatabase.CreateAsset(asset, assetPath);
 
                 // SECURITY: Log relative asset path to avoid absolute path disclosure.
