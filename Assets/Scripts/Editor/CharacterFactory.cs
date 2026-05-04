@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEditor;
 using System.IO;
+using System.Text.RegularExpressions;
 using Milehigh.Data;
 
 namespace Milehigh.Editor
@@ -10,35 +11,29 @@ namespace Milehigh.Editor
         [MenuItem("Milehigh/Import Campaign Data")]
         public static void ImportCampaignData()
         {
-            string path = "Assets/Scripts/Data/campaign_master.json";
+            string fileName = "campaign_master.json";
+            string path = Path.Combine("Assets/Scripts/Data", fileName);
+
             if (!File.Exists(path))
             {
-                Debug.LogError("Campaign master JSON not found at " + path);
+                Debug.LogError($"Campaign master JSON not found at: {fileName}");
                 return;
             }
 
-            string json = File.ReadAllText(path);
-            HorizonGameData? data = JsonUtility.FromJson<HorizonGameData>(json);
-            HorizonGameData data = null;
+            HorizonGameData? data = null;
             try
             {
                 string json = File.ReadAllText(path);
                 data = JsonUtility.FromJson<HorizonGameData>(json);
-
-                if (data == null || data.characters == null)
-                {
-                    Debug.LogError("Failed to parse campaign data.");
-                    return;
-                }
             }
-            catch (System.Exception)
+            catch (System.Exception ex)
             {
-                // 🛡️ Sentinel: Catch exceptions during file read/JSON parse to fail securely and avoid leaking stack traces
-                Debug.LogError("Failed to load or parse campaign data. Error parsing file.");
+                // 🛡️ Sentinel: Security enhancement - Avoid leaking absolute paths or stack traces in logs.
+                Debug.LogError($"Failed to load campaign data: {ex.Message}");
+                return;
+            }
+
             // 🛡️ Sentinel: Security validation of deserialized data.
-            // SECURITY: Always validate data after deserialization
-            // SECURITY: Always validate data after deserialization to ensure integrity
-            // SECURITY: Always validate data after deserialization to prevent using malicious or corrupted data
             if (data == null || !data.IsValid())
             {
                 Debug.LogError("[Security] Character import aborted: Campaign data failed validation.");
@@ -47,7 +42,7 @@ namespace Milehigh.Editor
 
             string folderPath = "Assets/Data/Characters";
             if (!AssetDatabase.IsValidFolder(folderPath))
-            {2w33 f. 
+            {
                 if (!AssetDatabase.IsValidFolder("Assets/Data"))
                 {
                     AssetDatabase.CreateFolder("Assets", "Data");
@@ -63,45 +58,35 @@ namespace Milehigh.Editor
                 asset.traits = charProfile.traits;
                 asset.behaviorScript = charProfile.behaviorScript;
 
-                // 🛡️ Sentinel: Sanitize character name to prevent Path Traversal vulnerabilities.
-                // Malicious JSON could use directory traversal sequences (e.g., "../") to write assets outside the intended directory.
-                // We use Path.GetFileName to extract only the name part and replace OS-specific invalid characters.
-                string baseName = charProfile.name ?? "unnamed_character";
-                string safeFileName = baseName;
-                // Malicious JSON could use "../" to write assets outside the intended directory
-                string sanitizedName = string.Join("_", charProfile.name.Split(Path.GetInvalidFileNameChars()));
-                string safeFileName = Path.GetFileName(sanitizedName).Replace(" ", "_");
-
+                // 🛡️ Sentinel: Secure path generation to prevent Path Traversal vulnerabilities.
+                string safeFileName = GetSafeFileName(charProfile.name);
                 string assetPath = $"{folderPath}/{safeFileName}.asset";
 
-                string sanitizedName = charProfile.name;
-
-                foreach (char c in Path.GetInvalidFileNameChars())
-                {
-                    safeFileName = safeFileName.Replace(c, '_');
-                }
-
-                // Ensure no directory separators or traversal sequences remain
-                safeFileName = Path.GetFileName(safeFileName).Replace(" ", "_");
-
-                if (string.IsNullOrEmpty(safeFileName))
-                {
-                    safeFileName = "character_" + System.Guid.NewGuid().ToString().Substring(0, 8);
-                }
-
-                string assetPath = $"{folderPath}/{safeFileName}.asset";
                 AssetDatabase.CreateAsset(asset, assetPath);
-
-                // SECURITY: Log relative asset path to avoid absolute path disclosure
-
-                string assetPath = $"{folderPath}/{safeFileName}.asset";
-                AssetDatabase.CreateAsset(asset, assetPath);
-                // SECURITY: Log relative asset path to avoid absolute path disclosure.
+                // SECURITY: Log only the asset path relative to the project root.
                 Debug.Log($"Created character asset: {assetPath}");
             }
 
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
+        }
+
+        /// <summary>
+        /// 🛡️ Sentinel: Sanitizes a string for use as a filename using a whitelist approach.
+        /// </summary>
+        private static string GetSafeFileName(string input)
+        {
+            if (string.IsNullOrEmpty(input)) return "unnamed_character_" + System.Guid.NewGuid().ToString().Substring(0, 8);
+
+            // Whitelist: only allow alphanumeric, underscores, and hyphens.
+            string safeName = Regex.Replace(input, @"[^a-zA-Z0-9_\-]", "_");
+
+            // Strip leading dots or underscores to prevent hidden files or traversal tricks
+            safeName = safeName.TrimStart('.', '_');
+
+            if (string.IsNullOrEmpty(safeName)) return "character_" + System.Guid.NewGuid().ToString().Substring(0, 8);
+
+            return safeName;
         }
     }
 }
