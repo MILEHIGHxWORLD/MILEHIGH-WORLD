@@ -264,6 +264,7 @@ public class Cinematic_IntoTheVoid : MonoBehaviour
 
         // Note: skipRequested is NOT reset here to allow the subsequent WaitForSecondsOrSkip to also be skipped.
         typingCoroutine = null;
+        yield break;
     }
 
     private IEnumerator Cinematic_IntoTheVoid_Sequence()
@@ -352,7 +353,7 @@ public class Cinematic_IntoTheVoid : MonoBehaviour
         DialogueBox.SetActive(false);
 
         // [SCENE CLEANUP: Re-enable player controls, reset cameras, transition to gameplay/boss fight]
-        // Example: PlayerInput.Instance.EnableControls();
+        // Example: PlayerInput.Instance.DisableControls();
         // Example: CinematicCamera.SetActive(false);
         // Example: BossFightController.StartFight();
         Debug.Log("Cinematic Sequence Complete: [Deep within the anti-reality of ŤĤÊ VØĪĐ...]");

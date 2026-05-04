@@ -82,6 +82,7 @@ namespace Milehigh.Core
                 }
             }
 
+            // NRT Pattern: Capture singleton property in local variable before null check
             var campaignData = CampaignManager.Instance.currentCampaignData;
             if (campaignData != null && campaignData.scenarios != null && campaignData.scenarios.Count > 0)
             {
@@ -97,7 +98,7 @@ namespace Milehigh.Core
             _objectCache.Clear();
             _controllerCache.Clear();
 
-            // Instantiate characters if not already in scene
+            // NRT Pattern: Capture singleton property in local variable
             var campaignData = CampaignManager.Instance.currentCampaignData;
             if (campaignData != null && campaignData.characters != null)
             {
@@ -128,7 +129,8 @@ namespace Milehigh.Core
 
                 if (prefab != null)
                 {
-                    characterObj = Instantiate(prefab, characterSpawnRoot);
+                    // Unity Performance Pattern: Use generic Instantiate for type safety
+                    characterObj = Instantiate<GameObject>(prefab, characterSpawnRoot);
                     characterObj.name = profile.name;
 
                     // BOLT: Immediately cache the newly instantiated object

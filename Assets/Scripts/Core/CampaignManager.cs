@@ -55,12 +55,14 @@ namespace Milehigh.Core
                 try
                 {
                     string json = File.ReadAllText(filePath);
-                    currentCampaignData = JsonUtility.FromJson<HorizonGameData>(json);
+                    var data = JsonUtility.FromJson<HorizonGameData>(json);
 
                     // 🛡️ Sentinel: Perform validation after deserialization to ensure data integrity.
-                    if (currentCampaignData != null && currentCampaignData.IsValid())
+                    // NRT Pattern: Use local variable 'data' for consistent flow analysis.
+                    if (data != null && data.IsValid())
                     {
-                        currentVoidSaturationLevel = currentCampaignData.metadata.voidSaturationLevel;
+                        currentCampaignData = data;
+                        currentVoidSaturationLevel = data.metadata.voidSaturationLevel;
                         // SECURITY: Log only the file name, not the absolute path, to prevent information disclosure
                         Debug.Log($"Campaign data loaded and validated from {fileName}");
                     }

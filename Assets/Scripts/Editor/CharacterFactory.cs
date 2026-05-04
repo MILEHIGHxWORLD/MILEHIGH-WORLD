@@ -34,6 +34,7 @@ namespace Milehigh.Editor
             }
 
             // 🛡️ Sentinel: Security validation of deserialized data.
+            // NRT Pattern: Captured local 'data' ensures safety.
             if (data == null || !data.IsValid())
             {
                 Debug.LogError($"[Security] Character import aborted: Campaign data from {fileName} failed validation.");
@@ -50,21 +51,28 @@ namespace Milehigh.Editor
                 AssetDatabase.CreateFolder("Assets/Data", "Characters");
             }
 
-            foreach (var charProfile in data.characters)
+            // NRT Pattern: Capture property in local variable before iteration
+            var characters = data.characters;
+            if (characters != null)
             {
-                CharacterData asset = ScriptableObject.CreateInstance<CharacterData>();
-                asset.characterName = charProfile.name;
-                asset.role = charProfile.role;
-                asset.traits = charProfile.traits;
-                asset.behaviorScript = charProfile.behaviorScript;
+                foreach (var charProfile in characters)
+                {
+                    if (charProfile == null) continue;
 
-                // 🛡️ Sentinel: Sanitize character name to prevent Path Traversal vulnerabilities.
-                string safeFileName = GetSafeFileName(charProfile.name);
-                string assetPath = $"{folderPath}/{safeFileName}.asset";
+                    CharacterData asset = ScriptableObject.CreateInstance<CharacterData>();
+                    asset.characterName = charProfile.name;
+                    asset.role = charProfile.role;
+                    asset.traits = charProfile.traits;
+                    asset.behaviorScript = charProfile.behaviorScript;
 
-                AssetDatabase.CreateAsset(asset, assetPath);
-                // SECURITY: Log relative asset path to avoid absolute path disclosure.
-                Debug.Log($"Created character asset: {assetPath}");
+                    // 🛡️ Sentinel: Sanitize character name to prevent Path Traversal vulnerabilities.
+                    string safeFileName = GetSafeFileName(charProfile.name);
+                    string assetPath = $"{folderPath}/{safeFileName}.asset";
+
+                    AssetDatabase.CreateAsset(asset, assetPath);
+                    // SECURITY: Log relative asset path to avoid absolute path disclosure.
+                    Debug.Log($"Created character asset: {assetPath}");
+                }
             }
 
             AssetDatabase.SaveAssets();
