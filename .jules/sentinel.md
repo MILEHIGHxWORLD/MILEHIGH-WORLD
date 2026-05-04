@@ -39,3 +39,8 @@
 **Vulnerability:** The project had multiple broken "security fixes" that introduced syntax errors and redundant logic, specifically around deserialized data validation and character asset creation paths. The `IsValid()` pattern was partially implemented but broken, and path traversal mitigation was duplicated and syntactically incorrect.
 **Learning:** Incomplete or improperly merged security fixes can be as dangerous as the original vulnerabilities, as they may lead to compilation failures or bypassed security checks. Centralizing validation logic and ensuring clean path sanitization is critical.
 **Prevention:** Always perform a full code review and basic sanity check (even if just manual brace counting) after applying security fixes to ensure no regressions or syntax errors are introduced.
+
+## 2024-05-24 - Information Disclosure via Exception Messages in Logs
+**Vulnerability:** Found `Debug.LogError` statements in `CampaignManager.cs` outputting `ex.Message` directly in catch blocks. This can inadvertently leak absolute file paths or internal system details if the exception message contains them.
+**Learning:** Exception messages often contain platform-specific paths or environment details that should not be exposed in production logs.
+**Prevention:** Mask runtime exception details by logging generic error messages (e.g., "See logs for details") and ensure that any file-related logs only use relative names or identifiers rather than full paths.
