@@ -112,14 +112,16 @@ public class Cinematic_IntoTheVoid : MonoBehaviour
     private bool skipRequested;
 
     // Cache for WaitForSeconds to eliminate GC allocations during coroutine execution
-    private static readonly Dictionary<float, WaitForSeconds> _waitForSecondsCache = new Dictionary<float, WaitForSeconds>();
+    // ⚡ Bolt: Use int key for milliseconds to prevent float imprecision dictionary misses
+    private static readonly Dictionary<int, WaitForSeconds> _waitForSecondsCache = new Dictionary<int, WaitForSeconds>();
 
     private WaitForSeconds GetWait(float time)
     {
-        if (!_waitForSecondsCache.TryGetValue(time, out var wait))
+        int timeKey = Mathf.RoundToInt(time * 1000f);
+        if (!_waitForSecondsCache.TryGetValue(timeKey, out var wait))
         {
             wait = new WaitForSeconds(time);
-            _waitForSecondsCache[time] = wait;
+            _waitForSecondsCache[timeKey] = wait;
         }
         return wait;
     }
@@ -127,10 +129,12 @@ public class Cinematic_IntoTheVoid : MonoBehaviour
     void Update()
     {
         // Poll for skip input to ensure responsiveness
-        if (Input.GetKeyDown(KeyCode.Space) || Input.GetMouseButtonDown(0))
+        if (Input.anyKeyDown || Input.GetKeyDown(KeyCode.Space) || Input.GetMouseButtonDown(0))
         {
             skipRequested = true;
         }
+    }
+
     /// <summary>
     /// Yields for the specified duration but returns immediately if a skip is requested.
     /// Resets the skip flag upon completion.
@@ -156,11 +160,6 @@ public class Cinematic_IntoTheVoid : MonoBehaviour
         }
 
         StartCoroutine(Cinematic_IntoTheVoid_Sequence());
-    }
-
-    void Update()
-    {
-        if (Input.anyKeyDown) skipRequested = true;
     }
 
     /// <summary>
