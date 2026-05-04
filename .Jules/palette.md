@@ -46,3 +46,6 @@
 ## 2026-03-25 - [Refined Rhythmic Pacing and Speaker-Matched UI Cues]
 **Learning:** Pacing in dialogue-heavy cinematics is significantly improved by distinguishing between sentence endings (long pause), ellipses (medium pause), and mid-word periods (no pause, e.g., 'Sky.ix'). Furthermore, color-coding progress indicators (like the '▽' cue) to match the speaker's theme strengthens the visual association between the narrative content and the character, reducing cognitive load for the player.
 **Action:** Implement look-ahead/look-behind logic for punctuation to refine pacing, and use speaker-specific colors for interactive UI cues via TMP rich text tags.
+## 2025-05-21 - [Dialogue Skip Hint and Refined Pacing]
+**Learning:** In dialogue-heavy Unity cinematics, providing an "idle hint" (e.g., "[Space] Skip") that appears after a short period of inactivity (2s) improves accessibility without cluttering the UI for engaged players. Furthermore, consolidating fragmented typewriter logic into a single, punctuation-aware loop ensures consistent visual pacing and easier maintenance.
+**Action:** Implement an 'idleTimer' and 'playerInteracted' flag for optional skip prompts and always consolidate typewriter coroutines to handle smart punctuation delays in a single pass.
