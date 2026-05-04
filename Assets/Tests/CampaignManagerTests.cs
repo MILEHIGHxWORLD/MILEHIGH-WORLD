@@ -8,8 +8,8 @@ namespace Milehigh.Tests
     [TestFixture]
     public class CampaignManagerTests
     {
-        private GameObject _testObject;
-        private CampaignManager _campaignManager;
+        private GameObject _testObject = null!;
+        private CampaignManager _campaignManager = null!;
 
         [SetUp]
         public void SetUp()
