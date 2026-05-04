@@ -9,7 +9,7 @@ namespace Milehigh.Characters
 
         public override void ExecuteBehavior()
         {
-            // Update logic here
+            // Base behavior override required by CharacterControllerBase
         }
 
         public void UpdateBehavior(float incomingForce, string attackType)

@@ -7,7 +7,7 @@ namespace Milehigh.Characters
     {
         public override void ExecuteBehavior()
         {
-            // Update logic here
+            // Base behavior override required by CharacterControllerBase
         }
 
         public void CheckStability(float stabilityIndex, GameObject nearestShard)
