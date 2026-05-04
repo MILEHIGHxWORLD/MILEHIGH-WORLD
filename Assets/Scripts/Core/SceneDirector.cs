@@ -182,6 +182,18 @@ namespace Milehigh.Core
 
         private void ApplyInteraction(ObjectInteraction interaction)
         {
+            // 🛡️ Sentinel: Prevent Insecure Direct Object Reference (IDOR)
+            // Block external data from manipulating core architectural managers.
+            string[] protectedObjects = { "CampaignManager", "SceneDirector", "CameraManager", "AlliancePowerManager" };
+            foreach (string protectedObj in protectedObjects)
+            {
+                if (interaction.objectId == protectedObj)
+                {
+                    Debug.LogError($"[Security] Blocked unauthorized interaction attempt on protected object: {interaction.objectId}");
+                    return;
+                }
+            }
+
             GameObject? target = GetCachedObject(interaction.objectId);
 
             if (target != null)
