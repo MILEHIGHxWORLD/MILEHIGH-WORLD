@@ -59,3 +59,11 @@
 ## 2026-03-26 - Unity Negative Caching Pitfalls
 **Learning:** In Unity managers like `SceneDirector.cs` that both find and instantiate objects, "negative caching" (storing `null` in the dictionary when `GameObject.Find` fails) is a dangerous anti-pattern. If an object is instantiated later in the same frame or scenario, subsequent lookups will incorrectly return the cached `null` instead of the newly created object. Furthermore, Unity's `obj != null` check is essential even for cached references to detect if the native C++ object was destroyed.
 **Action:** When caching `GameObject.Find` results, always use the `if (_cache.TryGetValue(key, out obj) && obj != null)` pattern. Do not cache `null` results if there is any chance the object will be created later. Ensure the cache is updated immediately after any `Instantiate` calls.
+
+## 2024-05-04 - [Testing Unity Scripts in Standalone .NET]
+**Learning:** Unity scripts (MonoBehaviours) can be unit-tested in a standalone `dotnet` environment by stubbing out core UnityEngine classes (GameObject, MonoBehaviour, Mathf, Debug). This allows for rapid validation of logic-heavy methods without the overhead of the Unity Editor.
+**Action:** Use `dotnet new console` or `dotnet test` with custom stubs to verify non-Unity-dependent logic in core scripts when the full Editor environment is unavailable.
+
+## 2024-05-04 - [Fixing Code Rot and Syntax Soup in Core Scripts]
+**Learning:** Automated or poorly merged security patches can lead to "code rot" where multiple versions of the same logic (like typewriter reveal or path sanitization) are layered on top of each other, creating uncompilable "syntax soup".
+**Action:** When fixing compilation errors in legacy or heavily patched files, prioritize reading the entire file first to identify redundant blocks. Manually consolidate logic into a single, clean path rather than attempting to patch individual errors, as the errors are often symptoms of deeper duplication.
