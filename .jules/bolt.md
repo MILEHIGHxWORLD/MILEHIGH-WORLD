@@ -63,3 +63,7 @@
 ## 2024-05-04 - [Testing Unity Scripts in Standalone .NET]
 **Learning:** Unity scripts (MonoBehaviours) can be unit-tested in a standalone `dotnet` environment by stubbing out core UnityEngine classes (GameObject, MonoBehaviour, Mathf, Debug). This allows for rapid validation of logic-heavy methods without the overhead of the Unity Editor.
 **Action:** Use `dotnet new console` or `dotnet test` with custom stubs to verify non-Unity-dependent logic in core scripts when the full Editor environment is unavailable.
+
+## 2024-05-04 - [Fixing Code Rot and Syntax Soup in Core Scripts]
+**Learning:** Automated or poorly merged security patches can lead to "code rot" where multiple versions of the same logic (like typewriter reveal or path sanitization) are layered on top of each other, creating uncompilable "syntax soup".
+**Action:** When fixing compilation errors in legacy or heavily patched files, prioritize reading the entire file first to identify redundant blocks. Manually consolidate logic into a single, clean path rather than attempting to patch individual errors, as the errors are often symptoms of deeper duplication.
