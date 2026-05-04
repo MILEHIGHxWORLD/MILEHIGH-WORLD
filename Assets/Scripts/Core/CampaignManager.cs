@@ -7,7 +7,7 @@ namespace Milehigh.Core
     public class CampaignManager : MonoBehaviour
     {
         private static CampaignManager? _instance;
-        public static CampaignManager Instance
+        public static CampaignManager? Instance
         {
             get
             {
@@ -20,7 +20,7 @@ namespace Milehigh.Core
                         _instance = go.AddComponent<CampaignManager>();
                     }
                 }
-                return _instance!;
+                return _instance;
             }
         }
 
@@ -55,29 +55,26 @@ namespace Milehigh.Core
                 try
                 {
                     string json = File.ReadAllText(filePath);
-                    currentCampaignData = JsonUtility.FromJson<HorizonGameData>(json);
+                    var data = JsonUtility.FromJson<HorizonGameData>(json);
 
                     // 🛡️ Sentinel: Perform validation after deserialization to ensure data integrity.
-                    if (currentCampaignData != null && currentCampaignData.IsValid())
+                    if (data != null && data.IsValid())
                     {
-                        currentVoidSaturationLevel = currentCampaignData.metadata.voidSaturationLevel;
+                        currentCampaignData = data;
+                        currentVoidSaturationLevel = data.metadata.voidSaturationLevel;
                         // SECURITY: Log only the file name, not the absolute path, to prevent information disclosure
                         Debug.Log($"Campaign data loaded and validated from {fileName}");
                     }
                     else
                     {
                         // SECURITY: Fail securely and don't use invalid data
-                        Debug.LogError($"Failed to parse or validate campaign data from {fileName}.");
-                        currentCampaignData = null;
-                        // SECURITY: Mask runtime exception details and avoid leaking absolute paths in logs
                         Debug.LogError($"Failed to parse or security-validate campaign data from {fileName}.");
-                        currentCampaignData = null; // Ensure we don't use invalid data
+                        currentCampaignData = null;
                     }
                 }
                 catch (System.Exception ex)
                 {
                     // SECURITY: Catch exceptions during file read/JSON parse to fail securely and avoid leaking internal stack traces.
-                    // SECURITY: Mask runtime exception stack traces and avoid leaking absolute paths in logs
                     Debug.LogError($"Error loading campaign data from {fileName}: {ex.Message}");
                     currentCampaignData = null;
                 }
