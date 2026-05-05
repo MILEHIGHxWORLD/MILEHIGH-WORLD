@@ -17,9 +17,7 @@ namespace Milehigh.Editor
                 return;
             }
 
-            string json = File.ReadAllText(path);
-            HorizonGameData? data = JsonUtility.FromJson<HorizonGameData>(json);
-            HorizonGameData data = null;
+            HorizonGameData? data = null;
             try
             {
                 string json = File.ReadAllText(path);
@@ -31,15 +29,15 @@ namespace Milehigh.Editor
                     return;
                 }
             }
-            catch (System.Exception)
+            catch (System.Exception ex)
             {
                 // 🛡️ Sentinel: Catch exceptions during file read/JSON parse to fail securely and avoid leaking stack traces
-                Debug.LogError("Failed to load or parse campaign data. Error parsing file.");
+                Debug.LogError($"Failed to load or parse campaign data: {ex.Message}");
+                return;
+            }
+
             // 🛡️ Sentinel: Security validation of deserialized data.
-            // SECURITY: Always validate data after deserialization
-            // SECURITY: Always validate data after deserialization to ensure integrity
-            // SECURITY: Always validate data after deserialization to prevent using malicious or corrupted data
-            if (data == null || !data.IsValid())
+            if (!data.IsValid())
             {
                 Debug.LogError("[Security] Character import aborted: Campaign data failed validation.");
                 return;
@@ -47,7 +45,7 @@ namespace Milehigh.Editor
 
             string folderPath = "Assets/Data/Characters";
             if (!AssetDatabase.IsValidFolder(folderPath))
-            {2w33 f. 
+            {
                 if (!AssetDatabase.IsValidFolder("Assets/Data"))
                 {
                     AssetDatabase.CreateFolder("Assets", "Data");
@@ -57,6 +55,8 @@ namespace Milehigh.Editor
 
             foreach (var charProfile in data.characters)
             {
+                if (charProfile == null) continue;
+
                 CharacterData asset = ScriptableObject.CreateInstance<CharacterData>();
                 asset.characterName = charProfile.name;
                 asset.role = charProfile.role;
@@ -64,25 +64,16 @@ namespace Milehigh.Editor
                 asset.behaviorScript = charProfile.behaviorScript;
 
                 // 🛡️ Sentinel: Sanitize character name to prevent Path Traversal vulnerabilities.
-                // Malicious JSON could use directory traversal sequences (e.g., "../") to write assets outside the intended directory.
-                // We use Path.GetFileName to extract only the name part and replace OS-specific invalid characters.
                 string baseName = charProfile.name ?? "unnamed_character";
                 string safeFileName = baseName;
-                // Malicious JSON could use "../" to write assets outside the intended directory
-                string sanitizedName = string.Join("_", charProfile.name.Split(Path.GetInvalidFileNameChars()));
-                string safeFileName = Path.GetFileName(sanitizedName).Replace(" ", "_");
-
-                string assetPath = $"{folderPath}/{safeFileName}.asset";
-
-                string sanitizedName = charProfile.name;
-
                 foreach (char c in Path.GetInvalidFileNameChars())
                 {
                     safeFileName = safeFileName.Replace(c, '_');
                 }
+                safeFileName = safeFileName.Replace(" ", "_");
 
                 // Ensure no directory separators or traversal sequences remain
-                safeFileName = Path.GetFileName(safeFileName).Replace(" ", "_");
+                safeFileName = Path.GetFileName(safeFileName);
 
                 if (string.IsNullOrEmpty(safeFileName))
                 {
@@ -92,10 +83,6 @@ namespace Milehigh.Editor
                 string assetPath = $"{folderPath}/{safeFileName}.asset";
                 AssetDatabase.CreateAsset(asset, assetPath);
 
-                // SECURITY: Log relative asset path to avoid absolute path disclosure
-
-                string assetPath = $"{folderPath}/{safeFileName}.asset";
-                AssetDatabase.CreateAsset(asset, assetPath);
                 // SECURITY: Log relative asset path to avoid absolute path disclosure.
                 Debug.Log($"Created character asset: {assetPath}");
             }
