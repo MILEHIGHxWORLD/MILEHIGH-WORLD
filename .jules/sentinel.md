@@ -39,3 +39,7 @@
 **Vulnerability:** The project had multiple broken "security fixes" that introduced syntax errors and redundant logic, specifically around deserialized data validation and character asset creation paths. The `IsValid()` pattern was partially implemented but broken, and path traversal mitigation was duplicated and syntactically incorrect.
 **Learning:** Incomplete or improperly merged security fixes can be as dangerous as the original vulnerabilities, as they may lead to compilation failures or bypassed security checks. Centralizing validation logic and ensuring clean path sanitization is critical.
 **Prevention:** Always perform a full code review and basic sanity check (even if just manual brace counting) after applying security fixes to ensure no regressions or syntax errors are introduced.
+## 2026-05-05 - IDOR in SceneDirector ApplyInteraction
+**Vulnerability:** Data-driven external input (JSON) in `ApplyInteraction` directly passed unsanitized strings to `GetCachedObject` (which uses `GameObject.Find`), allowing uncontrolled access to manipulate any scene hierarchy object.
+**Learning:** This created an Insecure Direct Object Reference (IDOR) vulnerability where core architectural managers could be maliciously relocated or resized via external payloads.
+**Prevention:** Apply validation and blocklists (e.g., blocking 'CampaignManager', 'SceneDirector', 'CameraManager', 'AlliancePowerManager') at the application boundary where untrusted external input is first processed, not in low-level utilities.
