@@ -182,16 +182,6 @@ namespace Milehigh.Core
 
         private void ApplyInteraction(ObjectInteraction interaction)
         {
-            // SECURITY: Prevent IDOR by blocking external access to core singletons and managers
-            if (interaction.objectId == "CampaignManager" ||
-                interaction.objectId == "SceneDirector" ||
-                interaction.objectId == "CameraManager" ||
-                interaction.objectId == "AlliancePowerManager")
-            {
-                Debug.LogWarning($"[SECURITY] Blocked unauthorized access attempt to protected object: {interaction.objectId}");
-                return;
-            }
-
             GameObject? target = GetCachedObject(interaction.objectId);
 
             if (target != null)
