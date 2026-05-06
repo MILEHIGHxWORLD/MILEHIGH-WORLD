@@ -46,3 +46,7 @@
 ## 2026-03-25 - [Refined Rhythmic Pacing and Speaker-Matched UI Cues]
 **Learning:** Pacing in dialogue-heavy cinematics is significantly improved by distinguishing between sentence endings (long pause), ellipses (medium pause), and mid-word periods (no pause, e.g., 'Sky.ix'). Furthermore, color-coding progress indicators (like the '▽' cue) to match the speaker's theme strengthens the visual association between the narrative content and the character, reducing cognitive load for the player.
 **Action:** Implement look-ahead/look-behind logic for punctuation to refine pacing, and use speaker-specific colors for interactive UI cues via TMP rich text tags.
+
+## 2026-03-26 - [Surgical UX Polish and Documentation Preservation]
+**Learning:** When refactoring complex cinematic scripts in Unity, it is critical to balance code health (fixing syntax errors, redundant methods) with preservation of project metadata (narrative documentation, voice profiles). Surgical modifications using regex or line-by-line processing prevent the accidental loss of non-functional but essential design context. Additionally, consolidating disparate skip inputs into a single 'Input.anyKeyDown' check provides a more intuitive and accessible user experience.
+**Action:** Use surgical editing techniques for large scripts and prefer 'anyKeyDown' for universal skip/reveal triggers in dialogue systems.

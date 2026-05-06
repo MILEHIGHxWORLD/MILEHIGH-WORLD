@@ -13,7 +13,7 @@ namespace Milehigh.Core
             {
                 if (_instance == null)
                 {
-                    _instance = FindObjectOfType<CampaignManager>();
+                    _instance = FindFirstObjectByType<CampaignManager>();
                     if (_instance == null)
                     {
                         GameObject go = new GameObject("CampaignManager");
@@ -69,16 +69,12 @@ namespace Milehigh.Core
                         // SECURITY: Fail securely and don't use invalid data
                         Debug.LogError($"Failed to parse or validate campaign data from {fileName}.");
                         currentCampaignData = null;
-                        // SECURITY: Mask runtime exception details and avoid leaking absolute paths in logs
-                        Debug.LogError($"Failed to parse or security-validate campaign data from {fileName}.");
-                        currentCampaignData = null; // Ensure we don't use invalid data
                     }
                 }
-                catch (System.Exception ex)
+                catch (System.Exception)
                 {
-                    // SECURITY: Catch exceptions during file read/JSON parse to fail securely and avoid leaking internal stack traces.
                     // SECURITY: Mask runtime exception stack traces and avoid leaking absolute paths in logs
-                    Debug.LogError($"Error loading campaign data from {fileName}: {ex.Message}");
+                    Debug.LogError($"Error loading campaign data from {fileName}.");
                     currentCampaignData = null;
                 }
             }
