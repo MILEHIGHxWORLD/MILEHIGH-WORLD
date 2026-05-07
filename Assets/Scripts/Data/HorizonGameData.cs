@@ -15,7 +15,7 @@ namespace Milehigh.Data
     public class Metadata
     {
         public LightingState lighting;
-        public string environment = null!;
+        public string environment = string.Empty;
         public int systemParity;
         public float voidSaturationLevel;
 
@@ -25,13 +25,6 @@ namespace Milehigh.Data
         public bool IsValid()
         {
             // SECURITY: Ensure voidSaturationLevel is within the expected [0.0, 1.0] range
-            if (voidSaturationLevel < 0.0f || voidSaturationLevel > 1.0f)
-            {
-                Debug.LogError($"[Security] Metadata validation failed: voidSaturationLevel {voidSaturationLevel} is out of range [0.0, 1.0]");
-            if (voidSaturationLevel < 0f || voidSaturationLevel > 1f)
-            {
-                Debug.LogError($"[Security] Metadata validation failed: voidSaturationLevel {voidSaturationLevel} is out of range [0.0, 1.0]");
-            // Void saturation must be within a safe 0.0 to 1.0 range.
             if (voidSaturationLevel < 0.0f || voidSaturationLevel > 1.0f)
             {
                 Debug.LogError($"[Security] Metadata validation failed: voidSaturationLevel {voidSaturationLevel} is out of range [0.0, 1.0]");
@@ -52,21 +45,17 @@ namespace Milehigh.Data
     [System.Serializable]
     public class CharacterProfile
     {
-        public string name = null!;
-        public string role = null!;
-        public string[] traits = null!;
-        public string behaviorScript = null!;
-        public string name;
-        public string role;
-        public string[] traits;
-        public string behaviorScript;
+        public string name = string.Empty;
+        public string role = string.Empty;
+        public string[] traits = Array.Empty<string>();
+        public string behaviorScript = string.Empty;
 
         public bool IsValid()
         {
             if (string.IsNullOrEmpty(name) || name.Length > 64) return false;
             if (!string.IsNullOrEmpty(role) && role.Length > 64) return false;
             if (traits != null && traits.Length > 10) return false;
-            if (!string.IsNullOrEmpty(behaviorScript) && behaviorScript.Length > 64) return false;
+            if (!string.IsNullOrEmpty(behaviorScript) && behaviorScript.Length > 2048) return false;
             return true;
         }
     }
@@ -74,8 +63,8 @@ namespace Milehigh.Data
     [System.Serializable]
     public class ObjectInteraction
     {
-        public string objectId = null!;
-        public string action = null!;
+        public string objectId = string.Empty;
+        public string action = string.Empty;
 
         public bool isVector;
         public float floatValue;
@@ -99,12 +88,9 @@ namespace Milehigh.Data
     [System.Serializable]
     public class Dialogue
     {
-        public string speaker = null!;
-        public string text = null!;
-        public string trigger = null!;
-        public string speaker;
-        public string text;
-        public string trigger;
+        public string speaker = string.Empty;
+        public string text = string.Empty;
+        public string trigger = string.Empty;
 
         public bool IsValid()
         {
@@ -117,14 +103,10 @@ namespace Milehigh.Data
     [System.Serializable]
     public class SceneScenario
     {
-        public string scenarioId = null!;
-        public string description = null!;
-        public List<ObjectInteraction> interactiveObjects = null!;
-        public List<Dialogue> dialogue = null!;
-        public string scenarioId;
-        public string description;
-        public List<ObjectInteraction> interactiveObjects;
-        public List<Dialogue> dialogue;
+        public string scenarioId = string.Empty;
+        public string description = string.Empty;
+        public List<ObjectInteraction> interactiveObjects = new List<ObjectInteraction>();
+        public List<Dialogue> dialogue = new List<Dialogue>();
 
         public bool IsValid()
         {
@@ -154,10 +136,10 @@ namespace Milehigh.Data
     [System.Serializable]
     public class HorizonGameData
     {
-        public string sceneId = null!;
-        public Metadata metadata = null!;
-        public List<CharacterProfile> characters = null!;
-        public List<SceneScenario> scenarios = null!;
+        public string sceneId = string.Empty;
+        public Metadata metadata = new Metadata();
+        public List<CharacterProfile> characters = new List<CharacterProfile>();
+        public List<SceneScenario> scenarios = new List<SceneScenario>();
 
         /// <summary>
         /// 🛡️ Sentinel: Performs integrity and security validation on the entire campaign dataset.
@@ -181,11 +163,7 @@ namespace Milehigh.Data
                 return false;
             }
 
-            if (scenarios == null || scenarios.Count == 0)
-            {
-                Debug.LogError("[Security] Game data validation failed: No scenarios defined.");
-                return false;
-            }
+            // 🛡️ Sentinel: Enforce list size limit to mitigate DoS
             if (scenarios == null || scenarios.Count == 0 || scenarios.Count > 100)
             {
                 Debug.LogError("[Security] Game data validation failed: Invalid number of scenarios.");
