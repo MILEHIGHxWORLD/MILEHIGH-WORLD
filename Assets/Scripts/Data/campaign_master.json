@@ -15,11 +15,7 @@
         "Low_Void_Affinity",
         "Reactive_Hardening"
       ],
-      "behaviorScript": "function update(incomingForce, attackType) {\n    if (attackType === 'rigid') {\n        redirectKineticForce(incomingForce);\n        FlowMeter.increment(15);\n    }\n    if (health.tookDamage) {\n        Shader.setFloat('_GauntletExtrusion', 2.5); // Reactive Hardening\n    }\n}",
-      "health": 2000,
-      "resonance": 1.1,
-      "integrity": 1.5,
-      "vanguardMultiplier": 1.0
+      "behaviorScript": "function update(incomingForce, attackType) {\n    if (attackType === 'rigid') {\n        redirectKineticForce(incomingForce);\n        FlowMeter.increment(15);\n    }\n    if (health.tookDamage) {\n        Shader.setFloat('_GauntletExtrusion', 2.5); // Reactive Hardening\n    }\n}"
     },
     {
       "name": "Omega.one (The Architect)",
@@ -29,11 +25,7 @@
         "Gemini_Logic",
         "Data_Integrity_Scanner"
       ],
-      "behaviorScript": "function checkStability(environment) {\n    if (player.StabilityIndex < 0.3) {\n        runGeminiLogic();\n        VoidPtr.reconcileCorruptedFiles(environment.nearestShard);\n    }\n}",
-      "health": 500,
-      "resonance": 2.0,
-      "integrity": 1.0,
-      "vanguardMultiplier": 1.2
+      "behaviorScript": "function checkStability(environment) {\n    if (player.StabilityIndex < 0.3) {\n        runGeminiLogic();\n        VoidPtr.reconcileCorruptedFiles(environment.nearestShard);\n    }\n}"
     },
     {
       "name": "King Cyrus the Dragon King",
@@ -43,11 +35,7 @@
         "Void_Corrupted",
         "Shadow_Dominion_Ruler"
       ],
-      "behaviorScript": "function executeInvasion() {\n    target = \"Onalym Nexus\";\n    unleashVoidShockwave();\n    overwriteCoreLogic();\n}",
-      "health": 10000,
-      "resonance": 1.5,
-      "integrity": 0.5,
-      "vanguardMultiplier": 2.0
+      "behaviorScript": "function executeInvasion() {\n    target = \"Onalym Nexus\";\n    unleashVoidShockwave();\n    overwriteCoreLogic();\n}"
     },
     {
       "name": "Aeron the Brave",
@@ -57,11 +45,7 @@
         "Ginga_Stance_Airborne",
         "Kinetic_Peak_Native"
       ],
-      "behaviorScript": "function aerialCombat() {\n    if (player.isFlappingArms || thrusters.active) {\n        maintainAltitude();\n        if (FlowMeter.isFull) {\n            executeVoidLightningStomp();\n        }\n    } else if (distanceTo(Lyra.SolarBarrier) > AuraRadius) {\n        applyDefenseDebuff();\n    }\n}",
-      "health": 1200,
-      "resonance": 1.2,
-      "integrity": 1.0,
-      "vanguardMultiplier": 1.5
+      "behaviorScript": "function aerialCombat() {\n    if (player.isFlappingArms || thrusters.active) {\n        maintainAltitude();\n        if (FlowMeter.isFull) {\n            executeVoidLightningStomp();\n        }\n    } else if (distanceTo(Lyra.SolarBarrier) > AuraRadius) {\n        applyDefenseDebuff();\n    }\n}"
     },
     {
       "name": "Anastasia the Dreamer",
@@ -71,11 +55,7 @@
         "Sanity_Parity_Check",
         "Psychic_Weaver"
       ],
-      "behaviorScript": "function processDreamscape() {\n    if (geometry.state === 'brittle' || geometry.state === 'gray') {\n        snapMemoryFragments();\n        if (ParityCheck.fails > threshold) {\n            triggerEnvironmentCrash(previousSaveState);\n        }\n    }\n    commandReverie('toggle_form');\n}",
-      "health": 800,
-      "resonance": 1.8,
-      "integrity": 1.2,
-      "vanguardMultiplier": 0.8
+      "behaviorScript": "function processDreamscape() {\n    if (geometry.state === 'brittle' || geometry.state === 'gray') {\n        snapMemoryFragments();\n        if (ParityCheck.fails > threshold) {\n            triggerEnvironmentCrash(previousSaveState);\n        }\n    }\n    commandReverie('toggle_form');\n}"
     },
     {
       "name": "Delilah the Desolate (Corrupted Ingris)",
@@ -85,17 +65,13 @@
         "Illusion_Controller",
         "Shadow_Clones"
       ],
-      "behaviorScript": "function bossPhase() {\n    spawnShadowClones();\n    castSicklyGreenBlackVoidfire();\n    if (hasStatus('Blinding_Truth') && hasStatus('Dream_Harmony')) {\n        implodeVoid();\n        restoreIngris();\n    }\n}",
-      "health": 15000,
-      "resonance": 1.6,
-      "integrity": 0.4,
-      "vanguardMultiplier": 2.5
+      "behaviorScript": "function bossPhase() {\n    spawnShadowClones();\n    castSicklyGreenBlackVoidfire();\n    if (hasStatus('Blinding_Truth') && hasStatus('Dream_Harmony')) {\n        implodeVoid();\n        restoreIngris();\n    }\n}"
     }
   ],
   "scenarios": [
     {
       "scenarioId": "ACT_I_CH1_ONALYM_NEXUS",
-      "description": "The Catalyst: King Cyrus invades the rain-slicked, neon heart of LINC, destabilizing the Onalym Nexus and scattering the dimensions.",
+      "description": "The Catalyst: King Cyrus invades the rain-slicked, neon heart of ŁĪƝĈ, destabilizing the Onalym Nexus and scattering the dimensions.",
       "interactiveObjects": [
         {
           "objectId": "DurasteelFloor",

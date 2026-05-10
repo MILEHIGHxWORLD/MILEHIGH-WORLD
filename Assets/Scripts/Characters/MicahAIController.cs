@@ -3,15 +3,13 @@ using Milehigh.Data;
 
 namespace Milehigh.Characters
 {
-    // Error 8: Wrapped in Milehigh.Characters namespace
-    public class MicahController : CharacterControllerBase
+    public class MicahAIController : CharacterControllerBase
     {
         public float gauntletExtrusion = 0f;
 
         public override void ExecuteBehavior()
         {
             // Update logic here
-            Debug.Log("Micah: Executing AI behavior.");
         }
 
         public void UpdateBehavior(float incomingForce, string attackType)
