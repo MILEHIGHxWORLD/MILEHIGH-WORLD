@@ -27,3 +27,7 @@
 **Vulnerability:** Untrusted external data (JSON) was being used directly by the application without validation, potentially leading to out-of-bounds values or corrupted application state.
 **Learning:** Even if data is "local", it should be treated as untrusted input once it crosses the boundary from a file into the application.
 **Prevention:** Implement an `IsValid()` pattern in data models to perform security and integrity checks immediately after deserialization. This ensures the application fails fast and securely when encountering malicious or corrupted data.
+## 2024-05-24 - Untrusted Input Path Traversal
+**Vulnerability:** A path traversal vulnerability during dynamic Unity asset creation in `CharacterFactory.cs` due to using untrusted JSON data directly in file paths.
+**Learning:** Even internal tool scripts like `CharacterFactory` are vulnerable when accepting unverified external inputs such as JSON. When resolving a merge conflict, the sanitization logic `Path.GetInvalidFileNameChars()` was bypassed because a subsequent `Path.GetFileName(sanitizedName)` declaration accidentally reverted to the original unsanitized string.
+**Prevention:** Always ensure that file name sanitization logic accurately processes and transforms the input completely. Validate input strings and use `Path.GetFileName` along with stripping directory traversal operators before embedding them into asset creation paths.
