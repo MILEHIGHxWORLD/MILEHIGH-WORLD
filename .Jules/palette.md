@@ -39,3 +39,7 @@
 ## 2026-03-24 - [Scaling Rhythmic Typewriter and Progression Cues]
 **Learning:** Rhythmic punctuation pauses in typewriter effects are most effective when they occur *after* the punctuation character is revealed (checking index `i-1`) and use multipliers (e.g., 15x, 8x) instead of fixed delays. This ensures the cadence remains natural even when base typing speeds vary by character. Additionally, appending a visual completion cue (like '▽') provides essential feedback that a dialogue block is finished and the user can proceed.
 **Action:** Always use speed multipliers for rhythmic pauses and include a visual completion character after typewriter reveals to improve readability and interaction clarity.
+
+## 2026-03-25 - [Dynamic Dialogue Cohesion and Responsive Skipping]
+**Learning:** Micro-UX polish in dialogue systems is best achieved by unifying visual cues (like matching the completion icon color to the speaker name) and ensuring interaction responsiveness. A persistent 'skipRequested' flag that carries through both the typewriter reveal and subsequent pauses provides a much more fluid experience for fast readers.
+**Action:** Always implement skippable pauses in cinematic sequences and use 'ColorUtility' to maintain visual consistency across dynamic UI elements.
