@@ -18,18 +18,21 @@ namespace Milehigh.Core
             if (string.IsNullOrEmpty(objectName)) return null;
 
             // BOLT: Perform an O(1) dictionary lookup first.
-            // Note: Unity overrides the == operator to check if the underlying native C++ object is destroyed.
-            if (_objectCache.TryGetValue(objectName, out GameObject obj) && obj != null)
+            if (_objectCache.TryGetValue(objectName, out GameObject obj))
             {
-                return obj;
+                // Note: Unity overrides the == operator to check if the underlying native C++ object is destroyed.
+                // If it's not null and not a "fake null" (destroyed), return it.
+                if (obj != null) return obj;
+
+                // BOLT: Implement negative caching and handle "fake nulls" (destroyed objects).
+                // If obj == null but ReferenceEquals is false, it's a destroyed object; otherwise it's a legitimate null cache.
+                if (System.Object.ReferenceEquals(obj, null)) return null; // Legitimate negative cache hit (real null)
             }
 
-            // BOLT: Fallback to O(N) scene traversal only if not cached.
+            // BOLT: Fallback to O(N) scene traversal only if not cached or cache was stale.
             obj = GameObject.Find(objectName);
-            if (obj != null)
-            {
-                _objectCache[objectName] = obj;
-            }
+            _objectCache[objectName] = obj; // Cache the result, even if it's null (negative caching)
+
             return obj;
         }
 

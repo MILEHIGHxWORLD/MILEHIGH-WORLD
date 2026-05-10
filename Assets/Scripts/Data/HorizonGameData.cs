@@ -27,14 +27,6 @@ namespace Milehigh.Data
             // Void saturation must be within a safe 0.0 to 1.0 range.
             if (voidSaturationLevel < 0.0f || voidSaturationLevel > 1.0f)
             {
-                Debug.LogError($"[Security] Metadata validation failed: voidSaturationLevel {voidSaturationLevel} is out of range [0.0, 1.0]");
-        /// Validates metadata integrity and safety bounds.
-        /// </summary>
-        public bool IsValid()
-        {
-            // SECURITY: Ensure voidSaturationLevel is within the expected [0.0, 1.0] range
-            if (voidSaturationLevel < 0f || voidSaturationLevel > 1f)
-            {
                 Debug.LogError($"Invalid voidSaturationLevel detected: {voidSaturationLevel}. Must be between 0.0 and 1.0.");
                 return false;
             }
