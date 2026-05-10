@@ -13,6 +13,15 @@ namespace Milehigh.Core
         // BOLT: Consolidated cache for GameObjects to prevent expensive O(N) GameObject.Find calls
         private Dictionary<string, GameObject> _objectCache = new Dictionary<string, GameObject>();
 
+        // 🛡️ Sentinel: Exact-match blacklist of critical system objects to prevent IDOR-like tampering
+        private readonly HashSet<string> _restrictedSystemObjects = new HashSet<string>
+        {
+            "CampaignManager",
+            "SceneDirector",
+            "CameraManager",
+            "AlliancePowerManager"
+        };
+
         private GameObject GetCachedObject(string objectName)
         {
             if (string.IsNullOrEmpty(objectName)) return null;
@@ -99,6 +108,14 @@ namespace Milehigh.Core
 
         private void ApplyInteraction(ObjectInteraction interaction)
         {
+            // 🛡️ Sentinel: Validate that the requested object ID is not a restricted system object.
+            // SECURITY: Prevents IDOR-like tampering where untrusted JSON data manipulates critical singletons.
+            if (_restrictedSystemObjects.Contains(interaction.objectId))
+            {
+                Debug.LogWarning($"[Security] Attempted to apply interaction to restricted system object: {interaction.objectId}. Action blocked.");
+                return;
+            }
+
             GameObject target = GetCachedObject(interaction.objectId);
 
             if (target != null)
