@@ -23,6 +23,10 @@
 **Vulnerability:** The application lacked a systematic way to validate the integrity and security of deserialized JSON campaign data, potentially leading to logic errors or vulnerabilities if malicious data was loaded. Furthermore, previous "security fixes" in `CampaignManager.cs` and `CharacterFactory.cs` had introduced syntax errors and redundant/ineffective logging.
 **Learning:** Security fixes applied without full contextual understanding or verification can lead to compilation errors and degraded maintainability. A centralized `IsValid()` pattern in the data model provides a clean, reusable way to enforce business constraints and security requirements immediately after deserialization.
 **Prevention:** Implement an `IsValid()` method for all serializable data models that are populated from external sources. Use these methods at the point of ingestion (e.g., in `CampaignManager`). Ensure error handling in these ingestion points uses generic error messages and avoids logging absolute paths or stack traces.
+## 2025-01-24 - Resource Exhaustion Protection in Data Validation
+**Vulnerability:** Deserialized JSON data was being used without verifying string lengths or collection sizes, making the application vulnerable to Denial of Service (DoS) attacks via maliciously oversized JSON files.
+**Learning:** Security validation must extend beyond just checking for null or type mismatches; it must also enforce operational boundaries (max lengths, max counts) for all external input to prevent resource exhaustion.
+**Prevention:** Implement a hierarchical `IsValid()` pattern where every serializable data class enforces its own resource limits, and parent classes recursively validate their children.
 ## 2024-05-24 - Data Integrity and Security Validation for Deserialized Assets
 **Vulnerability:** Untrusted external data (JSON) was being used directly by the application without validation, potentially leading to out-of-bounds values or corrupted application state.
 **Learning:** Even if data is "local", it should be treated as untrusted input once it crosses the boundary from a file into the application.
