@@ -34,6 +34,7 @@
 //
 // 7. Ensure your project has TextMeshPro imported (Window -> TextMeshPro -> Import TMP Essential Resources).
 
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -110,6 +111,7 @@ public class Cinematic_IntoTheVoid : MonoBehaviour
     private Coroutine typingCoroutine;
     private float currentTypingSpeed;
     private bool skipRequested;
+    private string currentSpeakerColorTag;
 
     // Cache for WaitForSeconds to eliminate GC allocations during coroutine execution
     private static readonly Dictionary<float, WaitForSeconds> _waitForSecondsCache = new Dictionary<float, WaitForSeconds>();
@@ -158,6 +160,7 @@ public class Cinematic_IntoTheVoid : MonoBehaviour
 
         currentTypingSpeed = baseTypingSpeed * multiplier;
         skipRequested = false;
+
         // Apply character-specific colors for better speaker identification
         switch (speaker)
         {
@@ -174,6 +177,7 @@ public class Cinematic_IntoTheVoid : MonoBehaviour
                 SpeakerNameText.color = Color.white;
                 break;
         }
+        currentSpeakerColorTag = "#" + ColorUtility.ToHtmlStringRGB(SpeakerNameText.color);
 
         typingCoroutine = StartCoroutine(TypeDialogue(message));
     }
@@ -209,8 +213,34 @@ public class Cinematic_IntoTheVoid : MonoBehaviour
                 if (i > 0)
                 {
                     char c = DialogueText.textInfo.characterInfo[i - 1].character;
-                    if (c == '.' || c == '!' || c == '?') delay = currentTypingSpeed * 15f;
-                    else if (c == ',' || c == ';' || c == ':') delay = currentTypingSpeed * 8f;
+                    bool isNextCharWhitespace = (i < totalVisibleCharacters) && char.IsWhiteSpace(DialogueText.textInfo.characterInfo[i].character);
+
+                    if (c == '.' || c == '!' || c == '?')
+                    {
+                        if (c == '.')
+                        {
+                            // Check for ellipsis: if neighbors are also dots, use a shorter pause.
+                            bool isEllipsis = (i > 1 && DialogueText.textInfo.characterInfo[i - 2].character == '.') ||
+                                             (i < totalVisibleCharacters && DialogueText.textInfo.characterInfo[i].character == '.');
+
+                            if (isEllipsis)
+                            {
+                                delay = currentTypingSpeed * 5f;
+                            }
+                            else if (isNextCharWhitespace || i == totalVisibleCharacters)
+                            {
+                                delay = currentTypingSpeed * 15f;
+                            }
+                        }
+                        else
+                        {
+                            delay = currentTypingSpeed * 15f;
+                        }
+                    }
+                    else if (c == ',' || c == ';' || c == ':')
+                    {
+                        delay = currentTypingSpeed * 8f;
+                    }
                 }
 
                 yield return GetWait(delay);
@@ -218,7 +248,7 @@ public class Cinematic_IntoTheVoid : MonoBehaviour
         }
 
         // UX Enhancement: Visual progression cue indicating text reveal is complete.
-        DialogueText.text = message + " ▽";
+        DialogueText.text = message + $" <color={currentSpeakerColorTag}>▽</color>";
         DialogueText.maxVisibleCharacters = totalVisibleCharacters + 2;
 
         skipRequested = false;
