@@ -27,3 +27,8 @@
 **Vulnerability:** Untrusted external data (JSON) was being used directly by the application without validation, potentially leading to out-of-bounds values or corrupted application state.
 **Learning:** Even if data is "local", it should be treated as untrusted input once it crosses the boundary from a file into the application.
 **Prevention:** Implement an `IsValid()` pattern in data models to perform security and integrity checks immediately after deserialization. This ensures the application fails fast and securely when encountering malicious or corrupted data.
+
+## 2024-04-14 - Prevent IDOR on System Objects
+**Vulnerability:** External JSON data could manipulate critical game singletons (CampaignManager, SceneDirector, CameraManager, AlliancePowerManager) by providing their names as object IDs in ObjectInteractions.
+**Learning:** Using GameObject.Find (or cached wrappers) on unsanitized external strings allows uncontrolled access to any object in the scene hierarchy, essentially creating an Insecure Direct Object Reference (IDOR) vulnerability within the game engine.
+**Prevention:** Explicitly validate and sanitize target IDs from external data to ensure they cannot match critical system managers. Use exact string matching for protection rather than broad substring checks to prevent functional regressions.
