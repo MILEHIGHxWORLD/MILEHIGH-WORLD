@@ -52,3 +52,7 @@
 ## 2026-03-25 - [Redundant Member Clutter Performance Impact]
 **Learning:** The 'SceneDirector.cs' file was severely cluttered with over a dozen redundant dictionary declarations and duplicate helper methods for GameObject caching. This not only increases memory overhead but also creates a "state fragmentation" risk where different parts of the initialization loop use different caches, leading to redundant O(N) traversals despite the caching intent.
 **Action:** Always audit caching implementations for redundancy. Consolidate into a single, unified caching pattern to ensure O(1) lookups are consistent across the entire system.
+
+## 2024-05-25 - Avoid Dictionaries for caching WaitForSeconds in Coroutines
+**Learning:** Using `Dictionary<float, WaitForSeconds>` to try and cache `WaitForSeconds` calls inside coroutine loops is an anti-pattern. Floating point precision issues can lead to cache misses anyway, but more importantly, looking up a value in a dictionary every frame is much slower and unnecessary.
+**Action:** Always cache `WaitForSeconds` instances in local variables outside the loop and reuse them inside the loop to avoid GC allocations without the overhead of dictionary lookups. For sequences of yields outside a loop, just call `new WaitForSeconds` inline since it won't execute repeatedly.
