@@ -112,14 +112,16 @@ public class Cinematic_IntoTheVoid : MonoBehaviour
     private bool skipRequested;
 
     // Cache for WaitForSeconds to eliminate GC allocations during coroutine execution
-    private static readonly Dictionary<float, WaitForSeconds> _waitForSecondsCache = new Dictionary<float, WaitForSeconds>();
+    // BOLT: Changed float-keyed dictionary to int-keyed (milliseconds) to avoid floating-point precision issues
+    private static readonly Dictionary<int, WaitForSeconds> _waitForSecondsCache = new Dictionary<int, WaitForSeconds>();
 
     private WaitForSeconds GetWait(float time)
     {
-        if (!_waitForSecondsCache.TryGetValue(time, out var wait))
+        int timeMs = Mathf.RoundToInt(time * 1000f);
+        if (!_waitForSecondsCache.TryGetValue(timeMs, out var wait))
         {
             wait = new WaitForSeconds(time);
-            _waitForSecondsCache[time] = wait;
+            _waitForSecondsCache[timeMs] = wait;
         }
         return wait;
     }
@@ -189,6 +191,11 @@ public class Cinematic_IntoTheVoid : MonoBehaviour
         // avoiding GC pressure during dialogue sequences.
         int totalVisibleCharacters = DialogueText.textInfo.characterCount;
 
+        // BOLT: Cache WaitForSeconds locally outside the high-frequency loop to avoid per-iteration dictionary lookups and GC allocations
+        var defaultWait = GetWait(currentTypingSpeed);
+        var longWait = GetWait(currentTypingSpeed * 15f);
+        var shortWait = GetWait(currentTypingSpeed * 8f);
+
         for (int i = 0; i <= totalVisibleCharacters; i++)
         {
             // UX Enhancement: Robust skip logic using persistent flag
@@ -202,18 +209,18 @@ public class Cinematic_IntoTheVoid : MonoBehaviour
 
             if (i < totalVisibleCharacters)
             {
-                float delay = currentTypingSpeed;
+                var wait = defaultWait;
 
                 // UX Enhancement: Rhythmic punctuation pauses for natural reading.
                 // We check the previous character (i-1) to pause *after* it has been revealed.
                 if (i > 0)
                 {
                     char c = DialogueText.textInfo.characterInfo[i - 1].character;
-                    if (c == '.' || c == '!' || c == '?') delay = currentTypingSpeed * 15f;
-                    else if (c == ',' || c == ';' || c == ':') delay = currentTypingSpeed * 8f;
+                    if (c == '.' || c == '!' || c == '?') wait = longWait;
+                    else if (c == ',' || c == ';' || c == ':') wait = shortWait;
                 }
 
-                yield return GetWait(delay);
+                yield return wait;
             }
         }
 
