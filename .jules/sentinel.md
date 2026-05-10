@@ -39,3 +39,7 @@
 **Vulnerability:** The project had multiple broken "security fixes" that introduced syntax errors and redundant logic, specifically around deserialized data validation and character asset creation paths. The `IsValid()` pattern was partially implemented but broken, and path traversal mitigation was duplicated and syntactically incorrect.
 **Learning:** Incomplete or improperly merged security fixes can be as dangerous as the original vulnerabilities, as they may lead to compilation failures or bypassed security checks. Centralizing validation logic and ensuring clean path sanitization is critical.
 **Prevention:** Always perform a full code review and basic sanity check (even if just manual brace counting) after applying security fixes to ensure no regressions or syntax errors are introduced.
+## 2026-04-27 - DoS Hardening for Scene Object Lookups
+**Vulnerability:** Unsanitized string inputs from external data (JSON) were used directly in `GameObject.Find`. While `GameObject.Find` is relatively slow, very long strings or strings with complex hierarchy paths can be used to cause performance spikes or find unintended objects.
+**Learning:** External data used for scene traversal or object lookups must be strictly validated. `GameObject.Find` is particularly sensitive to string length and content.
+**Prevention:** Implement length limits (e.g., 128 chars) and a whitelist regex (e.g., `^[a-zA-Z0-9_\s\(\)\-$\.\[\]\/]+$`) for all strings used in scene-wide object lookups.
