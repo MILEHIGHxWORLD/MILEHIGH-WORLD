@@ -34,6 +34,7 @@
 //
 // 7. Ensure your project has TextMeshPro imported (Window -> TextMeshPro -> Import TMP Essential Resources).
 
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -109,6 +110,7 @@ public class Cinematic_IntoTheVoid : MonoBehaviour
 
     private Coroutine typingCoroutine;
     private float currentTypingSpeed;
+    private string currentSpeakerHex;
     private bool skipRequested;
 
     // Cache for WaitForSeconds to eliminate GC allocations during coroutine execution
@@ -175,51 +177,80 @@ public class Cinematic_IntoTheVoid : MonoBehaviour
                 break;
         }
 
+        currentSpeakerHex = ColorUtility.ToHtmlStringRGB(SpeakerNameText.color);
         typingCoroutine = StartCoroutine(TypeDialogue(message));
     }
 
     private IEnumerator TypeDialogue(string message)
     {
-        DialogueText.text = message;
+        // UX Enhancement: Include the completion cue from the start to prevent layout shifts
+        // when the symbol is revealed. We use rich text to color-code it.
+        string fullText = $"{message} <color=#{currentSpeakerHex}>▽</color>";
+        DialogueText.text = fullText;
         DialogueText.maxVisibleCharacters = 0;
         DialogueText.ForceMeshUpdate();
 
         // BOLT: Typewriter effect optimized for performance.
         // We use the existing GetWait(float) method to ensure zero-allocation yields,
         // avoiding GC pressure during dialogue sequences.
-        int totalVisibleCharacters = DialogueText.textInfo.characterCount;
+        // Note: textInfo.characterCount includes the '▽' but excludes rich text tags.
+        int totalCharacters = DialogueText.textInfo.characterCount;
+        int messageCharacters = totalCharacters - 1; // Everything except the '▽'
 
-        for (int i = 0; i <= totalVisibleCharacters; i++)
+        for (int i = 0; i <= totalCharacters; i++)
         {
             // UX Enhancement: Robust skip logic using persistent flag
             if (skipRequested)
             {
-                DialogueText.maxVisibleCharacters = totalVisibleCharacters;
+                DialogueText.maxVisibleCharacters = totalCharacters;
                 break;
             }
 
             DialogueText.maxVisibleCharacters = i;
 
-            if (i < totalVisibleCharacters)
+            // Rhythmic pause loop: pauses after each character is revealed
+            if (i > 0 && i <= messageCharacters)
             {
                 float delay = currentTypingSpeed;
+                char c = DialogueText.textInfo.characterInfo[i - 1].character;
 
-                // UX Enhancement: Rhythmic punctuation pauses for natural reading.
-                // We check the previous character (i-1) to pause *after* it has been revealed.
-                if (i > 0)
+                if (c == '!' || c == '?')
                 {
-                    char c = DialogueText.textInfo.characterInfo[i - 1].character;
-                    if (c == '.' || c == '!' || c == '?') delay = currentTypingSpeed * 15f;
-                    else if (c == ',' || c == ';' || c == ':') delay = currentTypingSpeed * 8f;
+                    delay = currentTypingSpeed * 15f;
+                }
+                else if (c == '.')
+                {
+                    // Look-ahead logic: Don't pause for mid-word periods (e.g., Sky.ix)
+                    bool isEndOfSentence = true;
+                    if (i < messageCharacters)
+                    {
+                        char nextChar = DialogueText.textInfo.characterInfo[i].character;
+                        if (!char.IsWhiteSpace(nextChar)) isEndOfSentence = false;
+                    }
+
+                    if (isEndOfSentence)
+                    {
+                        delay = currentTypingSpeed * 15f;
+                    }
+                    else
+                    {
+                        // Not end of sentence. Check if part of an ellipsis.
+                        bool isEllipsis = false;
+                        if (i < messageCharacters && DialogueText.textInfo.characterInfo[i].character == '.') isEllipsis = true;
+                        if (i > 1 && DialogueText.textInfo.characterInfo[i - 2].character == '.') isEllipsis = true;
+
+                        if (isEllipsis) delay = currentTypingSpeed * 5f;
+                        else delay = currentTypingSpeed; // Mid-word period (e.g., Sky.ix)
+                    }
+                }
+                else if (c == ',' || c == ';' || c == ':')
+                {
+                    delay = currentTypingSpeed * 8f;
                 }
 
                 yield return GetWait(delay);
             }
         }
-
-        // UX Enhancement: Visual progression cue indicating text reveal is complete.
-        DialogueText.text = message + " ▽";
-        DialogueText.maxVisibleCharacters = totalVisibleCharacters + 2;
 
         skipRequested = false;
         typingCoroutine = null;
