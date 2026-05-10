@@ -40,39 +40,9 @@
 **Action:** Always use 'textInfo.characterCount' and 'ForceMeshUpdate' for typewriter effects to ensure compatibility with rich text and accurate character-based pacing.
 
 ## 2026-03-24 - [Scaling Rhythmic Typewriter and Progression Cues]
-**Learning:** Rhythmic punctuation pauses in typewriter effects are most effective when they occur *after* the punctuation character is revealed (checking index `i-1`) and use multipliers (e.g., 15x, 8x) instead of fixed delays. This ensures the cadence remains natural even when base typing speeds vary by character. Additionally, appending a visual completion character after typewriter reveals to improve readability and interaction clarity.
+**Learning:** Rhythmic punctuation pauses in typewriter effects are most effective when they occur *after* the punctuation character is revealed (checking index `i-1`) and use multipliers (e.g., 15x, 8x) instead of fixed delays. This ensures the cadence remains natural even when base typing speeds vary by character. Additionally, appending a visual completion cue (like '▽') provides essential feedback that a dialogue block is finished and the user can proceed.
 **Action:** Always use speed multipliers for rhythmic pauses and include a visual completion character after typewriter reveals to improve readability and interaction clarity.
 
-## 2026-03-25 - [Rhythmic Typewriter and Speaker-Themed Feedback]
-**Learning:** Cinematic dialogue feels significantly more natural when the typewriter effect respects the rhythm of speech by distinguishing between sentence endings, mid-word punctuation (like "Sky.ix"), and ellipses. Furthermore, color-coding visual feedback cues (like the completion symbol '▽') to the speaker's theme provides a subtle but effective way to maintain character identity throughout the dialogue reveal.
-**Action:** Implement rhythmic look-ahead logic in typewriter effects to handle edge-case punctuation and use speaker-specific hex colors for UI completion indicators to improve visual cohesion.
-## 2026-03-25 - [Layout-Safe Cinematic Dialogue Reveal]
-**Learning:** Appending visual elements (like a completion cue '▽') to the end of a typewriter-revealed string can cause jarring layout shifts if the new character forces a line break or word wrap. By setting the final text (including the cue) at the beginning and using 'maxVisibleCharacters' to reveal it, the layout is pre-calculated and remains stable throughout the animation.
-**Action:** Pre-append completion cues and use 'maxVisibleCharacters' to ensure visual stability in all Unity text animations.
-## 2026-04-17 - [Advanced Rhythmic Typewriter & Context-Aware Pauses]
-**Learning:** Typewriter effects can be further refined by distinguishing between sentence-ending punctuation and mid-word periods (e.g., abbreviations or technical names like 'Sky.ix') using look-ahead whitespace checks. Additionally, specific handling for ellipses (...) with reduced multipliers prevents the dialogue from feeling stagnant, while color-coding the completion cue to match the speaker's theme provides a subtle but effective visual anchor for the player.
-**Action:** Implement look-ahead logic for punctuation and context-specific multipliers (15x for ends, 8x for clauses, 5x for ellipses) in dialogue systems to ensure natural pacing.
-## 2026-03-25 - [Context-Aware Typewriter Rhythms and Themed Visual Cues]
-**Learning:** Simple punctuation pauses can feel unnatural if triggered by technical names (e.g., "Sky.ix") or in the middle of ellipsis ("..."). A look-ahead check for trailing whitespace ensures pauses only occur at true sentence ends. Furthermore, dynamically coloring visual progression cues (like "▽") to match the current speaker's theme color provides a subtle but effective micro-reinforcement of the speaker's identity, enhancing immersion without cluttering the UI.
-**Action:** Use look-ahead logic for rhythmic punctuation pauses to avoid false positives and leverage current UI state (like name color) to theme interactive or progression indicators.
-
-## 2026-03-26 - [Advanced Punctuation Clusters in Typewriter Effects]
-**Learning:** Punctuation clusters (e.g., "!!?" or "...") can cause stuttering if every character triggers a full sentence-end pause. Implementing a look-ahead to identify the end of a cluster ensures the long pause only occurs once the full punctuation mark is revealed, maintaining a professional and intentional rhythm. Additionally, calling 'ForceMeshUpdate' before calculating final 'maxVisibleCharacters' is crucial when using rich text in TMPro to ensure the underlying 'textInfo' accurately reflects the rendered characters.
-**Action:** Use cluster-aware look-ahead logic for rhythmic pauses and always force a mesh update before concluding character-based animations in TextMeshPro.
-## 2026-03-25 - [Responsive Cinematic Skip & Narrative Juice]
-**Learning:** In cinematic dialogue sequences, a "skip" action should ideally bypass both the typewriter reveal *and* the subsequent pause between dialogue lines. Decoupling the skip flag from the typewriter logic and using a dedicated 'WaitForSecondsOrSkip' helper ensures a much more responsive feel for players who wish to proceed quickly. Additionally, a subtle scale "pop" animation (using a sine wave) on the speaker's name whenever it changes provides a clear, high-quality visual cue for character transitions without cluttering the screen.
-**Action:** Use the 'WaitForSecondsOrSkip' pattern for all skippable cinematic sequences and implement scale-based 'pop' effects for significant UI transitions.
 ## 2026-03-25 - [Refined Rhythmic Pacing and Speaker-Matched UI Cues]
 **Learning:** Pacing in dialogue-heavy cinematics is significantly improved by distinguishing between sentence endings (long pause), ellipses (medium pause), and mid-word periods (no pause, e.g., 'Sky.ix'). Furthermore, color-coding progress indicators (like the '▽' cue) to match the speaker's theme strengthens the visual association between the narrative content and the character, reducing cognitive load for the player.
 **Action:** Implement look-ahead/look-behind logic for punctuation to refine pacing, and use speaker-specific colors for interactive UI cues via TMP rich text tags.
-
-## 2026-03-26 - [Unified Rhythmic Typewriter and Smart Punctuation]
-**Learning:** Consolidating redundant dialogue logic into a single, robust typewriter coroutine prevents visual glitches and ensures consistent UX. Smart punctuation (detecting ellipses vs. end-of-sentence vs. mid-word periods) significantly improves the natural "breath" of digital dialogue, making it more readable and engaging.
-**Action:** Use look-ahead and look-behind logic in text reveal loops to apply context-sensitive delays, and always unify duplicate input/update logic to ensure responsiveness.
-## 2026-03-25 - [Contextual Punctuation and Theme-Linked Cues]
-**Learning:** Generic punctuation-based pauses can feel jerky when encountering mid-word periods (e.g., in character names like 'Sky.ix') or ellipses. Implementing contextual checks (e.g., next-character whitespace) prevents unnatural delays. Furthermore, linking the visual progression cue ('▽') to the speaker's specific color theme creates a more cohesive and delightful UX without adding interface clutter.
-**Action:** Always implement look-ahead/look-behind checks for punctuation pauses to handle abbreviations and ellipses, and leverage existing theme tokens (like speaker colors) for micro-interactions and visual cues.
-
-## 2024-05-21 - [Responsive Terminal Interaction Loop]
-**Learning:** Terminal interfaces in Unity (TMPro) feel significantly more responsive when they handle the full interaction lifecycle: auto-focusing on enable, clearing and refocusing after submission, and providing multi-modal feedback (rich text color + physical shake animation) for errors.
-**Action:** Always implement 'ActivateInputField' in 'OnEnable' and after command processing, and use 'localPosition' coroutines for non-blocking haptic-style visual feedback.

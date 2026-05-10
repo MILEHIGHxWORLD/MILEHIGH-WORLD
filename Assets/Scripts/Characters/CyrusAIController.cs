@@ -13,19 +13,19 @@ namespace Milehigh.Characters
         public void ExecuteInvasion()
         {
             string target = "Onalym Nexus";
-            UnityEngine.Debug.Log($"Cyrus: Invading {target}!");
+            Debug.Log($"Cyrus: Invading {target}!");
             UnleashVoidShockwave();
             OverwriteCoreLogic();
         }
 
         private void UnleashVoidShockwave()
         {
-            UnityEngine.Debug.Log("Cyrus: Unleashing Void Shockwave!");
+            Debug.Log("Cyrus: Unleashing Void Shockwave!");
         }
 
         private void OverwriteCoreLogic()
         {
-            UnityEngine.Debug.Log("Cyrus: Overwriting Core Logic...");
+            Debug.Log("Cyrus: Overwriting Core Logic...");
         }
     }
 }

@@ -21,12 +21,12 @@ namespace Milehigh.Characters
 
         private void RunGeminiLogic()
         {
-            UnityEngine.Debug.Log("Omega.one: Running Gemini Logic...");
+            Debug.Log("Omega.one: Running Gemini Logic...");
         }
 
         private void ReconcileCorruptedFiles(GameObject shard)
         {
-            UnityEngine.Debug.Log($"Omega.one: Reconciling corrupted files in {shard.name}.");
+            Debug.Log($"Omega.one: Reconciling corrupted files in {shard.name}.");
         }
     }
 }

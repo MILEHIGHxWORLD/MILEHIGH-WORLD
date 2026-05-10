@@ -27,17 +27,17 @@ namespace Milehigh.Characters
 
         private void SnapMemoryFragments()
         {
-            UnityEngine.Debug.Log("Anastasia: Snapping memory fragments...");
+            Debug.Log("Anastasia: Snapping memory fragments...");
         }
 
         private void TriggerEnvironmentCrash()
         {
-            UnityEngine.Debug.Log("Anastasia: Triggering environment crash!");
+            Debug.Log("Anastasia: Triggering environment crash!");
         }
 
         private void CommandReverie(string command)
         {
-            UnityEngine.Debug.Log($"Anastasia: Commanding Reverie with {command}.");
+            Debug.Log($"Anastasia: Commanding Reverie with {command}.");
         }
     }
 }
