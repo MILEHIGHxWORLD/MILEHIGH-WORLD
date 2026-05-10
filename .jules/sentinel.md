@@ -27,3 +27,8 @@
 **Vulnerability:** Untrusted external data (JSON) was being used directly by the application without validation, potentially leading to out-of-bounds values or corrupted application state.
 **Learning:** Even if data is "local", it should be treated as untrusted input once it crosses the boundary from a file into the application.
 **Prevention:** Implement an `IsValid()` pattern in data models to perform security and integrity checks immediately after deserialization. This ensures the application fails fast and securely when encountering malicious or corrupted data.
+
+## 2025-01-24 - DoS Protection and Security Logic Consolidation
+**Vulnerability:** DoS vulnerability in 'SceneDirector.cs' via unsanitized 'objectName' in 'GameObject.Find'. Also, broken security validation logic in 'HorizonGameData.cs' and 'CampaignManager.cs' caused by malformed/duplicate checks.
+**Learning:** Unity's 'GameObject.Find' is O(N) and can be abused for DoS if input is not length-limited and sanitized. Redundant or malformed security checks (e.g., double 'else' blocks) often occur during hasty security patching and can break the entire build.
+**Prevention:** Enforce strict length limits and whitelist regex on any string passed to scene traversal methods. Always consolidate security validation into single, robust paths to maintain syntactic and logical integrity.
