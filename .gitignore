@@ -1,0 +1,11 @@
+[Bb]in/
+[Oo]bj/
+.vscode/
+.jules/
+.conda/
+__pycache__/
+*.csproj.user
+*.user
+*.userosscache
+*.sln.docstates
+.DS_Store

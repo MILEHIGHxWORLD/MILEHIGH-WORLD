@@ -26,6 +26,7 @@ namespace Milehigh.Characters
 
         private void ReconcileCorruptedFiles(GameObject shard)
         {
+            if (shard == null) { Debug.Log("Omega.one: Reconciling corrupted files in null shard."); return; }
             Debug.Log($"Omega.one: Reconciling corrupted files in {shard.name}.");
         }
     }

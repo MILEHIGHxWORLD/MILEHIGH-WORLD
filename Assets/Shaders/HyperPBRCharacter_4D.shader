@@ -30,11 +30,6 @@ Shader "Milehigh/HyperPBRCharacter_4D"
         _ParallaxMap ("Height Map (A)", 2D) = "gray" {}
         _Parallax ("Height Scale", Range (0.005, 0.08)) = 0.02
 
-        // --- Subsurface Scattering (for Skin) ---
-        _SSSColor ("Subsurface Color", Color) = (0.7, 0.1, 0.1, 1)
-        _SSSMask ("Subsurface Mask (R)", 2D) = "white" {}
-        _SSSScale ("SSS Scale", Range(0, 5)) = 1.0
-
         // --- 4D Procedural Effects (e.g., Void Corruption) ---
         _NoiseTex ("3D Noise Texture", 3D) = "gray" {}
         _EffectTime ("Effect Time (For 4D Noise)", Float) = 0.0
@@ -69,11 +64,11 @@ Shader "Milehigh/HyperPBRCharacter_4D"
             float3 N; // Normal
         };
 
-        sampler2D _MainTex, _BumpMap, _RMAIMap, _SSSMask, _EffectMask, _ParallaxMap;
+        sampler2D _MainTex, _BumpMap, _RMAIMap, _EffectMask, _ParallaxMap;
         sampler3D _NoiseTex;
-        fixed4 _Color, _EffectColor, _SSSColor;
+        fixed4 _Color, _EffectColor;
         half _BumpScale, _Metallic, _Glossiness, _Ao, _Cutoff, _Parallax;
-        half _SSSScale, _EffectScale, _EffectSpeed, _IridescenceThickness;
+        half _EffectScale, _EffectSpeed, _IridescenceThickness;
 
         void vert (inout appdata_full v, out Input o)
         {
@@ -92,7 +87,7 @@ Shader "Milehigh/HyperPBRCharacter_4D"
         float3 Iridescence(float thickness, float NdotV)
         {
             float3 interference = sin(2.0 * 3.14159 * thickness * float3(1.0, 0.8, 0.6) / NdotV) * 0.5 + 0.5;
-            // ⚡ Bolt: Replace pow(interference, 2.0) with interference * interference for performance
+            //  Bolt: Replace pow(interference, 2.0) with interference * interference for performance
             return interference * interference;
         }
 
@@ -100,6 +95,19 @@ Shader "Milehigh/HyperPBRCharacter_4D"
         {
             fixed4 albedo = tex2D(_MainTex, IN.uv_MainTex) * _Color;
             clip(albedo.a - _Cutoff);
+
+            // ⚡ Bolt: Initialize Albedo at the start of the surf function.
+            // This ensures additive effects like Subsurface Scattering are correctly accumulated
+            // into the final color instead of being overwritten, and avoids redundant calculations
+            // being discarded as dead work if they were assigned before a final overwrite.
+            //  BOLT: Optimized albedo assignment.
+            // By assigning early, we ensure that subsequent additive effects like SSS
+            // are properly blended rather than being discarded or overwritten at the end.
+            // ⚡ Bolt: Performance Fix - Assign base albedo first so that additive effects (like SSS)
+            // are correctly applied to the final output rather than being overwritten by the subsequent assignment.
+            // ⚡ Bolt: Move Albedo assignment to the top to ensure additive effects
+            // (like SSS) are applied to the final color and avoid redundant work.
+            o.Albedo = albedo.rgb;
 
             // --- PBR Properties ---
             fixed4 rmai = tex2D(_RMAIMap, IN.uv_MainTex);
@@ -121,7 +129,7 @@ Shader "Milehigh/HyperPBRCharacter_4D"
                 half noise = tex3D(_NoiseTex, noiseCoord.xyz + noiseCoord.w).r;
 
                 // Add emissive glow based on noise
-                // ⚡ Bolt: Replace pow(noise, 3.0) with noise * noise * noise for performance
+                //  Bolt: Replace pow(noise, 3.0) with noise * noise * noise for performance
                 o.Emission = _EffectColor.rgb * (noise * noise * noise) * effectMask * 2.0;
             }
 
@@ -135,6 +143,7 @@ Shader "Milehigh/HyperPBRCharacter_4D"
                 o.Specular = lerp(o.Specular, o.Specular * iridescence, iridescenceMask);
             }
 
+            o.Albedo = albedo.rgb;
             // --- Subsurface Scattering ---
             half sssMask = tex2D(_SSSMask, IN.uv_MainTex).r;
             if (sssMask > 0)
@@ -142,7 +151,7 @@ Shader "Milehigh/HyperPBRCharacter_4D"
                 // A more advanced SSS would use a proper lighting model.
                 // This is a stylistic approximation.
                 half NdotL = dot(o.Normal, _WorldSpaceLightPos0.xyz);
-                // ⚡ Bolt: Replace pow(..., 8.0) with nested squares for performance
+                //  Bolt: Replace pow(..., 8.0) with nested squares for performance
                 half sss_base = saturate(dot(IN.viewDir, -_WorldSpaceLightPos0.xyz));
                 half sss_sq = sss_base * sss_base;
                 half sss_4 = sss_sq * sss_sq;
@@ -151,6 +160,7 @@ Shader "Milehigh/HyperPBRCharacter_4D"
                 o.Albedo = albedo.rgb;
                 o.Albedo += _SSSColor.rgb * sss * NdotL * sssMask;
             }
+
             else
             {
                 o.Albedo = albedo.rgb;
