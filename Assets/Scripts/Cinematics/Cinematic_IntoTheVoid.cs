@@ -63,8 +63,8 @@ public class Cinematic_IntoTheVoid : MonoBehaviour
      * Tone & Style: Driven, Loving, Determined. Underlying sorrow/weariness.
      * Keywords: Digital, Bionic, Precise, Loving, Clear Articulation, Subtle Filter.
     */
-    public GameObject Skyix_Character;
-    public AudioSource Skyix_VoiceSource;
+    public GameObject Skyix_Character = null!;
+    public AudioSource Skyix_VoiceSource = null!;
 
 
     // Protagonist: Kai the The Child of Prophecy
@@ -79,8 +79,8 @@ public class Cinematic_IntoTheVoid : MonoBehaviour
      * Tone & Style: Cryptic, Calm, Profound, and Fatalistic. Speaks in metaphor.
      * Keywords: Ancient, Layered, Slow, Resonant, Cryptic, Contemplative.
     */
-    public GameObject Kai_Character;
-    public AudioSource Kai_VoiceSource;
+    public GameObject Kai_Character = null!;
+    public AudioSource Kai_VoiceSource = null!;
 
 
     // Antagonist: Delilah the The Desolate
@@ -90,13 +90,13 @@ public class Cinematic_IntoTheVoid : MonoBehaviour
     /* VOICE PROFILE:
      * Not available.
     */
-    public GameObject Delilah_Character;
-    public AudioSource Delilah_VoiceSource;
+    public GameObject Delilah_Character = null!;
+    public AudioSource Delilah_VoiceSource = null!;
 
     [Header("UI Components")]
-    public GameObject DialogueBox;
-    public TextMeshProUGUI SpeakerNameText;
-    public TextMeshProUGUI DialogueText;
+    public GameObject DialogueBox = null!;
+    public TextMeshProUGUI SpeakerNameText = null!;
+    public TextMeshProUGUI DialogueText = null!;
 
     [Header("UX Settings")]
     [FormerlySerializedAs("typingSpeed")]
@@ -107,7 +107,8 @@ public class Cinematic_IntoTheVoid : MonoBehaviour
     [Tooltip("Delay multiplier for Skyix (Steady/Precise tempo).")]
     public float skyixSpeedMultiplier = 1.2f;
 
-    private Coroutine typingCoroutine;
+    private Coroutine? typingCoroutine;
+    private Coroutine? popCoroutine;
     private float currentTypingSpeed;
     private bool skipRequested;
 
@@ -148,8 +149,11 @@ public class Cinematic_IntoTheVoid : MonoBehaviour
     public void ShowDialogue(string speaker, string message)
     {
         if (typingCoroutine != null) StopCoroutine(typingCoroutine);
+        if (popCoroutine != null) StopCoroutine(popCoroutine);
 
         SpeakerNameText.text = speaker;
+        SpeakerNameText.transform.localScale = Vector3.one;
+        popCoroutine = StartCoroutine(PopScale(SpeakerNameText.transform));
 
         // Apply speaker-specific speed multipliers based on voice profiles
         float multiplier = 1.0f;
@@ -221,8 +225,46 @@ public class Cinematic_IntoTheVoid : MonoBehaviour
         DialogueText.text = message + " ▽";
         DialogueText.maxVisibleCharacters = totalVisibleCharacters + 2;
 
-        skipRequested = false;
         typingCoroutine = null;
+    }
+
+    private IEnumerator PopScale(Transform target)
+    {
+        float duration = 0.2f;
+        float halfDuration = duration / 2f;
+        float scaleFactor = 0.15f;
+        Vector3 initialScale = Vector3.one;
+        Vector3 targetScale = new Vector3(1f + scaleFactor, 1f + scaleFactor, 1f + scaleFactor);
+
+        float elapsed = 0f;
+        while (elapsed < halfDuration)
+        {
+            elapsed += Time.deltaTime;
+            target.localScale = Vector3.Lerp(initialScale, targetScale, elapsed / halfDuration);
+            yield return null;
+        }
+
+        elapsed = 0f;
+        while (elapsed < halfDuration)
+        {
+            elapsed += Time.deltaTime;
+            target.localScale = Vector3.Lerp(targetScale, initialScale, elapsed / halfDuration);
+            yield return null;
+        }
+
+        target.localScale = initialScale;
+        popCoroutine = null;
+    }
+
+    private IEnumerator WaitForSecondsOrSkip(float duration)
+    {
+        float elapsed = 0f;
+        while (elapsed < duration && !skipRequested)
+        {
+            elapsed += Time.deltaTime;
+            yield return null;
+        }
+        skipRequested = false;
     }
 
     private IEnumerator Cinematic_IntoTheVoid_Sequence()
@@ -240,7 +282,7 @@ public class Cinematic_IntoTheVoid : MonoBehaviour
         yield return GetWait(1.5f);
         ShowDialogue("Delilah", "Can you feel them, Sky.ix? Fading. Every laugh, every touch, every promise... becoming meaningless noise. It's a mercy, really. Attachments are just flaws in the code.");
         // Delilah_VoiceSource.Play();
-        yield return GetWait(7.5f);
+        yield return StartCoroutine(WaitForSecondsOrSkip(7.5f));
 
         // --- Dialogue Line 2: Sky.ix ---
         // [ANIMATION: Skyix_Character.GetComponent<Animator>().SetTrigger("React_Furious");]
@@ -248,7 +290,7 @@ public class Cinematic_IntoTheVoid : MonoBehaviour
         yield return GetWait(0.5f);
         ShowDialogue("Sky.ix", "Those 'flaws' are everything that matters! You're not cleansing anything, you're just a vandal smashing something beautiful you could never understand.");
         // Skyix_VoiceSource.Play();
-        yield return GetWait(6.0f);
+        yield return StartCoroutine(WaitForSecondsOrSkip(6.0f));
 
         // --- Dialogue Line 3: Kai ---
         // [ANIMATION: Kai_Character.GetComponent<Animator>().SetTrigger("Point_Urgent");]
@@ -256,7 +298,7 @@ public class Cinematic_IntoTheVoid : MonoBehaviour
         yield return GetWait(0.7f);
         ShowDialogue("Kai", "Sky, don't let her distract you. Her channeling is creating a feedback loop. It's unstable, but it's shielded. I need you to hit the third resonant frequency conduit... now!");
         // Kai_VoiceSource.Play();
-        yield return GetWait(8.0f);
+        yield return StartCoroutine(WaitForSecondsOrSkip(8.0f));
 
         // --- Dialogue Line 4: Delilah ---
         // [ANIMATION: Delilah_Character.GetComponent<Animator>().SetTrigger("Smirk_Dismissive");]
@@ -264,7 +306,7 @@ public class Cinematic_IntoTheVoid : MonoBehaviour
         yield return GetWait(1.2f);
         ShowDialogue("Delilah", "The little drifter thinks it's found a backdoor. How quaint. This power is not built on code you can hack. It is built on pure, unadulterated nothingness.");
         // Delilah_VoiceSource.Play();
-        yield return GetWait(7.0f);
+        yield return StartCoroutine(WaitForSecondsOrSkip(7.0f));
 
         // --- Dialogue Line 5: Sky.ix ---
         // [ANIMATION: Skyix_Character.GetComponent<Animator>().SetTrigger("Action_Ready");]
@@ -272,7 +314,7 @@ public class Cinematic_IntoTheVoid : MonoBehaviour
         yield return GetWait(0.8f);
         ShowDialogue("Sky.ix", "Then I'll just have to break it with something real. Kai, I see it! I'm going in!");
         // Skyix_VoiceSource.Play();
-        yield return GetWait(4.5f);
+        yield return StartCoroutine(WaitForSecondsOrSkip(4.5f));
 
         // --- ACTION: Sky.ix dashes towards the conduit ---
         // [ANIMATION: Skyix_Character.GetComponent<Animator>().SetTrigger("Dash_Forward");]
@@ -287,7 +329,7 @@ public class Cinematic_IntoTheVoid : MonoBehaviour
         yield return GetWait(0.5f);
         ShowDialogue("Kai", "The energy spike is massive! Your shields won't hold for long!");
         // Kai_VoiceSource.Play();
-        yield return GetWait(3.5f);
+        yield return StartCoroutine(WaitForSecondsOrSkip(3.5f));
 
         // --- Dialogue Line 7: Delilah ---
         // [ANIMATION: Delilah_Character.GetComponent<Animator>().SetTrigger("Taunt_OpenArms");]
@@ -295,7 +337,7 @@ public class Cinematic_IntoTheVoid : MonoBehaviour
         yield return GetWait(1.5f);
         ShowDialogue("Delilah", "Come then. Offer your existence to the glitch. Join your precious family in the great deletion.");
         // Delilah_VoiceSource.Play();
-        yield return GetWait(5.5f);
+        yield return StartCoroutine(WaitForSecondsOrSkip(5.5f));
 
         // --- Dialogue Line 8: Sky.ix ---
         // [ANIMATION: Skyix_Character.GetComponent<Animator>().SetTrigger("Determined_Resolve");]
@@ -303,7 +345,7 @@ public class Cinematic_IntoTheVoid : MonoBehaviour
         yield return GetWait(1.0f);
         ShowDialogue("Sky.ix", "My family is my anchor. They are the reason I can walk through this hell and not become a monster like you. And I am bringing them home.");
         // Skyix_VoiceSource.Play();
-        yield return GetWait(7.5f);
+        yield return StartCoroutine(WaitForSecondsOrSkip(7.5f));
 
         if (typingCoroutine != null) StopCoroutine(typingCoroutine);
         SpeakerNameText.text = "";
