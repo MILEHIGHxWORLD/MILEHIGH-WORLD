@@ -361,3 +361,7 @@
 ## 2026-05-11 - Shader Dead Work and Yield Cache Consolidation
 **Learning:** In 'HyperPBRCharacter_4D.shader', an albedo overwrite at the end of the 'surf' function was discarding expensive SSS calculations, wasting GPU cycles on dead work. Additionally, 'Cinematic_IntoTheVoid.cs' was severely corrupted with redundant 'WaitForSeconds' caches. Using 'int' millisecond keys instead of 'float' for yield caches prevents cache misses due to floating-point imprecision.
 **Action:** Audit shaders for assignment overwrites that discard previous additive results. In Unity scripts, consolidate fragmented caches into a single 'Dictionary<int, WaitForSeconds>' using 'Mathf.RoundToInt(time * 1000f)' to eliminate GC pressure reliably.
+
+## 2026-05-12 - WaitForSeconds Cache Float Key Anti-pattern
+**Learning:** Using `float` as a dictionary key for caching `WaitForSeconds` (e.g., `Dictionary<float, WaitForSeconds>`) is an anti-pattern in Unity. Floating-point precision inaccuracies can cause unexpected cache misses, leading to redundant heap allocations and GC pressure that the cache was intended to prevent.
+**Action:** Always use an `int` key representing milliseconds (via `Mathf.RoundToInt(seconds * 1000f)`) when caching temporal objects in a Dictionary to ensure deterministic O(1) lookups and zero-allocation yields.

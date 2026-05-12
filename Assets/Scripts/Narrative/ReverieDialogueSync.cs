@@ -11,15 +11,17 @@ namespace Milehigh.Narrative
         [SerializeField] private AudioClip _reverieAcknowledgeClip;
         [SerializeField] private Animator _reverieAnimator;
 
-        // BOLT: Cache yield instructions to prevent GC allocations in frequently triggered routines
-        private static readonly Dictionary<float, WaitForSeconds> _waitCache = new Dictionary<float, WaitForSeconds>();
+        // BOLT: Cache yield instructions using millisecond keys to prevent floating-point precision issues
+        // and eliminate redundant GC allocations during frequently triggered routines.
+        private static readonly Dictionary<int, WaitForSeconds> _waitCache = new Dictionary<int, WaitForSeconds>();
 
         private WaitForSeconds GetWait(float seconds)
         {
-            if (!_waitCache.TryGetValue(seconds, out var wait))
+            int msKey = Mathf.RoundToInt(seconds * 1000f);
+            if (!_waitCache.TryGetValue(msKey, out var wait))
             {
                 wait = new WaitForSeconds(seconds);
-                _waitCache[seconds] = wait;
+                _waitCache[msKey] = wait;
             }
             return wait;
         }
