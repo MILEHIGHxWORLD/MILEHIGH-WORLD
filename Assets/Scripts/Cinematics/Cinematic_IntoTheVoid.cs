@@ -71,10 +71,16 @@ namespace Milehigh.Cinematics
             if (SkipHintText != null) SkipHintText.gameObject.SetActive(false);
 
             // Palette: Accessibility - Text outline for better contrast in dark scenes.
-            SpeakerNameText.fontMaterial.SetFloat(ShaderUtilities.ID_OutlineWidth, 0.2f);
-            SpeakerNameText.fontMaterial.SetColor(ShaderUtilities.ID_OutlineColor, Color.black);
-            DialogueText.fontMaterial.SetFloat(ShaderUtilities.ID_OutlineWidth, 0.2f);
-            DialogueText.fontMaterial.SetColor(ShaderUtilities.ID_OutlineColor, Color.black);
+            if (SpeakerNameText.fontMaterial != null)
+            {
+                SpeakerNameText.fontMaterial.SetFloat(ShaderUtilities.ID_OutlineWidth, 0.2f);
+                SpeakerNameText.fontMaterial.SetColor(ShaderUtilities.ID_OutlineColor, Color.black);
+            }
+            if (DialogueText.fontMaterial != null)
+            {
+                DialogueText.fontMaterial.SetFloat(ShaderUtilities.ID_OutlineWidth, 0.2f);
+                DialogueText.fontMaterial.SetColor(ShaderUtilities.ID_OutlineColor, Color.black);
+            }
 
             StartCoroutine(Cinematic_IntoTheVoid_Sequence());
         }
@@ -139,10 +145,12 @@ namespace Milehigh.Cinematics
             AudioSource? voiceSource = speaker switch
             {
                 "Sky.ix" => Skyix_VoiceSource,
-                "Kai" => Kai_VoiceSource,
+                "Kai" => Kai_Character?.GetComponent<AudioSource>(), // Fallback attempt
                 "Delilah" => Delilah_VoiceSource,
                 _ => null
             };
+            if (speaker == "Kai") voiceSource = Kai_VoiceSource; // Ensure Kai is handled correctly
+
             if (voiceSource != null) voiceSource.Play();
 
             typingCoroutine = StartCoroutine(TypeDialogue(message));
