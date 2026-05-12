@@ -365,3 +365,7 @@
 ## 2026-05-12 - WaitForSeconds Cache Float Key Anti-pattern
 **Learning:** Using `float` as a dictionary key for caching `WaitForSeconds` (e.g., `Dictionary<float, WaitForSeconds>`) is an anti-pattern in Unity. Floating-point precision inaccuracies can cause unexpected cache misses, leading to redundant heap allocations and GC pressure that the cache was intended to prevent.
 **Action:** Always use an `int` key representing milliseconds (via `Mathf.RoundToInt(seconds * 1000f)`) when caching temporal objects in a Dictionary to ensure deterministic O(1) lookups and zero-allocation yields.
+
+## 2024-05-30 - Cache GetComponent Calls in Coroutines
+**Learning:** Repeatedly calling `GetComponent` within coroutines or updates incurs unnecessary engine boundary crossing overhead, which can cause micro-stutters during execution.
+**Action:** Always pre-cache components like `Animator` during initialization (`Start` or `Awake`) to ensure O(1) field access during intensive cinematic or runtime loops.
