@@ -32,19 +32,19 @@ namespace Milehigh.Data
             // SECURITY: Ensure environment string is present and within safe length limits (DoS mitigation)
             if (string.IsNullOrEmpty(environment))
             {
-                Debug.LogError("[Security] Metadata validation failed: environment is missing.");
+                UnityEngine.Debug.LogError("[Security] Metadata validation failed: environment is missing.");
                 return false;
             }
             if (environment.Length > 128)
             {
-                Debug.LogError($"[Security] Metadata validation failed: Environment name length {environment.Length} exceeds 128 characters.");
+                UnityEngine.Debug.LogError($"[Security] Metadata validation failed: Environment name length {environment.Length} exceeds 128 characters.");
                 return false;
             }
 
             // SECURITY: Ensure voidSaturationLevel is within the expected [0.0, 1.0] range.
             if (voidSaturationLevel < 0.0f || voidSaturationLevel > 1.0f)
             {
-                Debug.LogError($"[Security] Metadata validation failed: voidSaturationLevel {voidSaturationLevel} is out of range [0.0, 1.0]");
+                UnityEngine.Debug.LogError($"[Security] Metadata validation failed: voidSaturationLevel {voidSaturationLevel} is out of range [0.0, 1.0]");
                 return false;
             }
 
@@ -69,27 +69,27 @@ namespace Milehigh.Data
         {
             if (string.IsNullOrEmpty(name))
             {
-                Debug.LogError("[Security] CharacterProfile validation failed: Name is missing.");
+                UnityEngine.Debug.LogError("[Security] CharacterProfile validation failed: Name is missing.");
                 return false;
             }
             if (name.Length > 64)
             {
-                Debug.LogError($"[Security] CharacterProfile validation failed: Name '{name}' exceeds 64 characters.");
+                UnityEngine.Debug.LogError($"[Security] CharacterProfile validation failed: Name '{name}' exceeds 64 characters.");
                 return false;
             }
             if (!string.IsNullOrEmpty(role) && role.Length > 64)
             {
-                Debug.LogError($"[Security] CharacterProfile validation failed: Role for '{name}' exceeds 64 characters.");
+                UnityEngine.Debug.LogError($"[Security] CharacterProfile validation failed: Role for '{name}' exceeds 64 characters.");
                 return false;
             }
             if (traits != null && traits.Length > 20)
             {
-                Debug.LogError($"[Security] CharacterProfile validation failed: Too many traits for '{name}'.");
+                UnityEngine.Debug.LogError($"[Security] CharacterProfile validation failed: Too many traits for '{name}'.");
                 return false;
             }
             if (!string.IsNullOrEmpty(behaviorScript) && behaviorScript.Length > 2048)
             {
-                Debug.LogError($"[Security] CharacterProfile validation failed: Behavior script for '{name}' exceeds 2048 characters.");
+                UnityEngine.Debug.LogError($"[Security] CharacterProfile validation failed: Behavior script for '{name}' exceeds 2048 characters.");
                 return false;
             }
             return true;
@@ -115,31 +115,31 @@ namespace Milehigh.Data
         [UnityEngine.Tooltip("The Z component of the vector value.")]
         public float z;
 
-        public Vector3 GetVectorValue()
+        public UnityEngine.Vector3 GetVectorValue()
         {
-            return new Vector3(x, y, z);
+            return new UnityEngine.Vector3(x, y, z);
         }
 
         public bool IsValid()
         {
             if (string.IsNullOrEmpty(objectId))
             {
-                Debug.LogError("[Security] ObjectInteraction validation failed: objectId is missing.");
+                UnityEngine.Debug.LogError("[Security] ObjectInteraction validation failed: objectId is missing.");
                 return false;
             }
             if (objectId.Length > 128)
             {
-                Debug.LogError("[Security] ObjectInteraction validation failed: objectId exceeds 128 characters.");
+                UnityEngine.Debug.LogError("[Security] ObjectInteraction validation failed: objectId exceeds 128 characters.");
                 return false;
             }
             if (string.IsNullOrEmpty(action))
             {
-                Debug.LogError($"[Security] ObjectInteraction validation failed for '{objectId}': action is missing.");
+                UnityEngine.Debug.LogError($"[Security] ObjectInteraction validation failed for '{objectId}': action is missing.");
                 return false;
             }
             if (action.Length > 128)
             {
-                Debug.LogError($"[Security] ObjectInteraction validation failed for '{objectId}': action exceeds 128 characters.");
+                UnityEngine.Debug.LogError($"[Security] ObjectInteraction validation failed for '{objectId}': action exceeds 128 characters.");
                 return false;
             }
             return true;
@@ -161,22 +161,22 @@ namespace Milehigh.Data
         {
             if (!string.IsNullOrEmpty(speaker) && speaker.Length > 64)
             {
-                Debug.LogError("[Security] Dialogue validation failed: speaker name is too long.");
+                UnityEngine.Debug.LogError("[Security] Dialogue validation failed: speaker name is too long.");
                 return false;
             }
             if (string.IsNullOrEmpty(text))
             {
-                Debug.LogError("[Security] Dialogue validation failed: text is missing.");
+                UnityEngine.Debug.LogError("[Security] Dialogue validation failed: text is missing.");
                 return false;
             }
             if (text.Length > 1024)
             {
-                Debug.LogError("[Security] Dialogue validation failed: text exceeds 1024 characters.");
+                UnityEngine.Debug.LogError("[Security] Dialogue validation failed: text exceeds 1024 characters.");
                 return false;
             }
             if (!string.IsNullOrEmpty(trigger) && trigger.Length > 128)
             {
-                Debug.LogError("[Security] Dialogue validation failed: trigger exceeds 128 characters.");
+                UnityEngine.Debug.LogError("[Security] Dialogue validation failed: trigger exceeds 128 characters.");
                 return false;
             }
             return true;
@@ -201,17 +201,17 @@ namespace Milehigh.Data
         {
             if (string.IsNullOrEmpty(scenarioId))
             {
-                Debug.LogError("[Security] SceneScenario validation failed: scenarioId is missing.");
+                UnityEngine.Debug.LogError("[Security] SceneScenario validation failed: scenarioId is missing.");
                 return false;
             }
             if (scenarioId.Length > 128)
             {
-                Debug.LogError("[Security] SceneScenario validation failed: scenarioId too long.");
+                UnityEngine.Debug.LogError("[Security] SceneScenario validation failed: scenarioId too long.");
                 return false;
             }
             if (!string.IsNullOrEmpty(name) && name.Length > 128)
             {
-                Debug.LogError($"[Security] SceneScenario '{scenarioId}' validation failed: name too long.");
+                UnityEngine.Debug.LogError($"[Security] SceneScenario '{scenarioId}' validation failed: name too long.");
                 return false;
             }
 
@@ -219,7 +219,7 @@ namespace Milehigh.Data
             {
                 if (interactiveObjects.Count > 50)
                 {
-                    Debug.LogError($"[Security] SceneScenario '{scenarioId}' validation failed: too many interactive objects ({interactiveObjects.Count}).");
+                    UnityEngine.Debug.LogError($"[Security] SceneScenario '{scenarioId}' validation failed: too many interactive objects ({interactiveObjects.Count}).");
                     return false;
                 }
                 foreach (var interaction in interactiveObjects)
@@ -232,7 +232,7 @@ namespace Milehigh.Data
             {
                 if (dialogue.Count > 100)
                 {
-                    Debug.LogError($"[Security] SceneScenario '{scenarioId}' validation failed: too many dialogue lines ({dialogue.Count}).");
+                    UnityEngine.Debug.LogError($"[Security] SceneScenario '{scenarioId}' validation failed: too many dialogue lines ({dialogue.Count}).");
                     return false;
                 }
                 foreach (var d in dialogue)
@@ -260,24 +260,24 @@ namespace Milehigh.Data
         {
             if (string.IsNullOrEmpty(sceneId) || sceneId.Length > 128)
             {
-                Debug.LogError("[Security] Game data validation failed: sceneId is missing or too long.");
+                UnityEngine.Debug.LogError("[Security] Game data validation failed: sceneId is missing or too long.");
                 return false;
             }
 
             if (metadata == null || !metadata.IsValid())
             {
-                Debug.LogError("[Security] Game data validation failed: Metadata missing or invalid.");
+                UnityEngine.Debug.LogError("[Security] Game data validation failed: Metadata missing or invalid.");
                 return false;
             }
 
             if (characters == null || characters.Count == 0)
             {
-                Debug.LogError("[Security] Game data validation failed: No character profiles defined.");
+                UnityEngine.Debug.LogError("[Security] Game data validation failed: No character profiles defined.");
                 return false;
             }
             if (characters.Count > 50)
             {
-                Debug.LogError($"[Security] Game data validation failed: character count {characters.Count} exceeds 50.");
+                UnityEngine.Debug.LogError($"[Security] Game data validation failed: character count {characters.Count} exceeds 50.");
                 return false;
             }
             foreach (var character in characters)
@@ -287,12 +287,12 @@ namespace Milehigh.Data
 
             if (scenarios == null || scenarios.Count == 0)
             {
-                Debug.LogError("[Security] Game data validation failed: No scenarios defined.");
+                UnityEngine.Debug.LogError("[Security] Game data validation failed: No scenarios defined.");
                 return false;
             }
             if (scenarios.Count > 100)
             {
-                Debug.LogError($"[Security] Game data validation failed: scenario count {scenarios.Count} exceeds 100.");
+                UnityEngine.Debug.LogError($"[Security] Game data validation failed: scenario count {scenarios.Count} exceeds 100.");
                 return false;
             }
             foreach (var scenario in scenarios)
