@@ -354,3 +354,7 @@
 ## 2026-05-10 - [Unified Caching & Code Rot Consolidation]
 **Learning:** SceneDirector.cs was severely bloated with over a dozen redundant dictionary declarations and duplicate helper methods. This "code rot" increased memory overhead and created a risk of cache inconsistency during scene setups.
 **Action:** Consolidated all redundant caching logic into a single, unified triple-cache system (GameObjects, Prefabs, and Controllers). Removed all duplicate declarations and helper methods, standardizing on O(1) lookups and robust Unity-native null handling to ensure performance and reliability.
+
+## 2026-05-11 - Shader Dead Work and Yield Cache Consolidation
+**Learning:** In 'HyperPBRCharacter_4D.shader', an albedo overwrite at the end of the 'surf' function was discarding expensive SSS calculations, wasting GPU cycles on dead work. Additionally, 'Cinematic_IntoTheVoid.cs' was severely corrupted with redundant 'WaitForSeconds' caches. Using 'int' millisecond keys instead of 'float' for yield caches prevents cache misses due to floating-point imprecision.
+**Action:** Audit shaders for assignment overwrites that discard previous additive results. In Unity scripts, consolidate fragmented caches into a single 'Dictionary<int, WaitForSeconds>' using 'Mathf.RoundToInt(time * 1000f)' to eliminate GC pressure reliably.
