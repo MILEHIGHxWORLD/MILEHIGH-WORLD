@@ -175,14 +175,14 @@ namespace Milehigh.Cinematics
             skipRequested = false;
 
             // Audio: Play the character's voice line if assigned.
+            // ⚡ Bolt: Removed redundant GetComponent<AudioSource>() fallback for Kai, relying on the cached Kai_VoiceSource field to prevent unnecessary C#/C++ engine boundary crossings during cinematic playback.
             AudioSource? voiceSource = speaker switch
             {
                 "Sky.ix" => Skyix_VoiceSource,
-                "Kai" => Kai_Character?.GetComponent<AudioSource>(), // Fallback attempt
+                "Kai" => Kai_VoiceSource,
                 "Delilah" => Delilah_VoiceSource,
                 _ => null
             };
-            if (speaker == "Kai") voiceSource = Kai_VoiceSource; // Ensure Kai is handled correctly
 
             if (voiceSource != null) voiceSource.Play();
 
