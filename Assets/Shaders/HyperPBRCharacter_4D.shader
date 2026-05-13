@@ -99,6 +99,7 @@ Shader "Milehigh/HyperPBRCharacter_4D"
         void surf (Input IN, inout SurfaceOutputStandardSpecular o)
         {
             fixed4 albedo = tex2D(_MainTex, IN.uv_MainTex) * _Color;
+            o.Albedo = albedo.rgb;
             clip(albedo.a - _Cutoff);
 
             // --- PBR Properties ---
@@ -149,8 +150,6 @@ Shader "Milehigh/HyperPBRCharacter_4D"
                 half sss = sss_4 * sss_4 * _SSSScale;
                 o.Albedo += _SSSColor.rgb * sss * NdotL * sssMask;
             }
-
-            o.Albedo = albedo.rgb;
         }
         ENDCG
     }
