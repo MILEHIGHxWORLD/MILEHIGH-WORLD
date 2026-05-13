@@ -57,16 +57,12 @@ namespace Milehigh.Editor
                     asset.behaviorScript = charProfile.behaviorScript ?? "";
 
                     // 🛡️ Sentinel: Sanitize character name to prevent Path Traversal vulnerabilities.
+                    // We use Path.GetInvalidFileNameChars to filter OS-level invalid characters and Path.GetFileName to strip traversal sequences.
+                    string baseName = charProfile.name ?? "unnamed_character";
+                    string sanitizedName = string.Join("_", baseName.Split(Path.GetInvalidFileNameChars()));
                     string baseName = charProfile.name ?? "unnamed_character";
 
-                    // 1. Replace invalid filename characters with underscores
-                    string sanitizedName = baseName;
-                    foreach (char c in Path.GetInvalidFileNameChars())
-                    {
-                        sanitizedName = sanitizedName.Replace(c, '_');
-                    }
-
-                    // 2. Ensure no directory separators or traversal sequences remain
+                    // Ensure no directory separators or traversal sequences remain
                     string safeFileName = Path.GetFileName(sanitizedName).Replace(" ", "_");
 
                     if (string.IsNullOrEmpty(safeFileName))

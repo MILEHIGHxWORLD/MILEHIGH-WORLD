@@ -1,5 +1,4 @@
 using UnityEngine;
-using UnityEngine.SceneManagement;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using Milehigh.Data;
@@ -67,7 +66,8 @@ namespace Milehigh.Core
             _objectCache.Clear();
             _controllerCache.Clear();
 
-            // BOLT: Pre-populate object cache with existing scene objects to avoid lazy O(N) lookups
+            // BOLT: Performance Boost - Pre-populate object cache with existing scene objects
+            // in a single pass to avoid lazy O(N) lookups later.
             foreach (var go in UnityEngine.Object.FindObjectsByType<GameObject>(FindObjectsSortMode.None))
             {
                 if (go != null && !string.IsNullOrEmpty(go.name) && !_objectCache.ContainsKey(go.name))
@@ -75,9 +75,6 @@ namespace Milehigh.Core
                     _objectCache[go.name] = go;
                 }
             }
-
-            // BOLT: Performance Boost - Populate cache in a single pass before lookups
-            PreWarmCache();
 
             // Instantiate characters if not already in scene
             var campaignData = CampaignManager.Instance.currentCampaignData;
@@ -147,36 +144,6 @@ namespace Milehigh.Core
                 {
                     target.transform.localScale = Vector3.one * interaction.floatValue;
                 }
-            }
-        }
-
-        private void PreWarmCache()
-        {
-            for (int i = 0; i < SceneManager.sceneCount; i++)
-            {
-                Scene scene = SceneManager.GetSceneAt(i);
-                if (scene.isLoaded)
-                {
-                    GameObject[] roots = scene.GetRootGameObjects();
-                    foreach (GameObject root in roots)
-                    {
-                        if (root != null) CacheHierarchyRecursive(root.transform);
-                    }
-                }
-            }
-        }
-
-        private void CacheHierarchyRecursive(Transform t)
-        {
-            // Match GameObject.Find behavior: only cache active objects
-            if (t.gameObject.activeInHierarchy && !_objectCache.ContainsKey(t.name))
-            {
-                _objectCache[t.name] = t.gameObject;
-            }
-
-            for (int i = 0; i < t.childCount; i++)
-            {
-                CacheHierarchyRecursive(t.GetChild(i));
             }
         }
 
