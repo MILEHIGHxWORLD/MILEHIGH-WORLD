@@ -30,7 +30,6 @@ namespace Milehigh.Cinematics
         public TextMeshProUGUI SpeakerNameText = null!;
         public TextMeshProUGUI DialogueText = null!;
         public TextMeshProUGUI SkipHintText = null!;
-        public TextMeshProUGUI? SkipHintText;
 
         [Header("UX Settings")]
         [Tooltip("Base delay in seconds between each character being revealed.")]
@@ -48,6 +47,8 @@ namespace Milehigh.Cinematics
         private float idleTimer;
         private bool playerInteracted;
         private Vector3 originalSpeakerScale;
+        private RectTransform _dialogueRect = null!;
+        private Vector2 _originalDialoguePos;
 
         // BOLT: Cache for WaitForSeconds to eliminate GC allocations during coroutine execution.
         private static readonly Dictionary<int, WaitForSeconds> _waitForSecondsCache = new Dictionary<int, WaitForSeconds>();
@@ -72,21 +73,10 @@ namespace Milehigh.Cinematics
                 return;
             }
 
+            _dialogueRect = DialogueBox.GetComponent<RectTransform>();
+            _originalDialoguePos = _dialogueRect.anchoredPosition;
             originalSpeakerScale = SpeakerNameText.transform.localScale;
 
-            if (SkipHintText != null) SkipHintText.gameObject.SetActive(false);
-
-            // Palette: Accessibility - Text outline for better contrast in dark scenes.
-            if (SpeakerNameText.fontMaterial != null)
-            {
-                SpeakerNameText.fontMaterial.SetFloat(ShaderUtilities.ID_OutlineWidth, 0.2f);
-                SpeakerNameText.fontMaterial.SetColor(ShaderUtilities.ID_OutlineColor, Color.black);
-            }
-            if (DialogueText.fontMaterial != null)
-            {
-                DialogueText.fontMaterial.SetFloat(ShaderUtilities.ID_OutlineWidth, 0.2f);
-                DialogueText.fontMaterial.SetColor(ShaderUtilities.ID_OutlineColor, Color.black);
-            }
             // ⚡ Bolt: Pre-cache animators to eliminate GetComponent allocations during the cinematic sequence.
             if (Skyix_Character != null) _skyixAnimator = Skyix_Character.GetComponent<Animator>();
             if (Kai_Character != null) _kaiAnimator = Kai_Character.GetComponent<Animator>();
@@ -105,11 +95,17 @@ namespace Milehigh.Cinematics
                 SkipHintText.gameObject.SetActive(false);
             }
 
-            // Palette: Accessibility - Text outline for better contrast in dark scenes.
-            SpeakerNameText.fontMaterial.SetFloat(ShaderUtilities.ID_OutlineWidth, 0.25f);
-            SpeakerNameText.fontMaterial.SetColor(ShaderUtilities.ID_OutlineColor, Color.black);
-            DialogueText.fontMaterial.SetFloat(ShaderUtilities.ID_OutlineWidth, 0.25f);
-            DialogueText.fontMaterial.SetColor(ShaderUtilities.ID_OutlineColor, Color.black);
+            // Palette: Accessibility - High-contrast text outline for better readability in dark/complex scenes.
+            if (SpeakerNameText.fontMaterial != null)
+            {
+                SpeakerNameText.fontMaterial.SetFloat(ShaderUtilities.ID_OutlineWidth, 0.25f);
+                SpeakerNameText.fontMaterial.SetColor(ShaderUtilities.ID_OutlineColor, Color.black);
+            }
+            if (DialogueText.fontMaterial != null)
+            {
+                DialogueText.fontMaterial.SetFloat(ShaderUtilities.ID_OutlineWidth, 0.25f);
+                DialogueText.fontMaterial.SetColor(ShaderUtilities.ID_OutlineColor, Color.black);
+            }
 
             StartCoroutine(Cinematic_IntoTheVoid_Sequence());
         }
@@ -265,14 +261,23 @@ namespace Milehigh.Cinematics
         {
             if (targetAlpha > 0) DialogueBox.SetActive(true);
             float startAlpha = DialogueCanvasGroup.alpha;
+
+            // Palette: Define target and start positions for a subtle "slide" effect (30 units down).
+            Vector2 targetPos = targetAlpha > 0 ? _originalDialoguePos : _originalDialoguePos + Vector2.down * 30f;
+            if (targetAlpha > 0) _dialogueRect.anchoredPosition = _originalDialoguePos + Vector2.down * 30f;
+            Vector2 startPos = _dialogueRect.anchoredPosition;
+
             float elapsed = 0f;
             while (elapsed < duration)
             {
                 elapsed += Time.deltaTime;
-                DialogueCanvasGroup.alpha = Mathf.Lerp(startAlpha, targetAlpha, elapsed / duration);
+                float t = elapsed / duration;
+                DialogueCanvasGroup.alpha = Mathf.Lerp(startAlpha, targetAlpha, t);
+                _dialogueRect.anchoredPosition = Vector2.Lerp(startPos, targetPos, t);
                 yield return null;
             }
             DialogueCanvasGroup.alpha = targetAlpha;
+            _dialogueRect.anchoredPosition = targetPos;
             if (targetAlpha <= 0) DialogueBox.SetActive(false);
         }
 
@@ -294,9 +299,6 @@ namespace Milehigh.Cinematics
         private IEnumerator Cinematic_IntoTheVoid_Sequence()
         {
             yield return FadeDialogueBox(1.0f, 0.5f);
-            yield return GetWait(1.0f);
-            DialogueBox.SetActive(true);
-            yield return FadeDialogue(1f, 0.5f);
             yield return WaitForSecondsOrSkip(1.0f);
 
             // Line 1: Delilah
@@ -338,23 +340,8 @@ namespace Milehigh.Cinematics
             yield return FadeDialogueBox(0f, 0.5f);
             Debug.Log("Cinematic Sequence Complete.");
             if (typingCoroutine != null) StopCoroutine(typingCoroutine);
-            yield return FadeDialogue(0f, 0.5f);
-            DialogueBox.SetActive(false);
 
             Debug.Log("Cinematic Sequence Complete: [Deep within the anti-reality of ŤĤÊ VØĪĐ...]");
-        }
-
-        private IEnumerator FadeDialogue(float targetAlpha, float duration)
-        {
-            float startAlpha = DialogueCanvasGroup.alpha;
-            float elapsed = 0f;
-            while (elapsed < duration)
-            {
-                elapsed += Time.deltaTime;
-                DialogueCanvasGroup.alpha = Mathf.Lerp(startAlpha, targetAlpha, elapsed / duration);
-                yield return null;
-            }
-            DialogueCanvasGroup.alpha = targetAlpha;
         }
     }
 }
