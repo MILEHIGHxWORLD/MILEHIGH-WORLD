@@ -89,6 +89,10 @@
 **Learning:** Typewriter effects can be further refined by distinguishing between sentence-ending punctuation and mid-word periods (e.g., abbreviations or technical names like 'Sky.ix') using look-ahead whitespace checks. Additionally, specific handling for ellipses (...) with reduced multipliers prevents the dialogue from feeling stagnant, while color-coding the completion cue to match the speaker's theme provides a subtle but effective visual anchor for the player.
 **Action:** Implement look-ahead logic for punctuation and context-specific multipliers (15x for ends, 8x for clauses, 5x for ellipses) in dialogue systems to ensure natural pacing.
 
+## 2026-05-12 - [Carry-over Skip and Persistent Interaction States]
+**Learning:** In narrative-heavy games, resetting interaction flags (like 'skipRequested') too early can lead to a fragmented experience where the user has to click multiple times to bypass a single dialogue beat. By allowing the 'skipRequested' flag to persist from the typewriter reveal through the subsequent reading pause, the interface becomes much more responsive for fast readers. Furthermore, ensuring that 'playerInteracted' is reset at the start of every dialogue line is crucial for the reliable behavior of "idle-timer" hints.
+**Action:** Use 'Carry-over Skip' logic for dialogue sequences and always reset interaction tracking flags on a per-line basis to ensure UI hint accuracy.
+
 ## 2026-05-22 - [Inclusive Interaction Hints for Accessibility]
 **Learning:** Providing inclusive interaction hints, such as "[Any Key/Click] Skip" instead of specific keys like "[Space] Skip", ensures that users across different input methods (keyboard, mouse, gamepad, or assistive technology) understand that any deliberate action will trigger the skip. This transparency improves accessibility and reduces frustration for users who might not be using a standard keyboard.
 **Action:** Always use inclusive language for interaction hints when the underlying logic supports multiple input types (e.g., 'Input.anyKeyDown').
