@@ -76,12 +76,16 @@ namespace Milehigh.Cinematics
                 if (hintTransform != null) SkipHintText = hintTransform.GetComponent<TextMeshProUGUI>();
             }
 
-            if (SkipHintText != null) SkipHintText.gameObject.SetActive(false);
+            if (SkipHintText != null)
+            {
+                SkipHintText.text = "[Any Key/Click] Skip";
+                SkipHintText.gameObject.SetActive(false);
+            }
 
             // Palette: Accessibility - Text outline for better contrast in dark scenes.
-            SpeakerNameText.fontMaterial.SetFloat(ShaderUtilities.ID_OutlineWidth, 0.2f);
+            SpeakerNameText.fontMaterial.SetFloat(ShaderUtilities.ID_OutlineWidth, 0.25f);
             SpeakerNameText.fontMaterial.SetColor(ShaderUtilities.ID_OutlineColor, Color.black);
-            DialogueText.fontMaterial.SetFloat(ShaderUtilities.ID_OutlineWidth, 0.2f);
+            DialogueText.fontMaterial.SetFloat(ShaderUtilities.ID_OutlineWidth, 0.25f);
             DialogueText.fontMaterial.SetColor(ShaderUtilities.ID_OutlineColor, Color.black);
 
             StartCoroutine(Cinematic_IntoTheVoid_Sequence());
@@ -90,7 +94,7 @@ namespace Milehigh.Cinematics
         private void Update()
         {
             // ⚡ Bolt: Precise skip detection for refined UX.
-            if (Input.GetKeyDown(KeyCode.Space) || Input.GetKeyDown(KeyCode.Return) || Input.GetMouseButtonDown(0))
+            if (Input.anyKeyDown)
             {
                 skipRequested = true;
                 playerInteracted = true;
@@ -112,8 +116,10 @@ namespace Milehigh.Cinematics
         {
             if (typingCoroutine != null) StopCoroutine(typingCoroutine);
 
-            // UX Enhancement: Reset idle timer for each new dialogue line.
+            // UX Enhancement: Reset interaction state for each new dialogue line.
             idleTimer = 0f;
+            playerInteracted = false;
+            if (SkipHintText != null) SkipHintText.gameObject.SetActive(false);
 
             // UX Enhancement: Trigger a subtle "Pop" animation when the speaker changes.
             if (SpeakerNameText.text != speaker)
@@ -150,6 +156,8 @@ namespace Milehigh.Cinematics
             SpeakerNameText.color = speakerColor;
             currentSpeakerHex = ColorUtility.ToHtmlStringRGB(speakerColor);
             currentTypingSpeed = baseTypingSpeed * multiplier;
+
+            // Palette: Reset skip request only at the start of a new dialogue line.
             skipRequested = false;
 
             // Audio: Play the character's voice line if assigned.
@@ -224,7 +232,7 @@ namespace Milehigh.Cinematics
             }
 
             DialogueText.maxVisibleCharacters = totalCharacters;
-            skipRequested = false;
+            // Palette: Carry-over skip - skipRequested is NOT reset here to allow skipping the reading pause too.
             typingCoroutine = null;
         }
 
