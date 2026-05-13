@@ -59,11 +59,20 @@ namespace Milehigh.Core
             LogOutput($"> {cmd} {subCmd} {args}");
         }
 
+        /// <summary>
+        /// 🛡️ Sentinel: Sanitizes input to prevent TextMeshPro rich text injection.
+        /// </summary>
+        private string SanitizeRichText(string input)
+        {
+            if (string.IsNullOrEmpty(input)) return input;
+            return input.Replace("<", "&lt;").Replace(">", "&gt;");
+        }
+
         private void LogOutput(string message)
         {
             if (terminalOutput != null)
             {
-                terminalOutput.text += $"\n{message}";
+                terminalOutput.text += $"\n{SanitizeRichText(message)}";
             }
             Debug.Log($"Otis Terminal: {message}");
         }
