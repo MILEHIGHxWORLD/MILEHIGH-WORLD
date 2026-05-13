@@ -13,9 +13,9 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "/app/TempProject.csproj",
-      "projectName": "TempProject",
-      "projectPath": "/app/TempProject.csproj",
+      "projectUniqueName": "/app/FullBuildCheck.csproj",
+      "projectName": "FullBuildCheck",
+      "projectPath": "/app/FullBuildCheck.csproj",
       "packagesPath": "/home/jules/.nuget/packages/",
       "outputPath": "/app/obj/",
       "projectStyle": "PackageReference",

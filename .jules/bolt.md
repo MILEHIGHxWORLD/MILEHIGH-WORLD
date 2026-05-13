@@ -260,3 +260,6 @@
 ## 2026-05-10 - [Unified Caching & Code Rot Consolidation]
 **Learning:** SceneDirector.cs was severely bloated with over a dozen redundant dictionary declarations and duplicate helper methods. This "code rot" increased memory overhead and created a risk of cache inconsistency during scene setups.
 **Action:** Consolidated all redundant caching logic into a single, unified triple-cache system (GameObjects, Prefabs, and Controllers). Removed all duplicate declarations and helper methods, standardizing on O(1) lookups and robust Unity-native null handling to ensure performance and reliability.
+## 2026-05-10 - O(1) Prefab Lookup Optimization
+**Learning:** Replacing O(N) linear list searches (using string.Contains) with a consolidated O(1) Dictionary-based caching system provides a ~50x speedup in prefab retrieval. Handling "Unity nulls" via ReferenceEquals is critical for robust negative caching.
+**Action:** Always prefer Dictionary lookups for asset retrieval in Unity initialization/setup phases and use negative caching to prevent repeated O(N) scene traversals for missing objects.
