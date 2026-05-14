@@ -123,13 +123,6 @@ namespace Milehigh.Core
         {
             if (interaction == null || string.IsNullOrEmpty(interaction.objectId)) return;
 
-            // 🛡️ Sentinel: DoS Mitigation - Enforce length limit and character whitelist on external object names.
-            if (interaction.objectId.Length > 128 || !_nameValidator.IsMatch(interaction.objectId))
-            {
-                Debug.LogWarning($"[Security] ApplyInteraction blocked potentially malicious external input: {interaction.objectId}");
-                return;
-            }
-
             // 🛡️ Sentinel: Prevent IDOR (Insecure Direct Object Reference) tampering with core systems.
             string[] protectedManagers = { "CampaignManager", "SceneDirector", "CameraManager", "AlliancePowerManager" };
             if (System.Array.Exists(protectedManagers, m => m == interaction.objectId))
@@ -157,6 +150,13 @@ namespace Milehigh.Core
         private GameObject? GetCachedObject(string objectName)
         {
             if (string.IsNullOrEmpty(objectName)) return null;
+
+            // 🛡️ Sentinel: DoS Mitigation - Enforce length limit and character whitelist on object names.
+            if (objectName.Length > 128 || !_nameValidator.IsMatch(objectName))
+            {
+                Debug.LogWarning($"[Security] GetCachedObject blocked potentially malicious input: {objectName}");
+                return null;
+            }
 
             if (_objectCache.TryGetValue(objectName, out GameObject? obj))
             {
