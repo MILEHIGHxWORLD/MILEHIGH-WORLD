@@ -96,3 +96,7 @@
 ## 2026-05-22 - [Inclusive Interaction Hints for Accessibility]
 **Learning:** Providing inclusive interaction hints, such as "[Any Key/Click] Skip" instead of specific keys like "[Space] Skip", ensures that users across different input methods (keyboard, mouse, gamepad, or assistive technology) understand that any deliberate action will trigger the skip. This transparency improves accessibility and reduces frustration for users who might not be using a standard keyboard.
 **Action:** Always use inclusive language for interaction hints when the underlying logic supports multiple input types (e.g., 'Input.anyKeyDown').
+
+## 2026-05-23 - [Visual Pulse for Idle Hints and Consolidated Accessibility]
+**Learning:** Applying a gentle alpha pulse (e.g., via 'Mathf.PingPong') to secondary UI elements like Skip Hints significantly improves their discoverability when they appear after a period of idleness, distinguishing them from static dialogue text. Furthermore, consolidating accessibility features (like text outlines for contrast) into reusable helper methods prevents "syntax soup" and ensures consistent readability across all UI components in dark or high-contrast environments.
+**Action:** Use 'Mathf.PingPong' to pulse the alpha of idle-triggered hints and centralize text styling logic to maintain UI consistency and accessibility.

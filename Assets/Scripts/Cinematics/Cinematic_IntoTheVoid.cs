@@ -30,7 +30,6 @@ namespace Milehigh.Cinematics
         public TextMeshProUGUI SpeakerNameText = null!;
         public TextMeshProUGUI DialogueText = null!;
         public TextMeshProUGUI SkipHintText = null!;
-        public TextMeshProUGUI? SkipHintText;
 
         [Header("UX Settings")]
         [Tooltip("Base delay in seconds between each character being revealed.")]
@@ -76,17 +75,6 @@ namespace Milehigh.Cinematics
 
             if (SkipHintText != null) SkipHintText.gameObject.SetActive(false);
 
-            // Palette: Accessibility - Text outline for better contrast in dark scenes.
-            if (SpeakerNameText.fontMaterial != null)
-            {
-                SpeakerNameText.fontMaterial.SetFloat(ShaderUtilities.ID_OutlineWidth, 0.2f);
-                SpeakerNameText.fontMaterial.SetColor(ShaderUtilities.ID_OutlineColor, Color.black);
-            }
-            if (DialogueText.fontMaterial != null)
-            {
-                DialogueText.fontMaterial.SetFloat(ShaderUtilities.ID_OutlineWidth, 0.2f);
-                DialogueText.fontMaterial.SetColor(ShaderUtilities.ID_OutlineColor, Color.black);
-            }
             // ⚡ Bolt: Pre-cache animators to eliminate GetComponent allocations during the cinematic sequence.
             if (Skyix_Character != null) _skyixAnimator = Skyix_Character.GetComponent<Animator>();
             if (Kai_Character != null) _kaiAnimator = Kai_Character.GetComponent<Animator>();
@@ -105,13 +93,21 @@ namespace Milehigh.Cinematics
                 SkipHintText.gameObject.SetActive(false);
             }
 
-            // Palette: Accessibility - Text outline for better contrast in dark scenes.
-            SpeakerNameText.fontMaterial.SetFloat(ShaderUtilities.ID_OutlineWidth, 0.25f);
-            SpeakerNameText.fontMaterial.SetColor(ShaderUtilities.ID_OutlineColor, Color.black);
-            DialogueText.fontMaterial.SetFloat(ShaderUtilities.ID_OutlineWidth, 0.25f);
-            DialogueText.fontMaterial.SetColor(ShaderUtilities.ID_OutlineColor, Color.black);
+            // Palette: Accessibility - Consolidate text outline for better contrast in dark scenes.
+            ApplyTextOutline(SpeakerNameText);
+            ApplyTextOutline(DialogueText);
+            ApplyTextOutline(SkipHintText);
 
             StartCoroutine(Cinematic_IntoTheVoid_Sequence());
+        }
+
+        private void ApplyTextOutline(TextMeshProUGUI? text)
+        {
+            if (text != null && text.fontMaterial != null)
+            {
+                text.fontMaterial.SetFloat(ShaderUtilities.ID_OutlineWidth, 0.2f);
+                text.fontMaterial.SetColor(ShaderUtilities.ID_OutlineColor, Color.black);
+            }
         }
 
         private void Update()
@@ -133,6 +129,15 @@ namespace Milehigh.Cinematics
                 {
                     SkipHintText.gameObject.SetActive(true);
                 }
+            }
+
+            // Palette: Add a gentle alpha pulse to the skip hint to improve discoverability.
+            if (SkipHintText != null && SkipHintText.gameObject.activeInHierarchy)
+            {
+                float alpha = Mathf.PingPong(Time.time * 0.5f, 0.5f) + 0.5f;
+                Color c = SkipHintText.color;
+                c.a = alpha;
+                SkipHintText.color = c;
             }
         }
 
