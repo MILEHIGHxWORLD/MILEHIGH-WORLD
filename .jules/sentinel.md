@@ -228,3 +228,8 @@
 **Vulnerability:** Found extreme "code rot" and "syntax soup" in `HorizonGameData.cs` and `CharacterFactory.cs`, where multiple redundant, malformed, and contradictory `IsValid()` methods and variable declarations were introduced by botched merges. This effectively bypassed or broke security validation for external JSON data.
 **Learning:** High-frequency automated patching can lead to overlapping logic that disables the very protections it intends to provide. Broken validation logic is equivalent to no validation, leaving the application vulnerable to DoS (resource exhaustion) and malformed data ingestion.
 **Prevention:** Consolidate all validation into single, robust methods (`IsValid`) and strictly enforce "Sentinel Standard" resource limits (string lengths, collection counts) at the point of ingestion. Always verify syntactic integrity via compilation checks after resolving complex merge-induced duplication.
+
+## 2024-05-24 - DoS Mitigation moved to Application Boundary
+**Vulnerability:** DoS mitigation checks (regex validation and length limits) were placed inside the generic `GetCachedObject` utility.
+**Learning:** Placing input validation in generic internal retrieval utilities can cause functional regressions for internal logic. Internal systems might legitimately use object names that fail external validation rules.
+**Prevention:** Always apply external input validation (like DoS mitigation regexes) strictly at the application boundary where untrusted external input is first processed (e.g., `ApplyInteraction`), not in low-level utilities.
