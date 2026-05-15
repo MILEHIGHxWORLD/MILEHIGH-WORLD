@@ -369,7 +369,3 @@
 ## 2024-05-30 - Cache GetComponent Calls in Coroutines
 **Learning:** Repeatedly calling `GetComponent` within coroutines or updates incurs unnecessary engine boundary crossing overhead, which can cause micro-stutters during execution.
 **Action:** Always pre-cache components like `Animator` during initialization (`Start` or `Awake`) to ensure O(1) field access during intensive cinematic or runtime loops.
-
-## 2026-05-15 - TextMeshPro Material Access Overhead
-**Learning:** Accessing the `TextMeshProUGUI.fontMaterial` property in Unity creates a unique material instance (an allocation). Doing this repeatedly in a cinematic setup loop or during runtime can lead to unnecessary overhead.
-**Action:** Always cache the `fontMaterial` reference in `Start()` or `Awake()` and perform modifications on the cached reference to minimize engine boundary calls and avoid redundant material instantiations.

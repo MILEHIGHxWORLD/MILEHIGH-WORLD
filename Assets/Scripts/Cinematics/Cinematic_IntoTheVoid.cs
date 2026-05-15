@@ -11,7 +11,7 @@ namespace Milehigh.Cinematics
     /// </summary>
     public class Cinematic_IntoTheVoid : MonoBehaviour
     {
-        [Header("Character References")]
+        [UnityEngine.Header("Character References")]
         public GameObject Skyix_Character = null!;
         public AudioSource Skyix_VoiceSource = null!;
         public GameObject Kai_Character = null!;
@@ -24,19 +24,19 @@ namespace Milehigh.Cinematics
         private Animator? _kaiAnimator;
         private Animator? _delilahAnimator;
 
-        [Header("UI Components")]
+        [UnityEngine.Header("UI Components")]
         public GameObject DialogueBox = null!;
         public CanvasGroup DialogueCanvasGroup = null!;
         public TextMeshProUGUI SpeakerNameText = null!;
         public TextMeshProUGUI DialogueText = null!;
         public TextMeshProUGUI SkipHintText = null!;
 
-        [Header("UX Settings")]
-        [Tooltip("Base delay in seconds between each character being revealed.")]
+        [UnityEngine.Header("UX Settings")]
+        [UnityEngine.Tooltip("Base delay in seconds between each character being revealed.")]
         public float baseTypingSpeed = 0.03f;
-        [Tooltip("Delay multiplier for Kai (Slow/Paused tempo).")]
+        [UnityEngine.Tooltip("Delay multiplier for Kai (Slow/Paused tempo).")]
         public float kaiSpeedMultiplier = 3.0f;
-        [Tooltip("Delay multiplier for Skyix (Steady/Precise tempo).")]
+        [UnityEngine.Tooltip("Delay multiplier for Skyix (Steady/Precise tempo).")]
         public float skyixSpeedMultiplier = 1.2f;
 
         private Coroutine? typingCoroutine;
