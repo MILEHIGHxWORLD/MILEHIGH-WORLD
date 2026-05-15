@@ -228,3 +228,8 @@
 **Vulnerability:** Found extreme "code rot" and "syntax soup" in `HorizonGameData.cs` and `CharacterFactory.cs`, where multiple redundant, malformed, and contradictory `IsValid()` methods and variable declarations were introduced by botched merges. This effectively bypassed or broke security validation for external JSON data.
 **Learning:** High-frequency automated patching can lead to overlapping logic that disables the very protections it intends to provide. Broken validation logic is equivalent to no validation, leaving the application vulnerable to DoS (resource exhaustion) and malformed data ingestion.
 **Prevention:** Consolidate all validation into single, robust methods (`IsValid`) and strictly enforce "Sentinel Standard" resource limits (string lengths, collection counts) at the point of ingestion. Always verify syntactic integrity via compilation checks after resolving complex merge-induced duplication.
+
+## 2024-05-24 - IDOR Bypass via Path-like Object IDs and Protected Manager Expansion
+**Vulnerability:** IDOR vulnerability in `SceneDirector.cs` where an attacker could bypass the `protectedManagers` check by prepending a slash to the object ID (e.g., `/CampaignManager`). Additionally, `GlobalResonanceManager` was missing from the protected managers list.
+**Learning:** Unity's `GameObject.Find` supports hierarchical paths, so exact string matching against a whitelist/blacklist must be preceded by trimming leading directory separators.
+**Prevention:** Always use `.TrimStart('/')` on external object IDs before comparing them against protected manager lists to prevent path-based bypasses in scene-wide lookups.

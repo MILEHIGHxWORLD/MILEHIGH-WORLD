@@ -60,7 +60,6 @@ namespace Milehigh.Editor
                     // We use Path.GetInvalidFileNameChars to filter OS-level invalid characters and Path.GetFileName to strip traversal sequences.
                     string baseName = charProfile.name ?? "unnamed_character";
                     string sanitizedName = string.Join("_", baseName.Split(Path.GetInvalidFileNameChars()));
-                    string baseName = charProfile.name ?? "unnamed_character";
 
                     // Ensure no directory separators or traversal sequences remain
                     string safeFileName = Path.GetFileName(sanitizedName).Replace(" ", "_");

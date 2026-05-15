@@ -43,6 +43,14 @@ namespace Milehigh.Data
             // SECURITY: Ensure voidSaturationLevel is within the expected [0.0, 1.0] range
             if (voidSaturationLevel < 0.0f || voidSaturationLevel > 1.0f)
             {
+                Debug.LogError($"[Security] Metadata validation failed: voidSaturationLevel {voidSaturationLevel} is out of range [0.0, 1.0]");
+                return false;
+            }
+
+            // SECURITY: Ensure voidSaturationLevel is within the expected [0.0, 1.0] range.
+            if (this.voidSaturationLevel < 0.0f || this.voidSaturationLevel > 1.0f)
+            {
+                UnityEngine.Debug.LogError($"[Security] Metadata validation failed: voidSaturationLevel {this.voidSaturationLevel} is out of range [0.0, 1.0]");
                 UnityEngine.Debug.LogError($"[Security] Metadata validation failed: voidSaturationLevel {voidSaturationLevel} is out of range [0.0, 1.0]");
                 return false;
             }
@@ -267,6 +275,21 @@ namespace Milehigh.Data
             {
                 UnityEngine.Debug.LogError("[Security] Game data validation failed: Metadata missing or invalid.");
                 return false;
+            }
+
+            if (scenarios == null || scenarios.Count == 0)
+            {
+                Debug.LogError("[Security] Game data validation failed: No scenarios defined.");
+                return false;
+            }
+            if (scenarios.Count > 100)
+            {
+                Debug.LogError($"[Security] Game data validation failed: scenario count {scenarios.Count} exceeds 100.");
+                return false;
+            }
+            foreach (var scenario in scenarios)
+            {
+                if (scenario == null || !scenario.IsValid()) return false;
             }
 
             if (characters == null || characters.Count == 0)
