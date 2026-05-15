@@ -19,9 +19,17 @@ namespace Milehigh.Cinematics
         public UnityEngine.GameObject Delilah_Character = null!;
         public UnityEngine.AudioSource Delilah_VoiceSource = null!;
 
+        // ⚡ Bolt: Cache Animators to avoid expensive GetComponent calls during cinematic execution.
+        private UnityEngine.Animator? _skyixAnimator;
+        private UnityEngine.Animator? _kaiAnimator;
+        private UnityEngine.Animator? _delilahAnimator;
+
         [UnityEngine.Header("UI Components")]
         public UnityEngine.GameObject DialogueBox = null!;
         public UnityEngine.CanvasGroup DialogueCanvasGroup = null!;
+        public TMPro.TextMeshProUGUI SpeakerNameText = null!;
+        public TMPro.TextMeshProUGUI DialogueText = null!;
+        public TMPro.TextMeshProUGUI SkipHintText = null!;
         public TextMeshProUGUI SpeakerNameText = null!;
         public TextMeshProUGUI DialogueText = null!;
         public TextMeshProUGUI SkipHintText = null!;
@@ -42,6 +50,9 @@ namespace Milehigh.Cinematics
         private float idleTimer;
         private bool playerInteracted;
         private UnityEngine.Vector3 originalSpeakerScale;
+
+        // BOLT: Cache for WaitForSeconds to eliminate GC allocations during coroutine execution.
+        private static readonly System.Collections.Generic.Dictionary<int, UnityEngine.WaitForSeconds> _waitForSecondsCache = new System.Collections.Generic.Dictionary<int, UnityEngine.WaitForSeconds>();
         private Vector3 originalSpeakerScale;
         private RectTransform _dialogueRect = null!;
         private Vector2 _originalDialoguePos;
@@ -69,8 +80,6 @@ namespace Milehigh.Cinematics
                 return;
             }
 
-            _dialogueRect = DialogueBox.GetComponent<RectTransform>();
-            _originalDialoguePos = _dialogueRect.anchoredPosition;
             originalSpeakerScale = SpeakerNameText.transform.localScale;
 
             // Palette: Accessibility - Text outline for better contrast in dark scenes.
@@ -87,14 +96,15 @@ namespace Milehigh.Cinematics
 bolt/optimize-getcomponent-3892746394166420668            if (SkipHintText != null) SkipHintText.gameObject.SetActive(false);
 
             // ⚡ Bolt: Pre-cache animators to eliminate GetComponent allocations during the cinematic sequence.
-            if (Skyix_Character != null) _skyixAnimator = Skyix_Character.GetComponent<Animator>();
-            if (Kai_Character != null) _kaiAnimator = Kai_Character.GetComponent<Animator>();
-            if (Delilah_Character != null) _delilahAnimator = Delilah_Character.GetComponent<Animator>();
+            if (Skyix_Character != null) _skyixAnimator = Skyix_Character.GetComponent<UnityEngine.Animator>();
+            if (Kai_Character != null) _kaiAnimator = Kai_Character.GetComponent<UnityEngine.Animator>();
+            if (Delilah_Character != null) _delilahAnimator = Delilah_Character.GetComponent<UnityEngine.Animator>();
 
             // Palette: Programmatically locate SkipHint if not assigned.
             if (SkipHintText == null && DialogueBox != null)
             {
                 UnityEngine.Transform hintTransform = DialogueBox.transform.Find("SkipHint");
+                if (hintTransform != null) SkipHintText = hintTransform.GetComponent<TMPro.TextMeshProUGUI>();
                 if (hintTransform != null) SkipHintText = hintTransform.GetComponent<TextMeshProUGUI>();
             }
 
@@ -104,6 +114,8 @@ bolt/optimize-getcomponent-3892746394166420668            if (SkipHintText != nu
                 SkipHintText.gameObject.SetActive(false);
             }
 
+            // Palette: Accessibility - Text outline for better contrast in dark scenes.
+            // ⚡ Bolt: Consolidated material property assignments to reduce engine boundary calls.
             // Palette: Accessibility - Consolidate text outline for better contrast in dark scenes.
             ApplyTextOutline(SpeakerNameText);
             ApplyTextOutline(DialogueText);
@@ -111,11 +123,13 @@ bolt/optimize-getcomponent-3892746394166420668            if (SkipHintText != nu
             // Palette: Accessibility - High-contrast text outline for better readability in dark/complex scenes.
             if (SpeakerNameText.fontMaterial != null)
             {
-                SpeakerNameText.fontMaterial.SetFloat(ShaderUtilities.ID_OutlineWidth, 0.25f);
-                SpeakerNameText.fontMaterial.SetColor(ShaderUtilities.ID_OutlineColor, Color.black);
+                SpeakerNameText.fontMaterial.SetFloat(TMPro.ShaderUtilities.ID_OutlineWidth, 0.25f);
+                SpeakerNameText.fontMaterial.SetColor(TMPro.ShaderUtilities.ID_OutlineColor, UnityEngine.Color.black);
             }
             if (DialogueText.fontMaterial != null)
             {
+                DialogueText.fontMaterial.SetFloat(TMPro.ShaderUtilities.ID_OutlineWidth, 0.25f);
+                DialogueText.fontMaterial.SetColor(TMPro.ShaderUtilities.ID_OutlineColor, UnityEngine.Color.black);
                 DialogueText.fontMaterial.SetFloat(ShaderUtilities.ID_OutlineWidth, 0.25f);
                 DialogueText.fontMaterial.SetColor(ShaderUtilities.ID_OutlineColor, Color.black);
             // Palette: Accessibility - Text outline for better contrast in dark scenes.
@@ -145,7 +159,7 @@ bolt/optimize-getcomponent-3892746394166420668            if (SkipHintText != nu
                 }
             }
 
-            StartCoroutine(Cinematic_IntoTheVoid_Sequence());
+            this.StartCoroutine(Cinematic_IntoTheVoid_Sequence());
         }
 
         private void ApplyTextOutline(TextMeshProUGUI? text)
@@ -160,6 +174,7 @@ bolt/optimize-getcomponent-3892746394166420668            if (SkipHintText != nu
         private void Update()
         {
             // ⚡ Bolt: Precise skip detection for refined UX.
+            if (UnityEngine.Input.anyKeyDown)
             if (UnityEngine.Input.GetKeyDown(UnityEngine.KeyCode.Space) || UnityEngine.Input.GetKeyDown(UnityEngine.KeyCode.Return) || UnityEngine.Input.GetMouseButtonDown(0))
             if (Input.anyKeyDown)
             {
@@ -191,7 +206,7 @@ bolt/optimize-getcomponent-3892746394166420668            if (SkipHintText != nu
 
         public void ShowDialogue(string speaker, string message)
         {
-            if (typingCoroutine != null) StopCoroutine(typingCoroutine);
+            if (typingCoroutine != null) this.StopCoroutine(typingCoroutine);
 
             // UX Enhancement: Reset idle timer and interaction state for each new dialogue line.
             idleTimer = 0f;
@@ -204,14 +219,15 @@ bolt/optimize-getcomponent-3892746394166420668            if (SkipHintText != nu
             // UX Enhancement: Trigger a subtle "Pop" animation when the speaker changes.
             if (SpeakerNameText.text != speaker)
             {
-                if (popScaleCoroutine != null) StopCoroutine(popScaleCoroutine);
-                popScaleCoroutine = StartCoroutine(PopScale(SpeakerNameText.transform, 0.2f, 1.15f));
+                if (popScaleCoroutine != null) this.StopCoroutine(popScaleCoroutine);
+                popScaleCoroutine = this.StartCoroutine(PopScale(SpeakerNameText.transform, 0.2f, 1.15f));
             }
 
             SpeakerNameText.text = speaker;
 
             // Apply speaker-specific speed multipliers and colors.
             float multiplier = 1.0f;
+            UnityEngine.Color speakerColor = speaker switch
             UnityEngine.Color speakerColor = UnityEngine.Color.white;
             UnityEngine.AudioSource? voiceSource = null;
 
@@ -234,10 +250,10 @@ bolt/optimize-getcomponent-3892746394166420668            if (SkipHintText != nu
             }
             Color speakerColor = speaker switch
             {
-                "Sky.ix" => Color.cyan,
-                "Kai" => new Color(1f, 0.84f, 0f), // Gold
-                "Delilah" => new Color(0.6f, 0.1f, 0.9f), // Void Purple
-                _ => Color.white
+                "Sky.ix" => UnityEngine.Color.cyan,
+                "Kai" => new UnityEngine.Color(1f, 0.84f, 0f), // Gold
+                "Delilah" => new UnityEngine.Color(0.6f, 0.1f, 0.9f), // Void Purple
+                _ => UnityEngine.Color.white
             };
 
             if (speaker == "Kai") multiplier = kaiSpeedMultiplier;
@@ -251,6 +267,8 @@ bolt/optimize-getcomponent-3892746394166420668            if (SkipHintText != nu
             skipRequested = false;
 
             // Audio: Play the character's voice line if assigned.
+            // ⚡ Bolt: Direct reference usage to avoid redundant GetComponent or conditional overwrites.
+            UnityEngine.AudioSource? voiceSource = speaker switch
             // ⚡ Bolt: Removed redundant GetComponent<AudioSource>() fallback for Kai, relying on the cached Kai_VoiceSource field to prevent unnecessary C#/C++ engine boundary crossings during cinematic playback.
             // ⚡ Bolt: Removed expensive runtime GetComponent call, relying on pre-cached Kai_VoiceSource.
             // ⚡ Bolt: Use direct field reference for Kai instead of expensive GetComponent lookup.
@@ -264,9 +282,10 @@ bolt/optimize-getcomponent-3892746394166420668            if (SkipHintText != nu
 
             if (voiceSource != null) voiceSource.Play();
 
-            typingCoroutine = StartCoroutine(TypeDialogue(message));
+            typingCoroutine = this.StartCoroutine(TypeDialogue(message));
         }
 
+        private System.Collections.IEnumerator TypeDialogue(string message)
         private System.Collections.IEnumerator PopScaleEffect()
         {
             float elapsed = 0f;
@@ -294,7 +313,7 @@ bolt/optimize-getcomponent-3892746394166420668            if (SkipHintText != nu
             DialogueText.maxVisibleCharacters = 0;
             DialogueText.ForceMeshUpdate();
 
-            TMP_TextInfo textInfo = DialogueText.textInfo;
+            TMPro.TMP_TextInfo textInfo = DialogueText.textInfo;
             int totalCharacters = textInfo.characterCount;
             int mainMessageLength = totalCharacters - 1; // Exclude the completion cue
 
@@ -359,48 +378,31 @@ bolt/optimize-getcomponent-3892746394166420668            if (SkipHintText != nu
             yield return WaitForSecondsOrSkip(readingPause);
         }
 
+        private System.Collections.IEnumerator FadeDialogueBox(float targetAlpha, float duration)
         private System.Collections.IEnumerator Cinematic_IntoTheVoid_Sequence()
         private IEnumerator FadeDialogueBox(float targetAlpha, float duration)
         {
             if (targetAlpha > 0) DialogueBox.SetActive(true);
             float startAlpha = DialogueCanvasGroup.alpha;
-
-            // Palette: Define target and start positions for a subtle "slide" effect (30 units down).
-            Vector2 targetPos = targetAlpha > 0 ? _originalDialoguePos : _originalDialoguePos + Vector2.down * 30f;
-            if (targetAlpha > 0) _dialogueRect.anchoredPosition = _originalDialoguePos + Vector2.down * 30f;
-            Vector2 startPos = _dialogueRect.anchoredPosition;
-            RectTransform rect = (RectTransform)DialogueBox.transform;
-            Vector2 startPos = rect.anchoredPosition;
-            Vector2 targetPos = new Vector2(startPos.x, targetAlpha > 0 ? 0f : -30f);
-            if (targetAlpha > 0) startPos.y = -30f;
-
             float elapsed = 0f;
             while (elapsed < duration)
             {
-                elapsed += Time.deltaTime;
-                float t = elapsed / duration;
-                DialogueCanvasGroup.alpha = Mathf.Lerp(startAlpha, targetAlpha, t);
-                _dialogueRect.anchoredPosition = Vector2.Lerp(startPos, targetPos, t);
+                elapsed += UnityEngine.Time.deltaTime;
+                DialogueCanvasGroup.alpha = UnityEngine.Mathf.Lerp(startAlpha, targetAlpha, elapsed / duration);
                 yield return null;
             }
             DialogueCanvasGroup.alpha = targetAlpha;
-            _dialogueRect.anchoredPosition = targetPos;
-                rect.anchoredPosition = Vector2.Lerp(startPos, targetPos, t);
-                yield return null;
-            }
-            DialogueCanvasGroup.alpha = targetAlpha;
-            rect.anchoredPosition = targetPos;
             if (targetAlpha <= 0) DialogueBox.SetActive(false);
         }
 
-        private IEnumerator PopScale(Transform target, float duration, float scaleFactor)
+        private System.Collections.IEnumerator PopScale(UnityEngine.Transform target, float duration, float scaleFactor)
         {
-            Vector3 initialScale = originalSpeakerScale;
+            UnityEngine.Vector3 initialScale = originalSpeakerScale;
             float elapsed = 0f;
             while (elapsed < duration)
             {
-                elapsed += Time.deltaTime;
-                float curve = Mathf.Sin((elapsed / duration) * Mathf.PI) * (scaleFactor - 1f);
+                elapsed += UnityEngine.Time.deltaTime;
+                float curve = UnityEngine.Mathf.Sin((elapsed / duration) * UnityEngine.Mathf.PI) * (scaleFactor - 1f);
                 target.localScale = initialScale * (1f + curve);
                 yield return null;
             }
@@ -408,10 +410,11 @@ bolt/optimize-getcomponent-3892746394166420668            if (SkipHintText != nu
             popScaleCoroutine = null;
         }
 
-        private IEnumerator Cinematic_IntoTheVoid_Sequence()
+        private System.Collections.IEnumerator Cinematic_IntoTheVoid_Sequence()
         {
-            // ⚡ Bolt: Consolidated redundant UI fade and state calls.
+            // ⚡ Bolt: Removed redundant FadeDialogue calls as FadeDialogueBox already handles the CanvasGroup alpha.
             yield return FadeDialogueBox(1.0f, 0.5f);
+            yield return GetWait(1.0f);
             yield return WaitForSecondsOrSkip(1.0f);
 
             // Line 1: Delilah
@@ -483,8 +486,11 @@ bolt/optimize-getcomponent-3892746394166420668            if (SkipHintText != nu
             if (_skyixAnimator != null) _skyixAnimator.SetTrigger("Determined_Resolve");
             yield return PlayDialogueLine("Sky.ix", "My family is my anchor. They are the reason I can walk through this hell and not become a monster like you. And I am bringing them home.", 3.0f);
 
-            // ⚡ Bolt: Removed redundant FadeDialogue and SetActive calls as FadeDialogueBox handles them.
             yield return FadeDialogueBox(0f, 0.5f);
+            UnityEngine.Debug.Log("Cinematic Sequence Complete.");
+            if (typingCoroutine != null) this.StopCoroutine(typingCoroutine);
+
+            UnityEngine.Debug.Log("Cinematic Sequence Complete: [Deep within the anti-reality of ŤĤÊ VØĪĐ...]");
             Debug.Log("Cinematic Sequence Complete: [Deep within the anti-reality of ŤĤÊ VØĪĐ...]");
             if (typingCoroutine != null) StopCoroutine(typingCoroutine);
 

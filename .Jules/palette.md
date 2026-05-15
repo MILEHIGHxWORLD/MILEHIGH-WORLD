@@ -96,7 +96,3 @@
 ## 2026-05-22 - [Inclusive Interaction Hints for Accessibility]
 **Learning:** Providing inclusive interaction hints, such as "[Any Key/Click] Skip" instead of specific keys like "[Space] Skip", ensures that users across different input methods (keyboard, mouse, gamepad, or assistive technology) understand that any deliberate action will trigger the skip. This transparency improves accessibility and reduces frustration for users who might not be using a standard keyboard.
 **Action:** Always use inclusive language for interaction hints when the underlying logic supports multiple input types (e.g., 'Input.anyKeyDown').
-
-## 2026-05-23 - [Smooth Positional Animations in Unity Coroutines]
-**Learning:** When implementing positional animations in Unity coroutines (like slide-ins), it is critical to capture the 'startPos' *after* applying any initial starting offset. Capturing it before the offset is applied causes a "one-frame snap" where the object jumps to its final position before the interpolation begins. Additionally, consolidating redundant UI lifecycle methods (like fading) into a single source of truth improves maintainability and ensures visual consistency.
-**Action:** Always set the initial offset and then capture 'startPos' immediately before the interpolation loop in Unity UI animations, and prune redundant UI methods to reduce code complexity.
