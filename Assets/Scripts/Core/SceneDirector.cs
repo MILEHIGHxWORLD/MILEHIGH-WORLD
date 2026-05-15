@@ -126,13 +126,6 @@ namespace Milehigh.Core
             // 🛡️ Sentinel: Prevent IDOR (Insecure Direct Object Reference) tampering with core systems.
             string[] protectedManagers = { "CampaignManager", "SceneDirector", "CameraManager", "AlliancePowerManager" };
             if (System.Array.Exists(protectedManagers, m => m == interaction.objectId))
-            // We trim leading slashes to prevent bypasses using path-like IDs (e.g., "/CampaignManager").
-            string[] protectedManagers = { "CampaignManager", "SceneDirector", "CameraManager", "AlliancePowerManager", "GlobalResonanceManager" };
-            string sanitizedId = interaction.objectId.TrimStart('/');
-
-            if (System.Array.Exists(protectedManagers, m => m == sanitizedId))
-            // BOLT: Use cached HashSet for efficient lookup and zero per-call allocation.
-            if (_protectedManagers.Contains(interaction.objectId))
             {
                 Debug.LogWarning($"[Security] Blocked unauthorized interaction attempt on core system: {interaction.objectId}");
                 return;

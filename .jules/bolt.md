@@ -373,15 +373,3 @@
 ## 2024-05-31 - [Redundant Material Property Updates]
 **Learning:** Setting the same material properties (like TextMeshPro outline width) multiple times in a single frame (e.g., in Start) causes unnecessary engine boundary calls and state changes.
 **Action:** Consolidate material property initializations into a single block with the final desired values to minimize overhead during object initialization.
-## 2024-05-31 - Redundant GetComponent Overwrites (Syntax Soup)
-**Learning:** During cinematic dialogue loops, redundant `GetComponent<T>()` calls were found embedded within `switch` statements, only to be immediately overwritten by pre-existing cached variables. This "code rot" causes unnecessary native-managed boundary crossings and GC allocations on every dialogue line.
-**Action:** When fixing performance issues in frequently executed loops or coroutines, aggressively hunt for and eliminate redundant `GetComponent` calls that are masked by subsequent assignment logic. Always rely strictly on pre-cached references.
-## 2024-05-13 - Cache SystemInfo.deviceUniqueIdentifier
-**Learning:** `UnityEngine.SystemInfo.deviceUniqueIdentifier` queries OS-level APIs and crosses the native C++ boundary, making it an extremely slow, blocking call. In `CampaignManager.ProcessXOR`, this was queried repeatedly on every secure save/load, causing I/O stutters.
-**Action:** Always cache OS-level hardware identifiers in a static variable upon first access rather than re-evaluating them dynamically during data operations.
-## 2026-05-15 - HashSet for Frequent String Lookups
-**Learning:** Using `System.Array.Exists` or linear searches on string arrays in high-frequency methods (like `ApplyInteraction` in `SceneDirector.cs`) is inefficient and causes per-call allocations if the array is local.
-**Action:** Move whitelist/lookup collections to a `static readonly HashSet<string>` field. This converts the O(N) linear search into an O(1) hash lookup and eliminates redundant allocations.
-## 2024-05-30 - SystemInfo.deviceUniqueIdentifier Native Boundary Crossing
-**Learning:** In Unity, `UnityEngine.SystemInfo.deviceUniqueIdentifier` queries OS-level APIs and crosses the native C++ boundary, making it an extremely slow, blocking call. Calling this in frequently executed code paths (like data saving/encryption loops) causes micro-stutters.
-**Action:** Cache hardware identifiers in a static variable upon first access to prevent I/O stutters during frequent runtime operations.

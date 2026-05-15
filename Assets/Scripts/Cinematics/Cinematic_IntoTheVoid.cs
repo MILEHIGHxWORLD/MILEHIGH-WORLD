@@ -73,8 +73,6 @@ namespace Milehigh.Cinematics
 
             originalSpeakerScale = SpeakerNameText.transform.localScale;
 
-            if (SkipHintText != null) SkipHintText.gameObject.SetActive(false);
-
             // ⚡ Bolt: Pre-cache animators to eliminate GetComponent allocations during the cinematic sequence.
             if (Skyix_Character != null) _skyixAnimator = Skyix_Character.GetComponent<UnityEngine.Animator>();
             if (Kai_Character != null) _kaiAnimator = Kai_Character.GetComponent<UnityEngine.Animator>();
@@ -106,7 +104,7 @@ namespace Milehigh.Cinematics
                 DialogueText.fontMaterial.SetColor(TMPro.ShaderUtilities.ID_OutlineColor, UnityEngine.Color.black);
             }
 
-            StartCoroutine(Cinematic_IntoTheVoid_Sequence());
+            this.StartCoroutine(Cinematic_IntoTheVoid_Sequence());
         }
 
         private void Update()
@@ -133,7 +131,7 @@ namespace Milehigh.Cinematics
 
         public void ShowDialogue(string speaker, string message)
         {
-            if (typingCoroutine != null) StopCoroutine(typingCoroutine);
+            if (typingCoroutine != null) this.StopCoroutine(typingCoroutine);
 
             // UX Enhancement: Reset interaction state for each new dialogue line.
             idleTimer = 0f;
@@ -143,8 +141,8 @@ namespace Milehigh.Cinematics
             // UX Enhancement: Trigger a subtle "Pop" animation when the speaker changes.
             if (SpeakerNameText.text != speaker)
             {
-                if (popScaleCoroutine != null) StopCoroutine(popScaleCoroutine);
-                popScaleCoroutine = StartCoroutine(PopScale(SpeakerNameText.transform, 0.2f, 1.15f));
+                if (popScaleCoroutine != null) this.StopCoroutine(popScaleCoroutine);
+                popScaleCoroutine = this.StartCoroutine(PopScale(SpeakerNameText.transform, 0.2f, 1.15f));
             }
 
             SpeakerNameText.text = speaker;
@@ -172,9 +170,6 @@ namespace Milehigh.Cinematics
             // Audio: Play the character's voice line if assigned.
             // ⚡ Bolt: Direct reference usage to avoid redundant GetComponent or conditional overwrites.
             UnityEngine.AudioSource? voiceSource = speaker switch
-            // ⚡ Bolt: Removed expensive runtime GetComponent call, relying on pre-cached Kai_VoiceSource.
-            // ⚡ Bolt: Use direct field reference for Kai instead of expensive GetComponent lookup.
-            AudioSource? voiceSource = speaker switch
             {
                 "Sky.ix" => Skyix_VoiceSource,
                 "Kai" => Kai_VoiceSource,
@@ -184,7 +179,7 @@ namespace Milehigh.Cinematics
 
             if (voiceSource != null) voiceSource.Play();
 
-            typingCoroutine = StartCoroutine(TypeDialogue(message));
+            typingCoroutine = this.StartCoroutine(TypeDialogue(message));
         }
 
         private System.Collections.IEnumerator TypeDialogue(string message)
@@ -294,7 +289,6 @@ namespace Milehigh.Cinematics
             // ⚡ Bolt: Removed redundant FadeDialogue calls as FadeDialogueBox already handles the CanvasGroup alpha.
             yield return FadeDialogueBox(1.0f, 0.5f);
             yield return GetWait(1.0f);
-            DialogueBox.SetActive(true);
             yield return WaitForSecondsOrSkip(1.0f);
 
             // Line 1: Delilah
@@ -335,8 +329,7 @@ namespace Milehigh.Cinematics
 
             yield return FadeDialogueBox(0f, 0.5f);
             UnityEngine.Debug.Log("Cinematic Sequence Complete.");
-            if (typingCoroutine != null) StopCoroutine(typingCoroutine);
-            DialogueBox.SetActive(false);
+            if (typingCoroutine != null) this.StopCoroutine(typingCoroutine);
 
             UnityEngine.Debug.Log("Cinematic Sequence Complete: [Deep within the anti-reality of ŤĤÊ VØĪĐ...]");
         }
