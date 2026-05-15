@@ -263,3 +263,6 @@
 ## 2026-05-10 - O(1) Prefab Lookup Optimization
 **Learning:** Replacing O(N) linear list searches (using string.Contains) with a consolidated O(1) Dictionary-based caching system provides a ~50x speedup in prefab retrieval. Handling "Unity nulls" via ReferenceEquals is critical for robust negative caching.
 **Action:** Always prefer Dictionary lookups for asset retrieval in Unity initialization/setup phases and use negative caching to prevent repeated O(N) scene traversals for missing objects.
+## 2026-05-13 - CI Cleanup and Sentinel Alignment
+**Learning:** Destructive consolidation of code rot must preserve functional events (e.g., OnCinematicComplete) and maintain deterministic initialization order (using DefaultExecutionOrder and Start vs Awake) to avoid race conditions.
+**Action:** Always verify event invocations and singleton dependencies when refactoring core game managers. Use surgical replacement for code rot to minimize functional regression risk.

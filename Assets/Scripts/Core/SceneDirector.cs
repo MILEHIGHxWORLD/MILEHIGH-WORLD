@@ -19,9 +19,9 @@ namespace Milehigh.Core
         private readonly Dictionary<int, CharacterControllerBase?> _controllerCache = new Dictionary<int, CharacterControllerBase?>();
 
         // 🛡️ Sentinel: Whitelist regex for object names to prevent malicious input and DoS via complex GameObject.Find queries.
-        private static readonly Regex SafeNameRegex = new Regex(@"^[a-zA-Z0-9_\s\(\)\-\[\]\.\$\/]+$", RegexOptions.Compiled);
+        private static readonly Regex SafeNameRegex = new Regex(@"^[a-zA-Z0-9_\s\(\)\-\[\]\.$\/]+$", RegexOptions.Compiled);
 
-        private void Awake()
+        private void Start()
         {
             InitializePrefabCache();
 
@@ -111,7 +111,10 @@ namespace Milehigh.Core
             // BOLT: O(1) component cache lookup
             if (_controllerCache.TryGetValue(objId, out CharacterControllerBase? controller))
             {
-                if (controller != null) return controller;
+                // Reference exists and Unity object is alive, OR it's a confirmed null (negative cache)
+                if (controller != null || ReferenceEquals(controller, null)) return controller;
+
+                // Unity object was destroyed but reference exists, remove it
                 _controllerCache.Remove(objId);
             }
 
