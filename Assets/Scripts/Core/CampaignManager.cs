@@ -108,9 +108,17 @@ namespace Milehigh.Core
             return this.ProcessXOR(obfuscated);
         }
 
+        // ⚡ Bolt: Cache the device identifier to prevent expensive OS-level native boundary crossings.
+        private static string? _cachedDeviceIdentifier;
+
         private string ProcessXOR(string textToProcess)
         {
-            string salt = UnityEngine.SystemInfo.deviceUniqueIdentifier ?? "MILEHIGH_FALLBACK_SALT";
+            if (_cachedDeviceIdentifier == null)
+            {
+                _cachedDeviceIdentifier = UnityEngine.SystemInfo.deviceUniqueIdentifier ?? "MILEHIGH_FALLBACK_SALT";
+            }
+
+            string salt = _cachedDeviceIdentifier;
             char[] output = new char[textToProcess.Length];
 
             for (int i = 0; i < textToProcess.Length; i++)
