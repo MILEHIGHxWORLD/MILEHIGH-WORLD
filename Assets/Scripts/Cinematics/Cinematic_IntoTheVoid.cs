@@ -106,6 +106,14 @@ namespace Milehigh.Cinematics
             {
                 dialogueMat.SetFloat(ShaderUtilities.ID_OutlineWidth, 0.25f);
                 dialogueMat.SetColor(ShaderUtilities.ID_OutlineColor, Color.black);
+            // Palette: Accessibility - Consolidated text outline for better contrast in dark scenes.
+            foreach (var text in new[] { SpeakerNameText, DialogueText, SkipHintText })
+            {
+                if (text != null && text.fontMaterial != null)
+                {
+                    text.fontMaterial.SetFloat(ShaderUtilities.ID_OutlineWidth, 0.25f);
+                    text.fontMaterial.SetColor(ShaderUtilities.ID_OutlineColor, Color.black);
+                }
             }
 
             StartCoroutine(Cinematic_IntoTheVoid_Sequence());
@@ -262,14 +270,22 @@ namespace Milehigh.Cinematics
         {
             if (targetAlpha > 0) DialogueBox.SetActive(true);
             float startAlpha = DialogueCanvasGroup.alpha;
+            RectTransform rect = (RectTransform)DialogueBox.transform;
+            Vector2 startPos = rect.anchoredPosition;
+            Vector2 targetPos = new Vector2(startPos.x, targetAlpha > 0 ? 0f : -30f);
+            if (targetAlpha > 0) startPos.y = -30f;
+
             float elapsed = 0f;
             while (elapsed < duration)
             {
                 elapsed += Time.deltaTime;
-                DialogueCanvasGroup.alpha = Mathf.Lerp(startAlpha, targetAlpha, elapsed / duration);
+                float t = elapsed / duration;
+                DialogueCanvasGroup.alpha = Mathf.Lerp(startAlpha, targetAlpha, t);
+                rect.anchoredPosition = Vector2.Lerp(startPos, targetPos, t);
                 yield return null;
             }
             DialogueCanvasGroup.alpha = targetAlpha;
+            rect.anchoredPosition = targetPos;
             if (targetAlpha <= 0) DialogueBox.SetActive(false);
         }
 
@@ -335,6 +351,8 @@ namespace Milehigh.Cinematics
             if (typingCoroutine != null) StopCoroutine(typingCoroutine);
 
             Debug.Log("Cinematic Sequence Complete: [Deep within the anti-reality of ŤĤÊ VØĪĐ...]");
+            Debug.Log("Cinematic Sequence Complete: [Deep within the anti-reality of ŤĤÊ VØĪĐ...]");
+            if (typingCoroutine != null) StopCoroutine(typingCoroutine);
         }
     }
 }
