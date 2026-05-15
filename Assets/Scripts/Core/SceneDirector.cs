@@ -16,6 +16,12 @@ namespace Milehigh.Core
         private readonly Dictionary<string, GameObject?> _prefabCache = new Dictionary<string, GameObject?>();
         private readonly Dictionary<int, CharacterControllerBase?> _controllerCache = new Dictionary<int, CharacterControllerBase?>();
 
+        // 🛡️ Sentinel & BOLT: Protected managers hashset for fast and secure O(1) lookups
+        private static readonly HashSet<string> _protectedManagers = new HashSet<string>
+        {
+            "CampaignManager", "SceneDirector", "CameraManager", "AlliancePowerManager", "GlobalResonanceManager"
+        };
+
         // 🛡️ Sentinel: Regex for whitelisting safe object names to prevent DoS via expensive GameObject.Find operations.
         private static readonly Regex _nameValidator = new Regex(@"^[a-zA-Z0-9_\s\(\)\-$\.\/\[\]]+$", RegexOptions.Compiled);
 
@@ -124,21 +130,14 @@ namespace Milehigh.Core
             if (interaction == null || string.IsNullOrEmpty(interaction.objectId)) return;
 
             // 🛡️ Sentinel: Prevent IDOR (Insecure Direct Object Reference) tampering with core systems.
-            string[] protectedManagers = { "CampaignManager", "SceneDirector", "CameraManager", "AlliancePowerManager" };
-            if (System.Array.Exists(protectedManagers, m => m == interaction.objectId))
             // Explicitly block critical managers to prevent unauthorized manipulation via external data.
-            string[] protectedManagers = { "CampaignManager", "SceneDirector", "CameraManager", "AlliancePowerManager", "GlobalResonanceManager" };
-            string sanitizedId = interaction.objectId.TrimStart('/');
-            if (System.Array.Exists(protectedManagers, m => m == sanitizedId))
             // We trim leading slashes to prevent bypasses using path-like IDs (e.g., "/CampaignManager").
-            string[] protectedManagers = { "CampaignManager", "SceneDirector", "CameraManager", "AlliancePowerManager", "GlobalResonanceManager" };
             string sanitizedId = interaction.objectId.TrimStart('/');
 
-            if (System.Array.Exists(protectedManagers, m => m == sanitizedId))
             // BOLT: Use cached HashSet for efficient lookup and zero per-call allocation.
-            if (_protectedManagers.Contains(interaction.objectId))
+            if (_protectedManagers != null && _protectedManagers.Contains(sanitizedId))
             {
-                Debug.LogWarning($"[Security] Blocked unauthorized interaction attempt on core system: {interaction.objectId}");
+                Debug.LogWarning($"[Security] Blocked unauthorized interaction attempt on core system: {sanitizedId}");
                 return;
             }
 
