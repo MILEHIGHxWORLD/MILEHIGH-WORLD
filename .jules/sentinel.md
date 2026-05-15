@@ -223,3 +223,17 @@
 **Vulnerability:** Found extreme 'code rot' in `HorizonGameData.cs` where multiple conflicting, redundant, and syntactically invalid `IsValid()` methods were nested or duplicated. This effectively disabled or bypassed intended security checks and resource limits.
 **Learning:** High-frequency, automated security patching can lead to "syntax soup" if not consolidated. Broken validation logic is equivalent to no validation, leaving the application vulnerable to DoS (resource exhaustion) and malformed data ingestion.
 **Prevention:** Consolidate all validation into a single, robust `IsValid()` method per class. Enforce strict resource limits (string lengths, collection sizes) and always verify the final source code integrity (e.g., via compilation checks) after automated edits.
+
+## 2024-05-24 - Resolving Data Ingestion 'Syntax Soup' and Broken Validation
+**Vulnerability:** Found extreme "code rot" and "syntax soup" in `HorizonGameData.cs` and `CharacterFactory.cs`, where multiple redundant, malformed, and contradictory `IsValid()` methods and variable declarations were introduced by botched merges. This effectively bypassed or broke security validation for external JSON data.
+**Learning:** High-frequency automated patching can lead to overlapping logic that disables the very protections it intends to provide. Broken validation logic is equivalent to no validation, leaving the application vulnerable to DoS (resource exhaustion) and malformed data ingestion.
+**Prevention:** Consolidate all validation into single, robust methods (`IsValid`) and strictly enforce "Sentinel Standard" resource limits (string lengths, collection counts) at the point of ingestion. Always verify syntactic integrity via compilation checks after resolving complex merge-induced duplication.
+
+## 2026-05-14 - IDOR Bypass via Path-like Object IDs in Unity
+**Vulnerability:** Insecure Direct Object Reference (IDOR) protection using simple string matching on GameObject names can be bypassed if the lookup utility (like `GameObject.Find`) supports hierarchical paths. Prepending a slash (e.g., `/CampaignManager`) could bypass a blacklist check for `CampaignManager`.
+**Learning:** Unity's `GameObject.Find` can take a path. Security boundaries for object lookups must account for this by normalizing or sanitizing the input ID before validation.
+**Prevention:** Always sanitize or normalize external IDs (e.g., using `TrimStart('/')`) before checking them against a protected list of system objects.
+## 2024-05-24 - IDOR Bypass via Path-like Object IDs and Protected Manager Expansion
+**Vulnerability:** IDOR vulnerability in `SceneDirector.cs` where an attacker could bypass the `protectedManagers` check by prepending a slash to the object ID (e.g., `/CampaignManager`). Additionally, `GlobalResonanceManager` was missing from the protected managers list.
+**Learning:** Unity's `GameObject.Find` supports hierarchical paths, so exact string matching against a whitelist/blacklist must be preceded by trimming leading directory separators.
+**Prevention:** Always use `.TrimStart('/')` on external object IDs before comparing them against protected manager lists to prevent path-based bypasses in scene-wide lookups.
