@@ -373,3 +373,9 @@
 ## 2024-05-31 - [Redundant Material Property Updates]
 **Learning:** Setting the same material properties (like TextMeshPro outline width) multiple times in a single frame (e.g., in Start) causes unnecessary engine boundary calls and state changes.
 **Action:** Consolidate material property initializations into a single block with the final desired values to minimize overhead during object initialization.
+## 2026-05-15 - HashSet for Frequent String Lookups
+**Learning:** Using `System.Array.Exists` or linear searches on string arrays in high-frequency methods (like `ApplyInteraction` in `SceneDirector.cs`) is inefficient and causes per-call allocations if the array is local.
+**Action:** Move whitelist/lookup collections to a `static readonly HashSet<string>` field. This converts the O(N) linear search into an O(1) hash lookup and eliminates redundant allocations.
+## 2024-05-30 - SystemInfo.deviceUniqueIdentifier Native Boundary Crossing
+**Learning:** In Unity, `UnityEngine.SystemInfo.deviceUniqueIdentifier` queries OS-level APIs and crosses the native C++ boundary, making it an extremely slow, blocking call. Calling this in frequently executed code paths (like data saving/encryption loops) causes micro-stutters.
+**Action:** Cache hardware identifiers in a static variable upon first access to prevent I/O stutters during frequent runtime operations.

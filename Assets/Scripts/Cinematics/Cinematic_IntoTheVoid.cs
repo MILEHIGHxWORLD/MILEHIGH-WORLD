@@ -30,6 +30,24 @@ namespace Milehigh.Cinematics
         public TMPro.TextMeshProUGUI SpeakerNameText = null!;
         public TMPro.TextMeshProUGUI DialogueText = null!;
         public TMPro.TextMeshProUGUI SkipHintText = null!;
+        public GameObject Skyix_Character = null!;
+        public AudioSource Skyix_VoiceSource = null!;
+        public GameObject Kai_Character = null!;
+        public AudioSource Kai_VoiceSource = null!;
+        public GameObject Delilah_Character = null!;
+        public AudioSource Delilah_VoiceSource = null!;
+
+        // ⚡ Bolt: Cache Animators to avoid expensive GetComponent calls during cinematic execution.
+        private Animator? _skyixAnimator;
+        private Animator? _kaiAnimator;
+        private Animator? _delilahAnimator;
+
+        [UnityEngine.Header("UI Components")]
+        public GameObject DialogueBox = null!;
+        public CanvasGroup DialogueCanvasGroup = null!;
+        public TextMeshProUGUI SpeakerNameText = null!;
+        public TextMeshProUGUI DialogueText = null!;
+        public TextMeshProUGUI SkipHintText = null!;
 
         [UnityEngine.Header("UX Settings")]
         [UnityEngine.Tooltip("Base delay in seconds between each character being revealed.")]
@@ -47,6 +65,9 @@ namespace Milehigh.Cinematics
         private float idleTimer;
         private bool playerInteracted;
         private UnityEngine.Vector3 originalSpeakerScale;
+        private Vector3 originalSpeakerScale;
+        private RectTransform _dialogueRect = null!;
+        private Vector2 _originalDialoguePos;
 
         // BOLT: Cache for WaitForSeconds to eliminate GC allocations during coroutine execution.
         private static readonly System.Collections.Generic.Dictionary<int, UnityEngine.WaitForSeconds> _waitForSecondsCache = new System.Collections.Generic.Dictionary<int, UnityEngine.WaitForSeconds>();
@@ -71,6 +92,8 @@ namespace Milehigh.Cinematics
                 return;
             }
 
+            _dialogueRect = DialogueBox.GetComponent<RectTransform>();
+            _originalDialoguePos = _dialogueRect.anchoredPosition;
             originalSpeakerScale = SpeakerNameText.transform.localScale;
 
             if (SkipHintText != null) SkipHintText.gameObject.SetActive(false);
@@ -93,6 +116,16 @@ namespace Milehigh.Cinematics
                 SkipHintText.gameObject.SetActive(false);
             }
 
+            // Palette: Accessibility - High-contrast text outline for better readability in dark/complex scenes.
+            if (SpeakerNameText.fontMaterial != null)
+            {
+                SpeakerNameText.fontMaterial.SetFloat(ShaderUtilities.ID_OutlineWidth, 0.25f);
+                SpeakerNameText.fontMaterial.SetColor(ShaderUtilities.ID_OutlineColor, Color.black);
+            }
+            if (DialogueText.fontMaterial != null)
+            {
+                DialogueText.fontMaterial.SetFloat(ShaderUtilities.ID_OutlineWidth, 0.25f);
+                DialogueText.fontMaterial.SetColor(ShaderUtilities.ID_OutlineColor, Color.black);
             // Palette: Accessibility - Text outline for better contrast in dark scenes.
             // ⚡ Bolt: Consolidated material property assignments to reduce engine boundary calls.
             if (SpeakerNameText.fontMaterial != null)
@@ -104,6 +137,26 @@ namespace Milehigh.Cinematics
             {
                 DialogueText.fontMaterial.SetFloat(TMPro.ShaderUtilities.ID_OutlineWidth, 0.25f);
                 DialogueText.fontMaterial.SetColor(TMPro.ShaderUtilities.ID_OutlineColor, UnityEngine.Color.black);
+            // ⚡ Bolt: Cache material references to avoid redundant allocations and engine boundary calls.
+            Material speakerMat = SpeakerNameText.fontMaterial;
+            Material dialogueMat = DialogueText.fontMaterial;
+            if (speakerMat != null)
+            {
+                speakerMat.SetFloat(ShaderUtilities.ID_OutlineWidth, 0.25f);
+                speakerMat.SetColor(ShaderUtilities.ID_OutlineColor, Color.black);
+            }
+            if (dialogueMat != null)
+            {
+                dialogueMat.SetFloat(ShaderUtilities.ID_OutlineWidth, 0.25f);
+                dialogueMat.SetColor(ShaderUtilities.ID_OutlineColor, Color.black);
+            // Palette: Accessibility - Consolidated text outline for better contrast in dark scenes.
+            foreach (var text in new[] { SpeakerNameText, DialogueText, SkipHintText })
+            {
+                if (text != null && text.fontMaterial != null)
+                {
+                    text.fontMaterial.SetFloat(ShaderUtilities.ID_OutlineWidth, 0.25f);
+                    text.fontMaterial.SetColor(ShaderUtilities.ID_OutlineColor, Color.black);
+                }
             }
 
             StartCoroutine(Cinematic_IntoTheVoid_Sequence());
@@ -172,6 +225,8 @@ namespace Milehigh.Cinematics
             // Audio: Play the character's voice line if assigned.
             // ⚡ Bolt: Direct reference usage to avoid redundant GetComponent or conditional overwrites.
             UnityEngine.AudioSource? voiceSource = speaker switch
+            // ⚡ Bolt: Use direct field reference for Kai instead of expensive GetComponent lookup.
+            AudioSource? voiceSource = speaker switch
             {
                 "Sky.ix" => Skyix_VoiceSource,
                 "Kai" => Kai_VoiceSource,
@@ -260,14 +315,32 @@ namespace Milehigh.Cinematics
         {
             if (targetAlpha > 0) DialogueBox.SetActive(true);
             float startAlpha = DialogueCanvasGroup.alpha;
+
+            // Palette: Define target and start positions for a subtle "slide" effect (30 units down).
+            Vector2 targetPos = targetAlpha > 0 ? _originalDialoguePos : _originalDialoguePos + Vector2.down * 30f;
+            if (targetAlpha > 0) _dialogueRect.anchoredPosition = _originalDialoguePos + Vector2.down * 30f;
+            Vector2 startPos = _dialogueRect.anchoredPosition;
+            RectTransform rect = (RectTransform)DialogueBox.transform;
+            Vector2 startPos = rect.anchoredPosition;
+            Vector2 targetPos = new Vector2(startPos.x, targetAlpha > 0 ? 0f : -30f);
+            if (targetAlpha > 0) startPos.y = -30f;
+
             float elapsed = 0f;
             while (elapsed < duration)
             {
-                elapsed += UnityEngine.Time.deltaTime;
-                DialogueCanvasGroup.alpha = UnityEngine.Mathf.Lerp(startAlpha, targetAlpha, elapsed / duration);
+                elapsed += Time.deltaTime;
+                float t = elapsed / duration;
+                DialogueCanvasGroup.alpha = Mathf.Lerp(startAlpha, targetAlpha, t);
+                _dialogueRect.anchoredPosition = Vector2.Lerp(startPos, targetPos, t);
                 yield return null;
             }
             DialogueCanvasGroup.alpha = targetAlpha;
+            _dialogueRect.anchoredPosition = targetPos;
+                rect.anchoredPosition = Vector2.Lerp(startPos, targetPos, t);
+                yield return null;
+            }
+            DialogueCanvasGroup.alpha = targetAlpha;
+            rect.anchoredPosition = targetPos;
             if (targetAlpha <= 0) DialogueBox.SetActive(false);
         }
 
@@ -330,6 +403,7 @@ namespace Milehigh.Cinematics
             if (_skyixAnimator != null) _skyixAnimator.SetTrigger("Determined_Resolve");
             yield return PlayDialogueLine("Sky.ix", "My family is my anchor. They are the reason I can walk through this hell and not become a monster like you. And I am bringing them home.", 3.0f);
 
+            // ⚡ Bolt: Removed redundant FadeDialogue and SetActive calls as FadeDialogueBox handles them.
             yield return FadeDialogueBox(0f, 0.5f);
             UnityEngine.Debug.Log("Cinematic Sequence Complete.");
             if (typingCoroutine != null) StopCoroutine(typingCoroutine);
