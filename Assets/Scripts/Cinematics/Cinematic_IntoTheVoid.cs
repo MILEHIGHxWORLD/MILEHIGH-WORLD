@@ -11,7 +11,7 @@ namespace Milehigh.Cinematics
     /// </summary>
     public class Cinematic_IntoTheVoid : MonoBehaviour
     {
-        [Header("Character References")]
+        [UnityEngine.Header("Character References")]
         public GameObject Skyix_Character = null!;
         public AudioSource Skyix_VoiceSource = null!;
         public GameObject Kai_Character = null!;
@@ -24,19 +24,19 @@ namespace Milehigh.Cinematics
         private Animator? _kaiAnimator;
         private Animator? _delilahAnimator;
 
-        [Header("UI Components")]
+        [UnityEngine.Header("UI Components")]
         public GameObject DialogueBox = null!;
         public CanvasGroup DialogueCanvasGroup = null!;
         public TextMeshProUGUI SpeakerNameText = null!;
         public TextMeshProUGUI DialogueText = null!;
         public TextMeshProUGUI SkipHintText = null!;
 
-        [Header("UX Settings")]
-        [Tooltip("Base delay in seconds between each character being revealed.")]
+        [UnityEngine.Header("UX Settings")]
+        [UnityEngine.Tooltip("Base delay in seconds between each character being revealed.")]
         public float baseTypingSpeed = 0.03f;
-        [Tooltip("Delay multiplier for Kai (Slow/Paused tempo).")]
+        [UnityEngine.Tooltip("Delay multiplier for Kai (Slow/Paused tempo).")]
         public float kaiSpeedMultiplier = 3.0f;
-        [Tooltip("Delay multiplier for Skyix (Steady/Precise tempo).")]
+        [UnityEngine.Tooltip("Delay multiplier for Skyix (Steady/Precise tempo).")]
         public float skyixSpeedMultiplier = 1.2f;
 
         private Coroutine? typingCoroutine;
@@ -73,6 +73,8 @@ namespace Milehigh.Cinematics
 
             originalSpeakerScale = SpeakerNameText.transform.localScale;
 
+            if (SkipHintText != null) SkipHintText.gameObject.SetActive(false);
+
             // ⚡ Bolt: Pre-cache animators to eliminate GetComponent allocations during the cinematic sequence.
             if (Skyix_Character != null) _skyixAnimator = Skyix_Character.GetComponent<Animator>();
             if (Kai_Character != null) _kaiAnimator = Kai_Character.GetComponent<Animator>();
@@ -91,6 +93,19 @@ namespace Milehigh.Cinematics
                 SkipHintText.gameObject.SetActive(false);
             }
 
+            // Palette: Accessibility - Text outline for better contrast in dark scenes.
+            // ⚡ Bolt: Cache material references to avoid redundant allocations and engine boundary calls.
+            Material speakerMat = SpeakerNameText.fontMaterial;
+            Material dialogueMat = DialogueText.fontMaterial;
+            if (speakerMat != null)
+            {
+                speakerMat.SetFloat(ShaderUtilities.ID_OutlineWidth, 0.25f);
+                speakerMat.SetColor(ShaderUtilities.ID_OutlineColor, Color.black);
+            }
+            if (dialogueMat != null)
+            {
+                dialogueMat.SetFloat(ShaderUtilities.ID_OutlineWidth, 0.25f);
+                dialogueMat.SetColor(ShaderUtilities.ID_OutlineColor, Color.black);
             // Palette: Accessibility - Consolidated text outline for better contrast in dark scenes.
             foreach (var text in new[] { SpeakerNameText, DialogueText, SkipHintText })
             {
@@ -165,14 +180,14 @@ namespace Milehigh.Cinematics
             skipRequested = false;
 
             // Audio: Play the character's voice line if assigned.
+            // ⚡ Bolt: Use direct field reference for Kai instead of expensive GetComponent lookup.
             AudioSource? voiceSource = speaker switch
             {
                 "Sky.ix" => Skyix_VoiceSource,
-                "Kai" => Kai_Character?.GetComponent<AudioSource>(), // Fallback attempt
+                "Kai" => Kai_VoiceSource,
                 "Delilah" => Delilah_VoiceSource,
                 _ => null
             };
-            if (speaker == "Kai") voiceSource = Kai_VoiceSource; // Ensure Kai is handled correctly
 
             if (voiceSource != null) voiceSource.Play();
 
@@ -291,6 +306,7 @@ namespace Milehigh.Cinematics
 
         private IEnumerator Cinematic_IntoTheVoid_Sequence()
         {
+            // ⚡ Bolt: Consolidated redundant UI fade and state calls.
             yield return FadeDialogueBox(1.0f, 0.5f);
             yield return WaitForSecondsOrSkip(1.0f);
 
@@ -330,7 +346,11 @@ namespace Milehigh.Cinematics
             if (_skyixAnimator != null) _skyixAnimator.SetTrigger("Determined_Resolve");
             yield return PlayDialogueLine("Sky.ix", "My family is my anchor. They are the reason I can walk through this hell and not become a monster like you. And I am bringing them home.", 3.0f);
 
+            // ⚡ Bolt: Removed redundant FadeDialogue and SetActive calls as FadeDialogueBox handles them.
             yield return FadeDialogueBox(0f, 0.5f);
+            if (typingCoroutine != null) StopCoroutine(typingCoroutine);
+
+            Debug.Log("Cinematic Sequence Complete: [Deep within the anti-reality of ŤĤÊ VØĪĐ...]");
             Debug.Log("Cinematic Sequence Complete: [Deep within the anti-reality of ŤĤÊ VØĪĐ...]");
             if (typingCoroutine != null) StopCoroutine(typingCoroutine);
         }
