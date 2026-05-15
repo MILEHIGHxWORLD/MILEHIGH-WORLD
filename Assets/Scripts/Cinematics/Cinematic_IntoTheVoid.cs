@@ -227,6 +227,7 @@ bolt/optimize-getcomponent-3892746394166420668            if (SkipHintText != nu
             skipRequested = false;
 
             // Audio: Play the character's voice line if assigned.
+            // ⚡ Bolt: Removed redundant GetComponent<AudioSource>() fallback for Kai, relying on the cached Kai_VoiceSource field to prevent unnecessary C#/C++ engine boundary crossings during cinematic playback.
             // ⚡ Bolt: Removed expensive runtime GetComponent call, relying on pre-cached Kai_VoiceSource.
             // ⚡ Bolt: Use direct field reference for Kai instead of expensive GetComponent lookup.
             AudioSource? voiceSource = speaker switch

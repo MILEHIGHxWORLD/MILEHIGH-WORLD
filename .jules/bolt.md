@@ -370,6 +370,9 @@
 **Learning:** Repeatedly calling `GetComponent` within coroutines or updates incurs unnecessary engine boundary crossing overhead, which can cause micro-stutters during execution.
 **Action:** Always pre-cache components like `Animator` during initialization (`Start` or `Awake`) to ensure O(1) field access during intensive cinematic or runtime loops.
 
+## 2024-05-31 - Redundant GetComponent in Switch Expressions
+**Learning:** A codebase-specific anti-pattern was found where an expensive `GetComponent<AudioSource>()` was used as a fallback inside a switch expression, only to be immediately overwritten by a cached reference on the next line. This causes unnecessary C#/C++ engine boundary crossings and performance overhead every time the matching branch is executed.
+**Action:** Always use pre-cached component fields directly in switch expressions and remove redundant fallback logic that executes expensive engine calls.
 ## 2024-05-31 - Redundant GetComponent Overwrites (Syntax Soup)
 **Learning:** During cinematic dialogue loops, redundant `GetComponent<T>()` calls were found embedded within `switch` statements, only to be immediately overwritten by pre-existing cached variables. This "code rot" causes unnecessary native-managed boundary crossings and GC allocations on every dialogue line.
 **Action:** When fixing performance issues in frequently executed loops or coroutines, aggressively hunt for and eliminate redundant `GetComponent` calls that are masked by subsequent assignment logic. Always rely strictly on pre-cached references.
