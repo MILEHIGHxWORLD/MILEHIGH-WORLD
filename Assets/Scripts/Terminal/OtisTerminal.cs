@@ -22,15 +22,7 @@ namespace Milehigh.World.Terminal
 
         private Coroutine? _typewriterCoroutine;
 
-        // ⚡ Bolt: Cache for WaitForSeconds to eliminate GC allocations during coroutine execution.
-        // We use int (milliseconds) as the key to avoid floating-point precision issues with dictionary lookups.
-        private static readonly Dictionary<int, WaitForSeconds> _waitCache = new Dictionary<int, WaitForSeconds>();
-
-        private WaitForSeconds GetWait(float seconds)
-        {
-            int ms = Mathf.RoundToInt(seconds * 1000f);
-            if (!_waitCache.TryGetValue(ms, out var wait))
-        // BOLT: Shared cache for WaitForSeconds to eliminate GC allocations during typewriter effects.
+        // ⚡ Bolt: Shared cache for WaitForSeconds to eliminate GC allocations during typewriter effects.
         // Using int millisecond keys to avoid floating-point precision issues in dictionary lookups.
         private static readonly Dictionary<int, WaitForSeconds> _waitCache = new Dictionary<int, WaitForSeconds>();
 
@@ -85,14 +77,6 @@ namespace Milehigh.World.Terminal
                 commandInput.ActivateInputField();
             }
 
-            if (string.IsNullOrWhiteSpace(input))
-            {
-                WriteToTerminal("\n>");
-                return;
-            }
-
-            // UX Enhancement: Echo command to terminal for better interaction feedback
-            WriteToTerminal($"\n<color=#888888>> {input}</color>");
 
             // 🛡️ Sentinel: Input validation and DoS protection
             if (input.Length > MaxInputLength)
@@ -180,18 +164,12 @@ namespace Milehigh.World.Terminal
                 {
                     char c = outputDisplay.textInfo.characterInfo[startVisibleCount + i - 1].character;
                     if (c == '.' || c == ':' || c == '!')
-                        yield return GetWait(0.15f);
+                        yield return GetWait(punctuationDelay);
                     else if (c == ',')
-                        yield return GetWait(0.08f);
+                        yield return GetWait(commaDelay);
                 }
 
-                yield return GetWait(0.02f);
-                        yield return new WaitForSeconds(punctuationDelay);
-                    else if (c == ',')
-                        yield return new WaitForSeconds(commaDelay);
-                }
-
-                yield return new WaitForSeconds(typingSpeed);
+                yield return GetWait(typingSpeed);
             }
 
             _typewriterCoroutine = null;
