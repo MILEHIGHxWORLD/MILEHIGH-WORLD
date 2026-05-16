@@ -388,3 +388,7 @@
 ## 2024-05-30 - SystemInfo.deviceUniqueIdentifier Native Boundary Crossing
 **Learning:** In Unity, `UnityEngine.SystemInfo.deviceUniqueIdentifier` queries OS-level APIs and crosses the native C++ boundary, making it an extremely slow, blocking call. Calling this in frequently executed code paths (like data saving/encryption loops) causes micro-stutters.
 **Action:** Cache hardware identifiers in a static variable upon first access to prevent I/O stutters during frequent runtime operations.
+
+## 2026-05-16 - [Cinematic Logic Consolidation and Component Caching]
+**Learning:** Found severe 'code rot' in `Cinematic_IntoTheVoid.cs` where botched merges resulted in redundant field declarations, duplicate coroutine logic, and repetitive `GetComponent` calls. This fragmentation increases memory overhead and engine boundary crossings, and can lead to inconsistent state.
+**Action:** Consolidate redundant fields and logic into a single, clean implementation. Always use cached private fields for components like `Animator` that are accessed frequently in coroutines to eliminate O(N) lookup overhead.

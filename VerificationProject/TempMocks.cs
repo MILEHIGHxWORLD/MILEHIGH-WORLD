@@ -107,6 +107,7 @@ namespace UnityEngine
     public static class Input
     {
         public static bool anyKeyDown => false;
+        public static bool GetMouseButtonDown(int button) => false;
     }
 
     public static class Time
