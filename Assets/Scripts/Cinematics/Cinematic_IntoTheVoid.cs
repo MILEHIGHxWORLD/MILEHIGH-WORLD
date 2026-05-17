@@ -430,6 +430,10 @@ namespace Milehigh.Cinematics
         }
         private readonly System.Collections.Generic.Dictionary<string, SpeakerStyle> _speakerStyles = new System.Collections.Generic.Dictionary<string, SpeakerStyle>();
 
+        // BOLT: Cache for WaitForSeconds using millisecond keys to eliminate GC allocations and precision issues.
+        private static readonly System.Collections.Generic.Dictionary<int, UnityEngine.WaitForSeconds> _waitForSecondsCache = new System.Collections.Generic.Dictionary<int, UnityEngine.WaitForSeconds>();
+
+        private UnityEngine.WaitForSeconds GetWait(float time)
         // BOLT: Cache for WaitForSeconds to eliminate GC allocations during coroutine execution.
         private static readonly Dictionary<int, WaitForSeconds> _waitForSecondsCache = new Dictionary<int, WaitForSeconds>();
         private RectTransform _dialogueRect = null!;
@@ -484,6 +488,19 @@ namespace Milehigh.Cinematics
                 SkipHintText.gameObject.SetActive(false);
             }
 
+            // ⚡ Bolt: Pre-cache animators and materials to eliminate runtime allocations.
+            if (Skyix_Character != null) _skyixAnimator = Skyix_Character.GetComponent<UnityEngine.Animator>();
+            if (Kai_Character != null) _kaiAnimator = Kai_Character.GetComponent<UnityEngine.Animator>();
+            if (Delilah_Character != null) _delilahAnimator = Delilah_Character.GetComponent<UnityEngine.Animator>();
+
+            _speakerMat = SpeakerNameText.fontMaterial;
+            _dialogueMat = DialogueText.fontMaterial;
+            if (SkipHintText != null) _skipHintMat = SkipHintText.fontMaterial;
+
+            // Palette: Accessibility - High-contrast text outline for better readability.
+            ApplyTextOutline(_speakerMat);
+            ApplyTextOutline(_dialogueMat);
+            ApplyTextOutline(_skipHintMat);
             // Palette: Accessibility - Consolidated text outline for better contrast in dark scenes.
             foreach (var text in new[] { SpeakerNameText, DialogueText, SkipHintText })
             {
@@ -497,6 +514,12 @@ namespace Milehigh.Cinematics
             this.StartCoroutine(Cinematic_IntoTheVoid_Sequence());
         }
 
+        private void ApplyTextOutline(UnityEngine.Material? mat)
+        {
+            if (mat != null)
+            {
+                mat.SetFloat(TMPro.ShaderUtilities.ID_OutlineWidth, 0.25f);
+                mat.SetColor(TMPro.ShaderUtilities.ID_OutlineColor, UnityEngine.Color.black);
         private void Update()
         {
             // BOLT: Use cached boolean flags to reduce expensive engine-to-managed boundary calls (activeInHierarchy).
@@ -528,6 +551,7 @@ namespace Milehigh.Cinematics
         private void Update()
         {
             // ⚡ Bolt: Precise skip detection for refined UX.
+            if (UnityEngine.Input.anyKeyDown)
             if (UnityEngine.Input.GetKeyDown(UnityEngine.KeyCode.Space) || UnityEngine.Input.GetKeyDown(UnityEngine.KeyCode.Return) || UnityEngine.Input.GetMouseButtonDown(0))
             {
                 skipRequested = true;
@@ -555,6 +579,10 @@ namespace Milehigh.Cinematics
 
             if (_isSkipHintActive && SkipHintText != null)
             {
+                float alpha = UnityEngine.Mathf.PingPong(UnityEngine.Time.time * 0.5f, 0.5f) + 0.5f;
+                UnityEngine.Color c = SkipHintText.color;
+                c.a = alpha;
+                SkipHintText.color = c;
                 // BOLT: Use canvasRenderer.SetAlpha to avoid expensive mesh rebuilds triggered by material/color changes.
                 float alpha = Mathf.PingPong(Time.time * 0.5f, 0.5f) + 0.5f;
                 SkipHintText.canvasRenderer.SetAlpha(alpha);
@@ -587,6 +615,10 @@ namespace Milehigh.Cinematics
             if (typingCoroutine != null) this.StopCoroutine(typingCoroutine);
             _isTypeRevealComplete = false;
 
+            // UX Enhancement: Reset interaction tracking for each new dialogue line.
+            idleTimer = 0f;
+            playerInteracted = false;
+            if (SkipHintText != null) SkipHintText.gameObject.SetActive(false);
             // UX Enhancement: Reset idle timer and interaction state for each new dialogue line.
             idleTimer = 0f;
             playerInteracted = false;
@@ -607,6 +639,7 @@ namespace Milehigh.Cinematics
 
             SpeakerNameText.text = speaker;
 
+            UnityEngine.Color speakerColor = speaker switch
             // ⚡ Bolt: O(1) lookup from pre-cached speaker styles.
             if (_speakerStyles.TryGetValue(speaker, out SpeakerStyle style))
             {
@@ -1007,8 +1040,12 @@ namespace Milehigh.Cinematics
                 _ => Color.white
             };
 
-            if (speaker == "Kai") multiplier = kaiSpeedMultiplier;
-            else if (speaker == "Sky.ix") multiplier = skyixSpeedMultiplier;
+            float multiplier = speaker switch
+            {
+                "Kai" => kaiSpeedMultiplier,
+                "Sky.ix" => skyixSpeedMultiplier,
+                _ => 1.0f
+            };
 
             SpeakerNameText.color = speakerColor;
             currentSpeakerColor = speakerColor;
@@ -1018,6 +1055,16 @@ namespace Milehigh.Cinematics
             skipRequested = false;
 
             // Audio: Play the character's voice line if assigned.
+            UnityEngine.AudioSource? voiceSource = speaker switch
+            {
+                "Sky.ix" => Skyix_VoiceSource,
+                "Kai" => Kai_VoiceSource,
+                "Delilah" => Delilah_VoiceSource,
+                _ => null
+            };
+
+            if (voiceSource != null) voiceSource.Play();
+
             AudioSource? voiceSource = speaker switch
             {
                 SpeakerNameText.color = UnityEngine.Color.white;
@@ -1055,7 +1102,6 @@ namespace Milehigh.Cinematics
                     // Rhythmic pacing
                     if (c == '.' || c == '!' || c == '?')
                     {
-                        // Check for mid-word periods (like Sky.ix) using look-ahead
                         bool isEndOfSentence = true;
                         if (i < mainMessageLength)
                         {
@@ -1118,8 +1164,21 @@ namespace Milehigh.Cinematics
             Vector2 endPos = _originalDialoguePos + (targetAlpha <= 0 ? new Vector2(0, -30f) : Vector2.zero);
 
             float elapsed = 0f;
+
+            // Palette: Add a "Soft-Rise" emergence animation (vertical slide)
+            UnityEngine.Vector2 startPos = _originalDialoguePos + (targetAlpha > 0 ? new UnityEngine.Vector2(0, -25f) : UnityEngine.Vector2.zero);
+            UnityEngine.Vector2 endPos = targetAlpha > 0 ? _originalDialoguePos : _originalDialoguePos + new UnityEngine.Vector2(0, -25f);
+
             while (elapsed < duration)
             {
+                elapsed += UnityEngine.Time.deltaTime;
+                float t = elapsed / duration;
+                // Cubic ease-out
+                float ease = 1f - UnityEngine.Mathf.Pow(1f - t, 3f);
+
+                DialogueCanvasGroup.alpha = UnityEngine.Mathf.Lerp(startAlpha, targetAlpha, t);
+                if (_dialogueRect != null) _dialogueRect.anchoredPosition = UnityEngine.Vector2.Lerp(startPos, endPos, ease);
+
                 elapsed += Time.deltaTime;
                 float t = Mathf.Clamp01(elapsed / duration);
                 float smoothT = Mathf.SmoothStep(0f, 1f, t);
@@ -1131,6 +1190,7 @@ namespace Milehigh.Cinematics
 
             DialogueCanvasGroup.alpha = targetAlpha;
             if (_dialogueRect != null) _dialogueRect.anchoredPosition = endPos;
+            if (targetAlpha <= 0) DialogueBox.SetActive(false);
             if (targetAlpha <= 0)
             {
                 DialogueBox.SetActive(false);
@@ -1233,6 +1293,9 @@ namespace Milehigh.Cinematics
         // Scale up
         while (elapsed < duration)
         {
+            yield return this.StartCoroutine(FadeDialogueBox(1.0f, 0.5f));
+            yield return GetWait(1.0f);
+
             elapsed += Time.unscaledDeltaTime;
             float t = elapsed / duration;
             target.localScale = originalScale * Mathf.Lerp(1f, 1.15f, t);
@@ -1632,6 +1695,8 @@ namespace Milehigh.Cinematics
             if (_skyixAnimator != null) _skyixAnimator.SetTrigger("Determined_Resolve");
             yield return PlayDialogueLine("Sky.ix", "My family is my anchor. They are the reason I can walk through this hell and not become a monster like you. And I am bringing them home.", 3.0f);
 
+            yield return this.StartCoroutine(FadeDialogueBox(0f, 0.5f));
+            UnityEngine.Debug.Log("Cinematic Sequence Complete: [Deep within the anti-reality of ŤĤÊ VØĪĐ...]");
             yield return FadeDialogueBox(0f, 0.5f);
             Debug.Log("Cinematic Sequence Complete: [Deep within the anti-reality of ŤĤÊ VØĪĐ...]");
             if (typingCoroutine != null) this.StopCoroutine(typingCoroutine);
