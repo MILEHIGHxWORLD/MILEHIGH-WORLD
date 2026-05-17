@@ -77,3 +77,7 @@
 ## 2024-05-15 - OtisTerminal Yield Instruction Caching
 **Learning:** Repeatedly calling 'new WaitForSeconds(time)' in high-frequency coroutines like the typewriter effect in 'OtisTerminal.cs' causes unnecessary GC allocations on every character reveal.
 **Action:** Implement a static 'Dictionary<int, WaitForSeconds>' cache using millisecond-rounded keys (Mathf.RoundToInt(time * 1000f)) to reuse yield instructions and eliminate heap allocations.
+
+## 2024-05-16 - Typewriter Coroutine Resumption Optimization
+**Learning:** In terminal-style UI components like 'OtisTerminal.cs', having multiple 'yield return' statements within a single character-reveal loop iteration (e.g., for speed, rhythmic pauses, and zero-allocation checks) causes the Unity coroutine scheduler to resume and suspend the task up to 4 times per character. This overhead adds up significantly in long text sequences.
+**Action:** Consolidate all timing logic into a single 'totalDelay' calculation per iteration and execute exactly one 'yield return GetWait(totalDelay)' to minimize scheduler pressure and CPU overhead.

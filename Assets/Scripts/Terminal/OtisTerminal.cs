@@ -29,13 +29,6 @@ namespace Milehigh.World.Terminal
         private static WaitForSeconds GetWait(float seconds)
         {
             int ms = Mathf.RoundToInt(seconds * 1000f);
-            if (!_waitCache.TryGetValue(ms, out WaitForSeconds wait))
-        // ⚡ Bolt: Cache for WaitForSeconds to eliminate GC allocations during coroutine execution.
-        private static readonly Dictionary<int, WaitForSeconds> _waitCache = new Dictionary<int, WaitForSeconds>();
-
-        private WaitForSeconds GetWait(float seconds)
-        {
-            int ms = Mathf.RoundToInt(seconds * 1000f);
             if (!_waitCache.TryGetValue(ms, out var wait))
             {
                 wait = new WaitForSeconds(seconds);
@@ -78,21 +71,6 @@ namespace Milehigh.World.Terminal
                 return;
             }
 
-            // 🛡️ Sentinel: Input validation and DoS protection BEFORE echoing to prevent UI injection (e.g. Rich Text tags).
-            // 🎨 Palette: Echo user command to terminal for better interaction history
-            // We do this before clearing the input so the user sees immediate feedback
-            string echo = string.IsNullOrWhiteSpace(input) ? ">" : $"> {input}";
-            WriteToTerminal($"\n<color=#888888>{echo}</color>");
-
-            // UX Enhancement: Clear input and refocus immediately for better flow
-            if (commandInput != null)
-            {
-                commandInput.text = "";
-                commandInput.ActivateInputField();
-            }
-
-            if (string.IsNullOrWhiteSpace(input)) return;
-
             // 🛡️ Sentinel: Input validation and DoS protection
             if (input.Length > MaxInputLength)
             {
@@ -109,6 +87,7 @@ namespace Milehigh.World.Terminal
             }
 
             // 🎨 Palette: Echo user command to terminal AFTER validation to ensure safe rendering.
+            // 🛡️ Sentinel: Ensures validated input is echoed, preventing UI injection via Rich Text tags.
             WriteToTerminal($"\n<color=#888888>> {input}</color>");
 
             // UX Enhancement: Clear input and refocus immediately for better flow
@@ -187,14 +166,12 @@ namespace Milehigh.World.Terminal
             {
                 outputDisplay.maxVisibleCharacters = startVisibleCount + i;
 
-                // 🎨 Palette: Rhythmic punctuation pauses for an "analog" terminal feel.
-                // We check the last revealed character to pause after it appears.
+                // ⚡ Bolt: Consolidated rhythmic delay calculation to eliminate redundant resumptions.
                 char c = outputDisplay.textInfo.characterInfo[startVisibleCount + i - 1].character;
                 float delay = typingSpeed;
 
                 if (c == '.' || c == '!' || c == '?')
                 {
-                    // Smart Punctuation: Look ahead to avoid pauses in filenames or technical terms (e.g., Sky.ix)
                     bool isEndOfSentence = true;
                     if (startVisibleCount + i < endVisibleCount)
                     {
@@ -204,7 +181,6 @@ namespace Milehigh.World.Terminal
 
                     if (isEndOfSentence)
                     {
-                        // Check for ellipsis (multiple dots)
                         bool isEllipsis = (c == '.' && startVisibleCount + i - 2 >= 0 && outputDisplay.textInfo.characterInfo[startVisibleCount + i - 2].character == '.');
                         delay = isEllipsis ? typingSpeed * 4f : punctuationDelay;
                     }
@@ -214,28 +190,8 @@ namespace Milehigh.World.Terminal
                     delay = commaDelay;
                 }
 
+                // ⚡ Bolt: Single zero-allocation yield per character reveal.
                 yield return GetWait(delay);
-                // UX Learning: Punctuation delays trigger after character is visible
-                char c = outputDisplay.textInfo.characterInfo[startVisibleCount + i - 1].character;
-
-                float delay = typingSpeed;
-                if (c == '.' || c == ':' || c == '!')
-                    delay = punctuationDelay;
-                else if (c == ',')
-                    delay = commaDelay;
-
-                // ⚡ Bolt: Zero-allocation yield via shared cache
-                yield return GetWait(delay);
-                if (i > 0 && i <= charactersToReveal)
-                {
-                    char c = outputDisplay.textInfo.characterInfo[startVisibleCount + i - 1].character;
-                    if (c == '.' || c == ':' || c == '!')
-                        yield return GetWait(punctuationDelay);
-                    else if (c == ',')
-                        yield return GetWait(commaDelay);
-                }
-
-                yield return GetWait(typingSpeed);
             }
 
             _typewriterCoroutine = null;
@@ -251,7 +207,7 @@ namespace Milehigh.World.Terminal
 
             while (elapsed < duration)
             {
-                float x = Random.Range(-1f, 1f) * magnitude;
+                float x = UnityEngine.Random.Range(-1f, 1f) * magnitude;
                 commandInput.transform.localPosition = originalPos + new Vector3(x, 0, 0);
                 elapsed += Time.deltaTime;
                 yield return null;
