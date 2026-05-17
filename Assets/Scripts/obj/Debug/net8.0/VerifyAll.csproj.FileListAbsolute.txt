@@ -1,0 +1,5 @@
+/app/Assets/Scripts/obj/Debug/net8.0/VerifyAll.GeneratedMSBuildEditorConfig.editorconfig
+/app/Assets/Scripts/obj/Debug/net8.0/VerifyAll.AssemblyInfoInputs.cache
+/app/Assets/Scripts/obj/Debug/net8.0/VerifyAll.AssemblyInfo.cs
+/app/Assets/Scripts/obj/Debug/net8.0/VerifyAll.csproj.CoreCompileInputs.cache
+/app/Assets/Scripts/obj/Debug/net8.0/VerifyAll.sourcelink.json

@@ -1,0 +1,33 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="TempMocks.cs" />
+    <Compile Include="Assets/Scripts/Cinematics/Cinematic_IntoTheVoid.cs" />
+    <Compile Include="Assets/Scripts/Cinematics/CinematicController.cs" />
+    <Compile Include="Assets/Scripts/Data/CharacterData.cs" />
+    <Compile Include="Assets/Scripts/Data/HorizonGameData.cs" />
+    <Compile Include="Assets/Scripts/Editor/CharacterFactory.cs" />
+    <Compile Include="Assets/Scripts/Editor/MultiSceneSetup.cs" />
+    <Compile Include="Assets/Scripts/Core/CampaignManager.cs" />
+    <Compile Include="Assets/Scripts/Core/CameraManager.cs" />
+    <Compile Include="Assets/Scripts/Core/SceneDirector.cs" />
+    <Compile Include="Assets/Scripts/Core/AlliancePowerManager.cs" />
+    <Compile Include="Assets/Scripts/Core/CharacterAbilitiesBase.cs" />
+    <Compile Include="Assets/Scripts/Physics/CustomCollision.cs" />
+    <Compile Include="Assets/Scripts/Physics/UnderwaterPhysics.cs" />
+    <Compile Include="Assets/Scripts/Characters/AdvancedMovement.cs" />
+    <Compile Include="Assets/Scripts/Characters/DelilahAIController.cs" />
+    <Compile Include="Assets/Scripts/Characters/CyrusAIController.cs" />
+    <Compile Include="Assets/Scripts/Characters/KaiAbilityController.cs" />
+    <Compile Include="Assets/Scripts/Characters/AnastasiaAIController.cs" />
+    <Compile Include="Assets/Scripts/Characters/AeronAIController.cs" />
+    <Compile Include="Assets/Scripts/Characters/CharacterControllerBase.cs" />
+    <Compile Include="Assets/Scripts/Characters/MicahAIController.cs" />
+    <Compile Include="Assets/Scripts/Characters/OmegaOneController.cs" />
+    <Compile Include="Assets/Scripts/Characters/SkyixAbilityController.cs" />
+    <Compile Include="Assets/Scripts/SceneManagement/AsyncSceneLoader.cs" />
+  </ItemGroup>
+</Project>
