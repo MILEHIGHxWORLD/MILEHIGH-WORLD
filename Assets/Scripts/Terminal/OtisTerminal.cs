@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.UI;
 using TMPro;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
@@ -22,14 +23,6 @@ namespace Milehigh.World.Terminal
 
         private Coroutine? _typewriterCoroutine;
 
-        // ⚡ Bolt: Shared cache for WaitForSeconds to eliminate GC allocations during typewriter effects.
-        // Using int millisecond keys to avoid floating-point precision issues in dictionary lookups.
-        private static readonly Dictionary<int, WaitForSeconds> _waitCache = new Dictionary<int, WaitForSeconds>();
-
-        private static WaitForSeconds GetWait(float seconds)
-        {
-            int ms = Mathf.RoundToInt(seconds * 1000f);
-            if (!_waitCache.TryGetValue(ms, out WaitForSeconds wait))
         // ⚡ Bolt: Cache for WaitForSeconds to eliminate GC allocations during coroutine execution.
         private static readonly Dictionary<int, WaitForSeconds> _waitCache = new Dictionary<int, WaitForSeconds>();
 
@@ -77,12 +70,6 @@ namespace Milehigh.World.Terminal
                 WriteToTerminal("\n>");
                 return;
             }
-
-            // 🛡️ Sentinel: Input validation and DoS protection BEFORE echoing to prevent UI injection (e.g. Rich Text tags).
-            // 🎨 Palette: Echo user command to terminal for better interaction history
-            // We do this before clearing the input so the user sees immediate feedback
-            string echo = string.IsNullOrWhiteSpace(input) ? ">" : $"> {input}";
-            WriteToTerminal($"\n<color=#888888>{echo}</color>");
 
             // UX Enhancement: Clear input and refocus immediately for better flow
             if (commandInput != null)
@@ -215,27 +202,6 @@ namespace Milehigh.World.Terminal
                 }
 
                 yield return GetWait(delay);
-                // UX Learning: Punctuation delays trigger after character is visible
-                char c = outputDisplay.textInfo.characterInfo[startVisibleCount + i - 1].character;
-
-                float delay = typingSpeed;
-                if (c == '.' || c == ':' || c == '!')
-                    delay = punctuationDelay;
-                else if (c == ',')
-                    delay = commaDelay;
-
-                // ⚡ Bolt: Zero-allocation yield via shared cache
-                yield return GetWait(delay);
-                if (i > 0 && i <= charactersToReveal)
-                {
-                    char c = outputDisplay.textInfo.characterInfo[startVisibleCount + i - 1].character;
-                    if (c == '.' || c == ':' || c == '!')
-                        yield return GetWait(punctuationDelay);
-                    else if (c == ',')
-                        yield return GetWait(commaDelay);
-                }
-
-                yield return GetWait(typingSpeed);
             }
 
             _typewriterCoroutine = null;
@@ -251,7 +217,7 @@ namespace Milehigh.World.Terminal
 
             while (elapsed < duration)
             {
-                float x = Random.Range(-1f, 1f) * magnitude;
+                float x = UnityEngine.Random.Range(-1f, 1f) * magnitude;
                 commandInput.transform.localPosition = originalPos + new Vector3(x, 0, 0);
                 elapsed += Time.deltaTime;
                 yield return null;

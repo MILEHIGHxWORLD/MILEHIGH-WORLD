@@ -102,6 +102,10 @@ namespace UnityEngine
         public const float PI = 3.14159265f;
         public static float Sin(float f) => 0;
     }
+    public static class Random
+    {
+        public static float Range(float min, float max) => 0;
+    }
     public class Color
     {
         public static Color white => new Color();
@@ -172,6 +176,10 @@ namespace UnityEngine.UI
 {
     public class Selectable : UnityEngine.MonoBehaviour {}
     public class Graphic : UnityEngine.MonoBehaviour {}
+    public class Text : Graphic
+    {
+        public string text { get; set; } = "";
+    }
 }
 
 namespace TMPro
@@ -192,6 +200,11 @@ namespace TMPro
         public void ActivateInputField() {}
         public UnityEngine.Transform transform { get; } = new UnityEngine.Transform();
         public UnityEngine.UI.Graphic placeholder { get; set; }
+        public int characterLimit { get; set; }
+    }
+    public class TMP_Text : UnityEngine.UI.Graphic
+    {
+        public string text { get; set; } = "";
     }
     public class TMP_TextInfo
     {
