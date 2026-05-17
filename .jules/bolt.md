@@ -388,3 +388,6 @@
 ## 2024-05-30 - SystemInfo.deviceUniqueIdentifier Native Boundary Crossing
 **Learning:** In Unity, `UnityEngine.SystemInfo.deviceUniqueIdentifier` queries OS-level APIs and crosses the native C++ boundary, making it an extremely slow, blocking call. Calling this in frequently executed code paths (like data saving/encryption loops) causes micro-stutters.
 **Action:** Cache hardware identifiers in a static variable upon first access to prevent I/O stutters during frequent runtime operations.
+## 2024-06-01 - Redundant Input Checks in Update Loop
+**Learning:** Repeatedly calling `Input` properties/methods (like `Input.anyKeyDown` alongside specific keydown checks) inside `Update()` loops introduces unnecessary C#/C++ native boundary crossings. This overhead accumulates, leading to micro-stutters, especially in input-heavy or critical path systems like cinematic playback.
+**Action:** Eliminate duplicate or redundant input execution paths to reduce CPU overhead and prevent micro-stutters.
