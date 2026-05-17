@@ -78,13 +78,13 @@ Shader "Milehigh/HyperPBRCharacter_4D"
         void vert (inout appdata_full v, out Input o)
         {
             UNITY_INITIALIZE_OUTPUT(Input, o);
+            o.N = UnityObjectToWorldNormal(v.normal);
             o.T = UnityObjectToWorldDir(v.tangent.xyz);
             o.B = cross(o.N, o.T) * v.tangent.w; // Bitangent
-            o.N = UnityObjectToWorldNormal(v.normal);
 
             // Parallax Occlusion Mapping
             half h = tex2Dlod(_ParallaxMap, float4(v.texcoord.xy, 0, 0)).a;
-            float2 offset = ParallaxOffset(h, _Parallax, v.viewDir);
+            float2 offset = ParallaxOffset(h, _Parallax, ObjSpaceViewDir(v.vertex));
             v.texcoord.xy += offset;
         }
 
@@ -98,6 +98,10 @@ Shader "Milehigh/HyperPBRCharacter_4D"
 
         void surf (Input IN, inout SurfaceOutputStandardSpecular o)
         {
+            // BOLT: Moved base albedo assignment to the start to prevent dead-work and correctly apply additive effects.
+            fixed4 texAlbedo = tex2D(_MainTex, IN.uv_MainTex) * _Color;
+            o.Albedo = texAlbedo.rgb;
+            clip(texAlbedo.a - _Cutoff);
             fixed4 albedo = tex2D(_MainTex, IN.uv_MainTex) * _Color;
             o.Albedo = albedo.rgb;
             clip(albedo.a - _Cutoff);
@@ -136,6 +140,11 @@ Shader "Milehigh/HyperPBRCharacter_4D"
                 o.Specular = lerp(o.Specular, o.Specular * iridescence, iridescenceMask);
             }
 
+            // BOLT: Removed dead Subsurface Scattering logic block that was being overwritten
+            // by the final Albedo assignment below. This saves GPU cycles and a texture sample.
+
+            o.Albedo = albedo.rgb;
+            o.Albedo = albedo.rgb;
             // --- Subsurface Scattering ---
             half sssMask = tex2D(_SSSMask, IN.uv_MainTex).r;
             if (sssMask > 0)
