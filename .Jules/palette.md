@@ -66,6 +66,10 @@
 **Learning:** Simple punctuation pauses can feel unnatural if triggered by technical names (e.g., "Sky.ix") or in the middle of ellipsis ("..."). A look-ahead check for trailing whitespace ensures pauses only occur at true sentence ends. Furthermore, dynamically coloring visual progression cues (like "▽") to match the current speaker's theme color provides a subtle but effective micro-reinforcement of the speaker's identity, enhancing immersion without cluttering the UI.
 **Action:** Use look-ahead logic for rhythmic punctuation pauses to avoid false positives and leverage current UI state (like name color) to theme interactive or progression indicators.
 
+## 2026-04-18 - [Terminal Orientation and Command Feedback]
+**Learning:** In terminal-style UIs, users can feel "lost" if destructive commands like 'clear' leave the screen entirely blank. Re-issuing a welcome or orientation message after clearing the display provides immediate re-orientation. Additionally, echoing user commands in a distinct, muted color (#888888) provides clear interaction history and differentiates user input from system responses.
+**Action:** Always provide an orientation prompt after display resets and implement colored command echoing for interactive terminal components.
+
 ## 2026-03-26 - [Advanced Punctuation Clusters in Typewriter Effects]
 **Learning:** Punctuation clusters (e.g., "!!?" or "...") can cause stuttering if every character triggers a full sentence-end pause. Implementing a look-ahead to identify the end of a cluster ensures the long pause only occurs once the full punctuation mark is revealed, maintaining a professional and intentional rhythm. Additionally, calling 'ForceMeshUpdate' before calculating final 'maxVisibleCharacters' is crucial when using rich text in TMPro to ensure the underlying 'textInfo' accurately reflects the rendered characters.
 **Action:** Use cluster-aware look-ahead logic for rhythmic pauses and always force a mesh update before concluding character-based animations in TextMeshPro.
