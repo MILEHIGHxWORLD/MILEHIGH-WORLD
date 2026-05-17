@@ -72,7 +72,11 @@ namespace Milehigh.World.Terminal
 
         public void ProcessCommand(string input)
         {
-            if (string.IsNullOrWhiteSpace(input)) return;
+            if (string.IsNullOrWhiteSpace(input))
+            {
+                WriteToTerminal("\n>");
+                return;
+            }
 
             // 🛡️ Sentinel: Input validation and DoS protection BEFORE echoing to prevent UI injection (e.g. Rich Text tags).
             // 🎨 Palette: Echo user command to terminal for better interaction history
@@ -183,6 +187,34 @@ namespace Milehigh.World.Terminal
             {
                 outputDisplay.maxVisibleCharacters = startVisibleCount + i;
 
+                // 🎨 Palette: Rhythmic punctuation pauses for an "analog" terminal feel.
+                // We check the last revealed character to pause after it appears.
+                char c = outputDisplay.textInfo.characterInfo[startVisibleCount + i - 1].character;
+                float delay = typingSpeed;
+
+                if (c == '.' || c == '!' || c == '?')
+                {
+                    // Smart Punctuation: Look ahead to avoid pauses in filenames or technical terms (e.g., Sky.ix)
+                    bool isEndOfSentence = true;
+                    if (startVisibleCount + i < endVisibleCount)
+                    {
+                        char nextChar = outputDisplay.textInfo.characterInfo[startVisibleCount + i].character;
+                        if (!char.IsWhiteSpace(nextChar)) isEndOfSentence = false;
+                    }
+
+                    if (isEndOfSentence)
+                    {
+                        // Check for ellipsis (multiple dots)
+                        bool isEllipsis = (c == '.' && startVisibleCount + i - 2 >= 0 && outputDisplay.textInfo.characterInfo[startVisibleCount + i - 2].character == '.');
+                        delay = isEllipsis ? typingSpeed * 4f : punctuationDelay;
+                    }
+                }
+                else if (c == ',' || c == ':' || c == ';')
+                {
+                    delay = commaDelay;
+                }
+
+                yield return GetWait(delay);
                 // UX Learning: Punctuation delays trigger after character is visible
                 char c = outputDisplay.textInfo.characterInfo[startVisibleCount + i - 1].character;
 

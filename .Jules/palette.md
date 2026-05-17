@@ -101,3 +101,6 @@
 ## 2024-06-21 - [Terminal Affordance and Feedback]
 **Learning:** Terminal interfaces in Unity (TMPro) feel more intuitive when they provide clear affordances (placeholders) and immediate feedback (command echoing). Echoing the user's input in a muted color (#888888) creates a clear distinction between user actions and system responses while maintaining a readable interaction history.
 **Action:** Always include placeholder text for input fields and implement command echoing in terminal-style UIs to improve user orientation and feedback loops.
+## 2026-05-15 - [Rhythmic Typewriter and Smart Punctuation in Terminal UIs]
+**Learning:** Terminal-style interfaces feel significantly more "analog" and responsive when the typewriter effect uses rhythmic punctuation pauses. However, simple char-based pauses can fail on technical abbreviations (e.g., "Sky.ix") or ellipses. Implementing look-ahead logic to verify trailing whitespace ensures pauses only occur at true sentence boundaries, while special handling for ellipsis dots prevents jerky reveal cadences.
+**Action:** Use look-ahead logic for punctuation-based delays in all typewriter implementations to distinguish between sentence ends, abbreviations, and ellipses.
