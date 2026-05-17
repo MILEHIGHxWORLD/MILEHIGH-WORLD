@@ -47,11 +47,11 @@ namespace Milehigh.Cinematics
         private float idleTimer;
         private bool playerInteracted;
         private UnityEngine.Vector3 originalSpeakerScale;
+
+        // BOLT: Cache for WaitForSeconds to eliminate GC allocations during coroutine execution.
+        private static readonly System.Collections.Generic.Dictionary<int, UnityEngine.WaitForSeconds> _waitForSecondsCache = new System.Collections.Generic.Dictionary<int, UnityEngine.WaitForSeconds>();
         private RectTransform _dialogueRect = null!;
         private Vector2 _originalDialoguePos;
-
-        // BOLT: Cache for UnityEngine.WaitForSeconds to eliminate GC allocations during coroutine execution.
-        private static readonly Dictionary<int, UnityEngine.WaitForSeconds> _waitForSecondsCache = new Dictionary<int, UnityEngine.WaitForSeconds>();
 
         private UnityEngine.WaitForSeconds GetWait(float time)
         {
@@ -76,6 +76,9 @@ namespace Milehigh.Cinematics
             _dialogueRect = DialogueBox.GetComponent<RectTransform>();
             _originalDialoguePos = _dialogueRect.anchoredPosition;
 
+            if (SkipHintText != null) SkipHintText.gameObject.SetActive(false);
+
+            // ⚡ Bolt: Pre-cache animators to eliminate GetComponent allocations during the cinematic sequence.
             if (Skyix_Character != null) _skyixAnimator = Skyix_Character.GetComponent<UnityEngine.Animator>();
             if (Kai_Character != null) _kaiAnimator = Kai_Character.GetComponent<UnityEngine.Animator>();
             if (Delilah_Character != null) _delilahAnimator = Delilah_Character.GetComponent<UnityEngine.Animator>();
@@ -92,6 +95,7 @@ namespace Milehigh.Cinematics
                 SkipHintText.gameObject.SetActive(false);
             }
 
+            // Palette: Accessibility - Consolidated text outline for better contrast in dark scenes.
             foreach (var text in new[] { SpeakerNameText, DialogueText, SkipHintText })
             {
                 if (text != null && text.fontMaterial != null)
@@ -136,6 +140,7 @@ namespace Milehigh.Cinematics
         {
             if (typingCoroutine != null) this.StopCoroutine(typingCoroutine);
 
+            // UX Enhancement: Reset idle timer and interaction state for each new dialogue line.
             idleTimer = 0f;
             playerInteracted = false;
             if (SkipHintText != null) SkipHintText.gameObject.SetActive(false);
@@ -166,6 +171,7 @@ namespace Milehigh.Cinematics
 
             skipRequested = false;
 
+            // Audio: Play the character's voice line if assigned.
             UnityEngine.AudioSource? voiceSource = speaker switch
             {
                 "Sky.ix" => Skyix_VoiceSource,
@@ -180,6 +186,7 @@ namespace Milehigh.Cinematics
         }
 
         private IEnumerator TypeDialogue(string message)
+        private System.Collections.IEnumerator TypeDialogue(string message)
         {
             // Palette: Pre-append completion cue and use maxVisibleCharacters to ensure layout stability.
             DialogueText.text = $"{message} <color=#{currentSpeakerHex}>▽</color>";
@@ -257,6 +264,12 @@ namespace Milehigh.Cinematics
             float startAlpha = DialogueCanvasGroup.alpha;
             UnityEngine.Vector2 startPos = _originalDialoguePos + (targetAlpha > 0 ? UnityEngine.Vector2.down * 30f : UnityEngine.Vector2.zero);
             UnityEngine.Vector2 endPos = _originalDialoguePos + (targetAlpha > 0 ? UnityEngine.Vector2.zero : UnityEngine.Vector2.down * 30f);
+        private System.Collections.IEnumerator FadeDialogueBox(float targetAlpha, float duration)
+        {
+            if (targetAlpha > 0) DialogueBox.SetActive(true);
+            float startAlpha = DialogueCanvasGroup.alpha;
+            UnityEngine.Vector2 startPos = _originalDialoguePos + (targetAlpha > 0 ? new UnityEngine.Vector2(0, -30f) : UnityEngine.Vector2.zero);
+            UnityEngine.Vector2 endPos = _originalDialoguePos + (targetAlpha <= 0 ? new UnityEngine.Vector2(0, -30f) : UnityEngine.Vector2.zero);
 
             float elapsed = 0f;
             while (elapsed < duration)
@@ -269,6 +282,11 @@ namespace Milehigh.Cinematics
             }
             DialogueCanvasGroup.alpha = targetAlpha;
             if (_dialogueRect != null) _dialogueRect.anchoredPosition = endPos;
+                _dialogueRect.anchoredPosition = UnityEngine.Vector2.Lerp(startPos, endPos, t);
+                yield return null;
+            }
+            DialogueCanvasGroup.alpha = targetAlpha;
+            _dialogueRect.anchoredPosition = endPos;
             if (targetAlpha <= 0) DialogueBox.SetActive(false);
         }
 

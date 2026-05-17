@@ -108,9 +108,16 @@ namespace Milehigh.Core
             return this.ProcessXOR(obfuscated);
         }
 
+        // 🛡️ Sentinel: Cache deviceUniqueIdentifier to avoid expensive native boundary crossing
+        private static string? _cachedDeviceIdentifier;
+
         private string ProcessXOR(string textToProcess)
         {
-            string salt = UnityEngine.SystemInfo.deviceUniqueIdentifier ?? "MILEHIGH_FALLBACK_SALT";
+            if (string.IsNullOrEmpty(_cachedDeviceIdentifier))
+            {
+                _cachedDeviceIdentifier = UnityEngine.SystemInfo.deviceUniqueIdentifier ?? "MILEHIGH_FALLBACK_SALT";
+            }
+            string salt = _cachedDeviceIdentifier;
             char[] output = new char[textToProcess.Length];
 
             for (int i = 0; i < textToProcess.Length; i++)
