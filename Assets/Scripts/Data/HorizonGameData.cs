@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -117,9 +118,9 @@ namespace Milehigh.Data
             }
 
             // SECURITY: Ensure voidSaturationLevel is within the expected [0.0, 1.0] range
-            if (voidSaturationLevel < 0.0f || voidSaturationLevel > 1.0f)
+            if (float.IsNaN(voidSaturationLevel) || float.IsInfinity(voidSaturationLevel) || voidSaturationLevel < 0.0f || voidSaturationLevel > 1.0f)
             {
-                UnityEngine.Debug.LogError($"[Security] Metadata validation failed: voidSaturationLevel {voidSaturationLevel} is out of range [0.0, 1.0]");
+                UnityEngine.Debug.LogError($"[Security] Metadata validation failed: voidSaturationLevel {voidSaturationLevel} is invalid or out of range [0.0, 1.0]");
                 return false;
             }
 
@@ -215,10 +216,21 @@ namespace Milehigh.Data
                 UnityEngine.Debug.LogError($"[Security] CharacterProfile validation failed: Role for '{name}' exceeds 64 characters.");
                 return false;
             }
-            if (traits != null && traits.Length > 20)
+            if (traits != null)
             {
-                UnityEngine.Debug.LogError($"[Security] CharacterProfile validation failed: Too many traits for '{name}'.");
-                return false;
+                if (traits.Length > 20)
+                {
+                    UnityEngine.Debug.LogError($"[Security] CharacterProfile validation failed: Too many traits for '{name}'.");
+                    return false;
+                }
+                foreach (var trait in traits)
+                {
+                    if (string.IsNullOrEmpty(trait) || trait.Length > 64)
+                    {
+                        UnityEngine.Debug.LogError($"[Security] CharacterProfile validation failed: Trait in '{name}' is null, empty, or too long.");
+                        return false;
+                    }
+                }
             }
             if (!string.IsNullOrEmpty(behaviorScript) && behaviorScript.Length > 2048)
             {
@@ -292,6 +304,16 @@ namespace Milehigh.Data
             if (action.Length > 128)
             {
                 UnityEngine.Debug.LogError($"[Security] ObjectInteraction validation failed for '{objectId}': action exceeds 128 characters.");
+                return false;
+            }
+
+            // SECURITY: Ensure float parameters are valid numbers and not NaN/Infinity
+            if (float.IsNaN(floatValue) || float.IsInfinity(floatValue) ||
+                float.IsNaN(x) || float.IsInfinity(x) ||
+                float.IsNaN(y) || float.IsInfinity(y) ||
+                float.IsNaN(z) || float.IsInfinity(z))
+            {
+                UnityEngine.Debug.LogError($"[Security] ObjectInteraction validation failed for '{objectId}': Numeric parameters contain NaN or Infinity.");
                 return false;
             }
             return true;
@@ -438,6 +460,11 @@ namespace Milehigh.Data
             if (!string.IsNullOrEmpty(name) && name.Length > 128)
             {
                 UnityEngine.Debug.LogError($"[Security] SceneScenario '{scenarioId}' validation failed: name too long.");
+                return false;
+            }
+            if (!string.IsNullOrEmpty(description) && description.Length > 1024)
+            {
+                UnityEngine.Debug.LogError($"[Security] SceneScenario '{scenarioId}' validation failed: description exceeds 1024 characters.");
                 return false;
             }
 

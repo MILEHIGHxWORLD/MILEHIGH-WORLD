@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using System;
 using System.IO;
@@ -200,8 +201,8 @@ namespace Milehigh.Core
                     Debug.LogError($"Error loading campaign data from {fileName}");
                     currentCampaignData = null;
                     // SECURITY: Catch exceptions during file read/JSON parse to fail securely and avoid leaking internal stack traces or absolute paths.
-                    // Mask runtime exception details and log only the file name to prevent information disclosure.
-                    UnityEngine.Debug.LogError($"[Security] Error loading campaign data from {fileName}: {ex.Message}");
+                    // Mask runtime exception details and log only the file name and exception type to prevent information disclosure of internal paths.
+                    UnityEngine.Debug.LogError($"[Security] Error loading campaign data from {fileName}: ({ex.GetType().Name})");
                     this.currentCampaignData = null!;
                 }
             }

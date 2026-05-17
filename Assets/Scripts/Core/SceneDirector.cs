@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using UnityEngine;
 using System.Collections.Generic;
@@ -498,10 +499,15 @@ namespace Milehigh.Core
             string sanitizedId = interaction.objectId.TrimStart('/');
 
             // BOLT: Use cached HashSet for efficient lookup and zero per-call allocation.
-            if (_protectedManagers != null && _protectedManagers.Contains(sanitizedId))
+            // 🛡️ Sentinel: Enhanced IDOR protection - check if any part of the path targets a protected manager.
+            string[] segments = sanitizedId.Split('/');
+            foreach (string segment in segments)
             {
-                Debug.LogWarning($"[Security] Blocked unauthorized interaction attempt on core system: {sanitizedId}");
-                return;
+                if (_protectedManagers != null && _protectedManagers.Contains(segment))
+                {
+                    Debug.LogWarning($"[Security] Blocked unauthorized interaction attempt on core system: {sanitizedId} (targeted protected segment: {segment})");
+                    return;
+                }
             }
 
             GameObject? target = GetCachedObject(interaction.objectId);
