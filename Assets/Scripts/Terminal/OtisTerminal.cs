@@ -72,6 +72,9 @@ namespace Milehigh.World.Terminal
 
         public void ProcessCommand(string input)
         {
+            if (string.IsNullOrWhiteSpace(input)) return;
+
+            // 🛡️ Sentinel: Input validation and DoS protection BEFORE echoing to prevent UI injection (e.g. Rich Text tags).
             // 🎨 Palette: Echo user command to terminal for better interaction history
             // We do this before clearing the input so the user sees immediate feedback
             string echo = string.IsNullOrWhiteSpace(input) ? ">" : $"> {input}";
@@ -99,6 +102,16 @@ namespace Milehigh.World.Terminal
                 WriteToTerminal("\n<color=#FF0000>[SECURITY]</color>: Invalid characters. Use only A-Z, 0-9, spaces, '.', '_', and '-'.");
                 if (commandInput != null) StartCoroutine(ShakeInputField());
                 return;
+            }
+
+            // 🎨 Palette: Echo user command to terminal AFTER validation to ensure safe rendering.
+            WriteToTerminal($"\n<color=#888888>> {input}</color>");
+
+            // UX Enhancement: Clear input and refocus immediately for better flow
+            if (commandInput != null)
+            {
+                commandInput.text = "";
+                commandInput.ActivateInputField();
             }
 
             string[] parts = input.Trim().Split(' ');
