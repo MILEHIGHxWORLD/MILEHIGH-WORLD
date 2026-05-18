@@ -34,6 +34,25 @@ namespace Milehigh.World.Terminal
             }
         }
 
+        private void Update()
+        {
+            // Palette: Productivity - Ctrl+L shortcut to clear the terminal for better workspace management.
+            bool isControlPressed = Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl);
+            if (isControlPressed && Input.GetKeyDown(KeyCode.L))
+            {
+                ClearTerminal();
+            }
+        }
+
+        private void ClearTerminal()
+        {
+            if (outputDisplay != null)
+            {
+                outputDisplay.text = "";
+                outputDisplay.maxVisibleCharacters = 0;
+            }
+        }
+
         public void ProcessCommand(string input)
         {
             if (string.IsNullOrWhiteSpace(input)) return;
@@ -65,8 +84,7 @@ namespace Milehigh.World.Terminal
 
             if (command == "clear")
             {
-                outputDisplay.text = "";
-                outputDisplay.maxVisibleCharacters = 0;
+                ClearTerminal();
                 return;
             }
 
@@ -74,7 +92,7 @@ namespace Milehigh.World.Terminal
             {
                 WriteToTerminal("\n[SYSTEM]: <color=#FFFF00>Available Commands:</color>" +
                                 "\n - <color=#00FFFF>help</color>: Show this message." +
-                                "\n - <color=#00FFFF>clear</color>: Clear the terminal display." +
+                                "\n - <color=#00FFFF>clear</color>: Clear the terminal display (or Ctrl+L)." +
                                 "\n - <color=#00FFFF>[cmd] [arg1] [arg2]</color>: Execute extended system commands.");
                 return;
             }
