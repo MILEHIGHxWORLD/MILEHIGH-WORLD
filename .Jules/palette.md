@@ -82,6 +82,10 @@
 **Learning:** Pacing in dialogue-heavy cinematics is significantly improved by distinguishing between sentence endings (long pause), ellipses (medium pause), and mid-word periods (no pause, e.g., 'Sky.ix'). Furthermore, color-coding progress indicators (like the '▽' cue) to match the speaker's theme strengthens the visual association between the narrative content and the character, reducing cognitive load for the player.
 **Action:** Implement look-ahead/look-behind logic for punctuation to refine pacing, and use speaker-specific colors for interactive UI cues via TMP rich text tags.
 
+## 2026-06-15 - [Terminal Command History for User Flow]
+**Learning:** In terminal-style interfaces, command history navigation (Up/Down arrows) is a critical "quality of life" feature that reduces repetitive typing and significantly improves user flow. For Unity InputFields, manually managing the caret position after updating the text is essential to ensure a seamless "command-line" feel.
+**Action:** Always implement command history and inclusive shortcut hints for terminal components to enhance accessibility and intuitiveness.
+
 ## 2026-03-26 - [Dynamic Speaker Feedback and Visual Flash Prevention]
 **Learning:** To provide subtle but effective feedback for speaker changes, a brief scaling animation ("PopScale") on the speaker's name text enhances presence without distraction. To ensure this remains stable over many interactions, caching the 'originalScale' in 'Start()' is necessary to prevent accumulation errors (drift) from interrupted animations. Additionally, to avoid a one-frame 'visual flash' of full text before a typewriter reveal starts, 'maxVisibleCharacters' must be set to 0 immediately after the text property is updated and before 'ForceMeshUpdate()' is called.
 **Action:** Use cached baseline values for UI animations to prevent drift, and ensure 'maxVisibleCharacters' is zeroed before mesh updates in typewriter implementations.

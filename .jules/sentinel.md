@@ -246,3 +246,7 @@
 **Vulnerability:** IDOR protection in `SceneDirector.cs` could be bypassed by using path segments (e.g., "Parent/CampaignManager") because it only checked the full trimmed ID against protected managers. Additionally, floating-point fields in `HorizonGameData.cs` lacked `NaN` and `Infinity` validation, which could lead to "physics explosions" or logic bypasses.
 **Learning:** Unity's `GameObject.Find` supports hierarchical paths, so security boundaries must verify *every* segment of a path-like ID, not just the leaf or the full string. Furthermore, standard range checks (`x >= 0`) are insufficient for untrusted numeric input as they may not catch `NaN` or `Infinity`.
 **Prevention:** Split hierarchical object IDs by '/' and verify every resulting segment against the `_protectedManagers` whitelist. Always include `float.IsNaN` and `float.IsInfinity` checks in data validation logic for deserialized floating-point values.
+## 2024-05-26 - Missing IDOR Protection for CombatManager
+**Vulnerability:** The `CombatManager` singleton was missing from the `_protectedManagers` blocklist in `SceneDirector.cs`.
+**Learning:** Any new core manager or singleton must be explicitly added to the IDOR blocklists to prevent external data from manipulating its state via `GameObject.Find`.
+**Prevention:** Maintain a comprehensive list of all critical singletons and ensure they are all included in the `_protectedManagers` blocklist.
