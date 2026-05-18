@@ -104,3 +104,7 @@
 ## 2026-05-15 - [Rhythmic Typewriter and Smart Punctuation in Terminal UIs]
 **Learning:** Terminal-style interfaces feel significantly more "analog" and responsive when the typewriter effect uses rhythmic punctuation pauses. However, simple char-based pauses can fail on technical abbreviations (e.g., "Sky.ix") or ellipses. Implementing look-ahead logic to verify trailing whitespace ensures pauses only occur at true sentence boundaries, while special handling for ellipsis dots prevents jerky reveal cadences.
 **Action:** Use look-ahead logic for punctuation-based delays in all typewriter implementations to distinguish between sentence ends, abbreviations, and ellipses.
+
+## 2026-05-18 - [Terminal Command History and Cursor Management]
+**Learning:** In terminal-style UIs (Unity TMPro), implementing a "command history" via UpArrow significantly improves user experience by reducing repetitive typing. Crucially, after setting the text programmatically, calling 'MoveTextEnd(false)' is required to ensure the caret is at the end of the line, providing a smooth continuation of input.
+**Action:** Always implement 'MoveTextEnd(false)' when programmatically recalling previous terminal commands to maintain input flow.

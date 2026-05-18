@@ -21,6 +21,7 @@ namespace Milehigh.World.Terminal
         private static readonly Regex SafeCommandRegex = new Regex(@"^[a-zA-Z0-9\s._\-]+$", RegexOptions.Compiled);
 
         private Coroutine? _typewriterCoroutine;
+        private string _lastCommand = "";
 
         // ⚡ Bolt: Shared cache for WaitForSeconds to eliminate GC allocations during typewriter effects.
         // Using int millisecond keys to avoid floating-point precision issues in dictionary lookups.
@@ -30,13 +31,6 @@ namespace Milehigh.World.Terminal
         {
             int ms = Mathf.RoundToInt(seconds * 1000f);
             if (!_waitCache.TryGetValue(ms, out WaitForSeconds wait))
-        // ⚡ Bolt: Cache for WaitForSeconds to eliminate GC allocations during coroutine execution.
-        private static readonly Dictionary<int, WaitForSeconds> _waitCache = new Dictionary<int, WaitForSeconds>();
-
-        private WaitForSeconds GetWait(float seconds)
-        {
-            int ms = Mathf.RoundToInt(seconds * 1000f);
-            if (!_waitCache.TryGetValue(ms, out var wait))
             {
                 wait = new WaitForSeconds(seconds);
                 _waitCache[ms] = wait;
@@ -70,6 +64,19 @@ namespace Milehigh.World.Terminal
             }
         }
 
+        private void Update()
+        {
+            // 🎨 Palette: Command History (Up Arrow) to recall previous input
+            if (commandInput != null && commandInput.isFocused && Input.GetKeyDown(KeyCode.UpArrow))
+            {
+                if (!string.IsNullOrEmpty(_lastCommand))
+                {
+                    commandInput.text = _lastCommand;
+                    commandInput.MoveTextEnd(false);
+                }
+            }
+        }
+
         public void ProcessCommand(string input)
         {
             if (string.IsNullOrWhiteSpace(input))
@@ -79,21 +86,6 @@ namespace Milehigh.World.Terminal
             }
 
             // 🛡️ Sentinel: Input validation and DoS protection BEFORE echoing to prevent UI injection (e.g. Rich Text tags).
-            // 🎨 Palette: Echo user command to terminal for better interaction history
-            // We do this before clearing the input so the user sees immediate feedback
-            string echo = string.IsNullOrWhiteSpace(input) ? ">" : $"> {input}";
-            WriteToTerminal($"\n<color=#888888>{echo}</color>");
-
-            // UX Enhancement: Clear input and refocus immediately for better flow
-            if (commandInput != null)
-            {
-                commandInput.text = "";
-                commandInput.ActivateInputField();
-            }
-
-            if (string.IsNullOrWhiteSpace(input)) return;
-
-            // 🛡️ Sentinel: Input validation and DoS protection
             if (input.Length > MaxInputLength)
             {
                 WriteToTerminal("\n<color=#FF0000>[SECURITY]</color>: Input exceeds maximum length (256 characters).");
@@ -110,6 +102,7 @@ namespace Milehigh.World.Terminal
 
             // 🎨 Palette: Echo user command to terminal AFTER validation to ensure safe rendering.
             WriteToTerminal($"\n<color=#888888>> {input}</color>");
+            _lastCommand = input;
 
             // UX Enhancement: Clear input and refocus immediately for better flow
             if (commandInput != null)
@@ -214,28 +207,9 @@ namespace Milehigh.World.Terminal
                     delay = commaDelay;
                 }
 
-                yield return GetWait(delay);
-                // UX Learning: Punctuation delays trigger after character is visible
-                char c = outputDisplay.textInfo.characterInfo[startVisibleCount + i - 1].character;
-
-                float delay = typingSpeed;
-                if (c == '.' || c == ':' || c == '!')
-                    delay = punctuationDelay;
-                else if (c == ',')
-                    delay = commaDelay;
-
                 // ⚡ Bolt: Zero-allocation yield via shared cache
+                // UX Learning: Punctuation delays trigger after character is visible
                 yield return GetWait(delay);
-                if (i > 0 && i <= charactersToReveal)
-                {
-                    char c = outputDisplay.textInfo.characterInfo[startVisibleCount + i - 1].character;
-                    if (c == '.' || c == ':' || c == '!')
-                        yield return GetWait(punctuationDelay);
-                    else if (c == ',')
-                        yield return GetWait(commaDelay);
-                }
-
-                yield return GetWait(typingSpeed);
             }
 
             _typewriterCoroutine = null;
@@ -251,7 +225,7 @@ namespace Milehigh.World.Terminal
 
             while (elapsed < duration)
             {
-                float x = Random.Range(-1f, 1f) * magnitude;
+                float x = UnityEngine.Random.Range(-1f, 1f) * magnitude;
                 commandInput.transform.localPosition = originalPos + new Vector3(x, 0, 0);
                 elapsed += Time.deltaTime;
                 yield return null;
