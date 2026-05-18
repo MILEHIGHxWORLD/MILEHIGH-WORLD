@@ -22,7 +22,7 @@ namespace Milehigh.Core
         // 🛡️ Sentinel & BOLT: Protected managers hashset for fast and secure O(1) lookups
         private static readonly HashSet<string> _protectedManagers = new HashSet<string>
         {
-            "CampaignManager", "SceneDirector", "CameraManager", "AlliancePowerManager", "GlobalResonanceManager"
+            "CampaignManager", "SceneDirector", "CameraManager", "AlliancePowerManager", "GlobalResonanceManager", "CombatManager"
         };
 
         // 🛡️ Sentinel: Regex for whitelisting safe object names to prevent DoS via expensive GameObject.Find operations.
