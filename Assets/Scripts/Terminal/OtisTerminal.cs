@@ -16,6 +16,8 @@ namespace Milehigh.World.Terminal
         private static readonly Regex SafeCommandRegex = new Regex(@"^[a-zA-Z0-9\s._\-]+$", RegexOptions.Compiled);
 
         private Coroutine? _typewriterCoroutine;
+        private List<string> _commandHistory = new List<string>();
+        private int _historyIndex = -1;
 
         private void Start()
         {
@@ -34,9 +36,26 @@ namespace Milehigh.World.Terminal
             }
         }
 
+        private void Update()
+        {
+            if (commandInput == null || !commandInput.isFocused) return;
+            if (Input.GetKeyDown(KeyCode.UpArrow)) NavigateHistory(-1);
+            else if (Input.GetKeyDown(KeyCode.DownArrow)) NavigateHistory(1);
+        }
+
+        private void NavigateHistory(int direction)
+        {
+            if (_commandHistory.Count == 0) return;
+            _historyIndex = Mathf.Clamp(_historyIndex + direction, 0, _commandHistory.Count);
+            commandInput.text = _historyIndex < _commandHistory.Count ? _commandHistory[_historyIndex] : "";
+            commandInput.caretPosition = commandInput.text.Length;
+        }
+
         public void ProcessCommand(string input)
         {
             if (string.IsNullOrWhiteSpace(input)) return;
+            if (_commandHistory.Count == 0 || _commandHistory[^1] != input) _commandHistory.Add(input);
+            _historyIndex = _commandHistory.Count;
 
             // UX Enhancement: Clear input and refocus immediately for better flow
             if (commandInput != null)
@@ -73,9 +92,9 @@ namespace Milehigh.World.Terminal
             if (command == "help")
             {
                 WriteToTerminal("\n[SYSTEM]: <color=#FFFF00>Available Commands:</color>" +
-                                "\n - <color=#00FFFF>help</color>: Show this message." +
-                                "\n - <color=#00FFFF>clear</color>: Clear the terminal display." +
-                                "\n - <color=#00FFFF>[cmd] [arg1] [arg2]</color>: Execute extended system commands.");
+                                "\n - <color=#00FFFF>help/clear</color>: Show help or clear display." +
+                                "\n - <color=#00FFFF>[cmd] [arg1] [arg2]</color>: Execute commands." +
+                                "\n\n[SYSTEM]: <color=#FFFF00>Shortcuts:</color> Up/Down Arrow for History.");
                 return;
             }
 
@@ -150,8 +169,8 @@ namespace Milehigh.World.Terminal
 
             while (elapsed < duration)
             {
-                float x = Random.Range(-1f, 1f) * magnitude;
-                commandInput.transform.localPosition = originalPos + new Vector3(x, 0, 0);
+                float x = UnityEngine.Random.Range(-1f, 1f) * magnitude;
+                commandInput.transform.localPosition = originalPos + new UnityEngine.Vector3(x, 0, 0);
                 elapsed += Time.deltaTime;
                 yield return null;
             }
