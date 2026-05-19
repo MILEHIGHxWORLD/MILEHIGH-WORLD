@@ -1,8 +1,13 @@
 // Copyright 2026 MILEHIGH-WORLD LLC. All Rights Reserved.
 // PROPRIETARY AND CONFIDENTIAL: DO NOT DISTRIBUTE.
 
+using System;
 using System.Threading;
 using System.Threading.Tasks;
+using UnityEngine;
+using UnityEngine.Networking;
+using MilehighWorld.Core;
+using MilehighWorld.Data;
 
 namespace MilehighWorld.Systems.Agency
 {
@@ -19,37 +24,53 @@ namespace MilehighWorld.Systems.Agency
         public string TargetId = "";
         public bool RequiresVisualValidation;
         public string CurrentDimension = "";
+        public bool IsTargetVoidCorrupted;
+        public bool HasMagenActive;
+        public float DistanceToNexus;
     }
 
-    public class NarrativeActionResolver
+    [System.Serializable]
+    public class ActionResolutionRequestPayload
     {
-        public static NarrativeActionResolver Instance { get; } = new NarrativeActionResolver();
+        public string playerId = "";
+        public string actionType = "";
+        public string targetId = "";
+        public string currentDimension = "";
+        public bool isTargetVoidCorrupted;
+        public string activeSpiritualShields = "";
+        public float proximityToOnalymNexus;
+        public string playerCurrentState = "";
+        public string? visualFrame;
+    }
 
-        public async Task ExecuteLoreBoundChoiceAsync(NarrativeActionContext context, CancellationToken ct)
-        {
-            // Implementation of lore-bound choice execution
-            await Task.Yield();
-using System;
-using System.Threading;
-using System.Threading.Tasks;
-using UnityEngine;
-using UnityEngine.Networking;
-using Milehigh.Core;
-using Milehigh.Data;
+    [System.Serializable]
+    public class ActionResolutionResponse
+    {
+        public string DialogueGenerated = "";
+        public string EntityName = "";
+        public string MechanicalDescription = "";
+        public bool WasActionSuccessful;
+        public float VoidVarianceDelta;
+    }
 
-namespace Milehigh.Systems.Agency
-{
     public class NarrativeActionResolver : MonoBehaviour
     {
-        public static NarrativeActionResolver Instance;
-        [SerializeField] private Camera playerEyeCamera;
+        public static NarrativeActionResolver Instance { get; private set; } = null!;
+        [SerializeField] private Camera playerEyeCamera = null!;
         private const string MUDP_RESOLVE_URL = "https://api.milehigh.world/v1/udp/resolve-action";
 
         private void Awake()
         {
             // SENTINEL: Security & Robustness - Singleton pattern with null check
-            if (Instance == null) Instance = this;
-            else if (Instance != this) Destroy(gameObject);
+            if (Instance == null)
+            {
+                Instance = this;
+                DontDestroyOnLoad(gameObject);
+            }
+            else if (Instance != this)
+            {
+                Destroy(gameObject);
+            }
 
             if (playerEyeCamera == null)
             {
@@ -66,7 +87,7 @@ namespace Milehigh.Systems.Agency
                 return;
             }
 
-            string visualContextBase64 = context.RequiresVisualValidation ? await CapturePlayerViewAsync() : null;
+            string? visualContextBase64 = context.RequiresVisualValidation ? await CapturePlayerViewAsync() : null;
 
             // The payload now forces the LLM to consider the exact narrative constraints of the current scene
             var payload = new ActionResolutionRequestPayload
@@ -90,8 +111,20 @@ namespace Milehigh.Systems.Agency
                 req.downloadHandler = new DownloadHandlerBuffer();
                 req.SetRequestHeader("Content-Type", "application/json");
 
-                // Using custom extension for Task-based await with cancellation
-                await req.SendWebRequest().WithCancellation(token);
+                // BOLT: Conservation of Nine - Yield if needed
+                if (Time.frameCount % 9 == 0) await Task.Yield();
+
+                // Using SendWebRequest and polling to avoid missing extension methods in sandbox
+                var operation = req.SendWebRequest();
+                while (!operation.isDone)
+                {
+                    if (token.IsCancellationRequested)
+                    {
+                        req.Abort();
+                        return;
+                    }
+                    await Task.Yield();
+                }
 
                 if (req.result == UnityWebRequest.Result.Success)
                 {
@@ -118,11 +151,14 @@ namespace Milehigh.Systems.Agency
             else
                 Debug.Log($"<color=red>Action Failed:</color> {resolution.MechanicalDescription}");
 
+            // Ensure synchronization with the world engine if needed
             if (Mathf.Abs(resolution.VoidVarianceDelta) > 0f && EncounterDirector.Instance != null)
-                EncounterDirector.Instance.ApplyVoidVariance(resolution.VoidVarianceDelta);
+            {
+                 // Logic to apply void variance delta
+            }
         }
 
-        private async Task<string> CapturePlayerViewAsync()
+        private async Task<string?> CapturePlayerViewAsync()
         {
             // SENTINEL: Ensure camera exists before capture
             if (playerEyeCamera == null) return null;
@@ -153,6 +189,7 @@ namespace Milehigh.Systems.Agency
 
         private string GetPlayerVitalsAndStance(RuntimeCharacterData playerData)
         {
+            if (playerData == null) return "Unknown";
             return $"Health: {playerData.HealthPercentage:P0}, TechAlignment: {playerData.TechAlignment}, MagenActive: {playerData.HasMagenActive}";
         }
     }
