@@ -4,7 +4,7 @@
 using UnityEngine;
 using MilehighWorld.Core;
 
-namespace MilehighWorld.Characters
+namespace MilehighWorld.Character
 {
     public class SkylxController : MonoBehaviour
     {

@@ -4,8 +4,9 @@
     <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="Cinematics/Cinematic_IntoTheVoid.cs" />
-    <Compile Include="Cinematics/CinematicController.cs" />
+    <Compile Include="Story/Cinematic_IntoTheVoid.cs" />
+    <Compile Include="Story/CinematicController.cs" />
+    <Compile Include="Story/ReverieDialogueSync.cs" />
     <Compile Include="Data/CharacterData.cs" />
     <Compile Include="Data/HorizonGameData.cs" />
     <Compile Include="Editor/CharacterFactory.cs" />
@@ -15,20 +16,22 @@
     <Compile Include="Core/SceneDirector.cs" />
     <Compile Include="Core/AlliancePowerManager.cs" />
     <Compile Include="Core/CharacterAbilitiesBase.cs" />
+    <Compile Include="Core/GameManager.cs" />
+    <Compile Include="Core/IXNodeController.cs" />
     <Compile Include="Physics/CustomCollision.cs" />
     <Compile Include="Physics/UnderwaterPhysics.cs" />
-    <Compile Include="Characters/AdvancedMovement.cs" />
-    <Compile Include="Characters/DelilahAIController.cs" />
-    <Compile Include="Characters/CyrusAIController.cs" />
-    <Compile Include="Characters/KaiAbilityController.cs" />
-    <Compile Include="Characters/AnastasiaAIController.cs" />
-    <Compile Include="Characters/AeronAIController.cs" />
-    <Compile Include="Characters/CharacterControllerBase.cs" />
-    <Compile Include="Characters/MicahAIController.cs" />
-    <Compile Include="Characters/OmegaOneController.cs" />
-    <Compile Include="Characters/SkyixAbilityController.cs" />
-    <Compile Include="Characters/SkylxController.cs" />
-    <Compile Include="Characters/NefariousAI.cs" />
+    <Compile Include="Character/AdvancedMovement.cs" />
+    <Compile Include="Character/DelilahAIController.cs" />
+    <Compile Include="Character/CyrusAIController.cs" />
+    <Compile Include="Character/KaiAbilityController.cs" />
+    <Compile Include="Character/AnastasiaAIController.cs" />
+    <Compile Include="Character/AeronAIController.cs" />
+    <Compile Include="Character/CharacterControllerBase.cs" />
+    <Compile Include="Character/MicahAIController.cs" />
+    <Compile Include="Character/OmegaOneController.cs" />
+    <Compile Include="Character/SkyixAbilityController.cs" />
+    <Compile Include="Character/SkylxController.cs" />
+    <Compile Include="Character/NefariousAI.cs" />
     <Compile Include="Backend/BackendSyncService.cs" />
     <Compile Include="Engine/FoxParadeDirector.cs" />
     <Compile Include="Engine/RealitySyncEngine.cs" />

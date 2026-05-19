@@ -5,7 +5,7 @@ using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 
-namespace MilehighWorld.Characters
+namespace MilehighWorld.Character
 {
     public class NefariousAI : MonoBehaviour
     {

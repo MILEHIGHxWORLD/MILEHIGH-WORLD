@@ -4,7 +4,7 @@
 using UnityEngine;
 using MilehighWorld.Data;
 
-namespace MilehighWorld.Characters
+namespace MilehighWorld.Character
 {
     public class AnastasiaAIController : CharacterControllerBase
     {

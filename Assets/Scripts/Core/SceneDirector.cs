@@ -8,7 +8,7 @@ using System.Text.RegularExpressions;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using MilehighWorld.Data;
-using MilehighWorld.Characters;
+using MilehighWorld.Character;
 
 namespace MilehighWorld.Core
 {

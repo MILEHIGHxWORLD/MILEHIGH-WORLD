@@ -3,7 +3,7 @@
 
 using UnityEngine;
 
-namespace MilehighWorld.Characters
+namespace MilehighWorld.Character
 {
     public class SkyixAbilityController : MonoBehaviour
     {
