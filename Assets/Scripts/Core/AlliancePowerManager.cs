@@ -7,19 +7,19 @@ namespace MilehighWorld.Core
 {
     public class AlliancePowerManager : MonoBehaviour
     {
-        // AlliancePowerManager code...
-using UnityEngine;
-
-namespace Milehigh.Core
-{
-    public class AlliancePowerManager : MonoBehaviour
-    {
-        private static AlliancePowerManager _instance;
-        public static AlliancePowerManager Instance => _instance;
+        private static AlliancePowerManager? _instance;
+        public static AlliancePowerManager Instance => _instance!;
 
         private void Awake()
         {
-            _instance = this;
+            if (_instance == null)
+            {
+                _instance = this;
+            }
+            else
+            {
+                Destroy(gameObject);
+            }
         }
 
         public void SetPowerLevel(float level)
