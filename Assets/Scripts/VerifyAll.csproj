@@ -27,6 +27,11 @@
     <Compile Include="Characters/MicahAIController.cs" />
     <Compile Include="Characters/OmegaOneController.cs" />
     <Compile Include="Characters/SkyixAbilityController.cs" />
+    <Compile Include="Characters/SkylxController.cs" />
+    <Compile Include="Characters/NefariousAI.cs" />
+    <Compile Include="Backend/BackendSyncService.cs" />
+    <Compile Include="Engine/FoxParadeDirector.cs" />
+    <Compile Include="Engine/RealitySyncEngine.cs" />
     <Compile Include="SceneManagement/AsyncSceneLoader.cs" />
   </ItemGroup>
 </Project>

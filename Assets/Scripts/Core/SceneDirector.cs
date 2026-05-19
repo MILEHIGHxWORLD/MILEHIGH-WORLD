@@ -1,18 +1,14 @@
 // Copyright 2026 MILEHIGH-WORLD LLC. All Rights Reserved.
 // PROPRIETARY AND CONFIDENTIAL: DO NOT DISTRIBUTE.
 
-using UnityEngine;
-using UnityEngine.SceneManagement;
-using System.Collections.Generic;
-using MilehighWorld.Data;
-using MilehighWorld.Characters;
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
-using Milehigh.Data;
-using Milehigh.Characters;
 using System.Text.RegularExpressions;
+using UnityEngine;
+using UnityEngine.SceneManagement;
+using MilehighWorld.Data;
+using MilehighWorld.Characters;
 
 namespace MilehighWorld.Core
 {
