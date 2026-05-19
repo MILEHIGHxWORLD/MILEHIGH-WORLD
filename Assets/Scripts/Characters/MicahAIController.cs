@@ -25,7 +25,7 @@ namespace MilehighWorld.Characters
 
         private void RedirectKineticForce(float force)
         {
-            Debug.Log($"Micah: Redirecting {force} kinetic force.");
+            UnityEngine.Debug.Log($"Micah: Redirecting {force} kinetic force.");
         }
     }
 }

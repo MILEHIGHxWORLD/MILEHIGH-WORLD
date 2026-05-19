@@ -6,181 +6,113 @@ using UnityEngine.SceneManagement;
 using System.Collections.Generic;
 using MilehighWorld.Data;
 using MilehighWorld.Characters;
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using Milehigh.Data;
+using Milehigh.Characters;
+using System.Text.RegularExpressions;
 
 namespace MilehighWorld.Core
 {
     public class SceneDirector : MonoBehaviour
     {
-        public List<GameObject> characterPrefabs = null!; // Assign in Inspector
+        public List<GameObject> characterPrefabs = new List<GameObject>();
         public Transform characterSpawnRoot = null!;
 
-        // BOLT: Consolidated cache for GameObjects to prevent expensive O(N) GameObject.Find calls
         private readonly Dictionary<string, GameObject?> _objectCache = new Dictionary<string, GameObject?>();
-
-        // BOLT: Prefab cache to avoid O(P) list searches and delegate allocations
         private readonly Dictionary<string, GameObject?> _prefabCache = new Dictionary<string, GameObject?>();
+        private readonly Dictionary<int, CharacterControllerBase?> _controllerCache = new Dictionary<int, CharacterControllerBase?>();
 
-        // BOLT: Component cache to avoid redundant GetComponent calls. Key is InstanceID (int) to avoid string allocations.
-        private Dictionary<int, CharacterControllerBase> _controllerCache = new Dictionary<int, CharacterControllerBase>();
-
-        private GameObject? GetCachedObject(string objectName)
+        private static readonly HashSet<string> _protectedManagers = new HashSet<string>
         {
-            if (string.IsNullOrEmpty(objectName)) return null;
+            "CampaignManager", "SceneDirector", "CameraManager", "AlliancePowerManager", "GlobalResonanceManager", "CombatManager"
+        };
 
-            // BOLT: Perform an O(1) dictionary lookup first.
-            if (_objectCache.TryGetValue(objectName, out GameObject? obj))
-            {
-                // Note: Unity overrides == to treat destroyed native objects as null.
-                // First handle both managed-null and Unity-null in one check...
-                if (obj == null)
-                {
-                    // ...then distinguish explicit negative cache (true managed null)
-                    // from destroyed Unity object (managed ref not actually null).
-                    if (System.Object.ReferenceEquals(obj, null)) return null;
+        private static readonly Regex _nameValidator = new Regex(@"^[a-zA-Z0-9_\s\(\)\-$\.\/\[\]]+$", RegexOptions.Compiled);
 
-                    // Destroyed object: remove stale cache entry so we can find/instantiate again.
-                    _objectCache.Remove(objectName);
-                }
-                else
-                {
-                    return obj;
-                }
-            }
-
-            // BOLT: Fallback to O(N) scene traversal only if not found in cache.
-            // This is still needed for objects that might have been activated after PreWarmCache.
-            obj = GameObject.Find(objectName);
-
-            // BOLT: Cache result (including null to avoid repeated O(N) failures)
-            _objectCache[objectName] = obj;
-            return obj;
-        }
-
-        private GameObject? GetPrefab(string profileName)
+        private void Awake()
         {
-            if (string.IsNullOrEmpty(profileName)) return null;
-            if (_prefabCache.TryGetValue(profileName, out GameObject? prefab)) return prefab;
-
-            // BOLT: O(P) search happens only once per profile name
-            prefab = characterPrefabs?.Find(p => p != null && p.name == profileName);
-            if (prefab == null)
-            {
-                prefab = characterPrefabs?.Find(p => p != null && p.name.Contains(profileName));
-            }
-
-            _prefabCache[profileName] = prefab;
-            return prefab;
-        }
-
-        private CharacterControllerBase? GetCharacterController(GameObject characterObj)
-        {
-            if (characterObj == null) return null;
-            int objId = characterObj.GetInstanceID();
-
-            if (_controllerCache.TryGetValue(objId, out var controller)) return controller;
-
-            controller = characterObj.GetComponent<CharacterControllerBase>();
-            _controllerCache[objId] = controller;
-            return controller;
+            InitializePrefabCache();
         }
 
         private void Start()
         {
-            // BOLT: Pre-populate prefab cache to ensure O(1) lookups during any scene setup
+            var campaignData = CampaignManager.Instance.currentCampaignData;
+            if (campaignData != null && campaignData.scenarios != null && campaignData.scenarios.Count > 0)
+            {
+                SetupScene(campaignData.scenarios[0]);
+            }
+        }
+
+        private void OnDestroy()
+        {
+            _objectCache.Clear();
+            _prefabCache.Clear();
+            _controllerCache.Clear();
+        }
+
+        private void InitializePrefabCache()
+        {
+            _prefabCache.Clear();
             if (characterPrefabs != null)
             {
                 foreach (var prefab in characterPrefabs)
                 {
                     if (prefab != null && !string.IsNullOrEmpty(prefab.name))
-                        _prefabCache[prefab.name] = prefab;
-                }
-            }
-
-            if (CampaignManager.Instance.currentCampaignData != null)
-            {
-                SetupScene(CampaignManager.Instance.currentCampaignData.scenarios[0]);
-            }
-        }
-
-        // BOLT: Optimization - One-time O(N) scene traversal to populate the dictionary.
-        // This replaces multiple O(M*N) GameObject.Find() calls with a single O(N) pass,
-        // making subsequent lookups O(1).
-        private void PreWarmCache()
-        {
-            for (int i = 0; i < SceneManager.sceneCount; i++)
-            {
-                Scene scene = SceneManager.GetSceneAt(i);
-                if (scene.isLoaded)
-                {
-                    GameObject[] roots = scene.GetRootGameObjects();
-                    foreach (GameObject root in roots)
                     {
-                        if (root != null) CacheHierarchyRecursive(root.transform);
+                        _prefabCache[prefab.name] = prefab;
                     }
                 }
             }
         }
 
-        private void CacheHierarchyRecursive(Transform t)
-        {
-            // Match GameObject.Find behavior: only cache active objects
-            if (t.gameObject.activeInHierarchy && !_objectCache.ContainsKey(t.name))
-            {
-                _objectCache[t.name] = t.gameObject;
-            }
-
-            for (int i = 0; i < t.childCount; i++)
-            {
-                CacheHierarchyRecursive(t.GetChild(i));
-            }
-        }
-
         public void SetupScene(SceneScenario scenario)
         {
-            if (scenario == null) return;
+            if (scenario == null || !scenario.IsValid()) return;
             Debug.Log($"Setting up scenario: {scenario.scenarioId}");
 
-            // BOLT: Clear dynamic caches at start of setup to avoid stale references
             _objectCache.Clear();
-            _controllerCache.Clear();
-
-            // BOLT: Performance Boost - Populate cache in a single pass before lookups
-            PreWarmCache();
-
-            // Instantiate characters if not already in scene
-            if (CampaignManager.Instance?.currentCampaignData != null)
+            foreach (var go in UnityEngine.Object.FindObjectsByType<GameObject>(FindObjectsSortMode.None))
             {
-                foreach (var charProfile in CampaignManager.Instance.currentCampaignData.characters)
+                if (go != null && !string.IsNullOrEmpty(go.name) && !_objectCache.ContainsKey(go.name))
                 {
-                    SpawnOrUpdateCharacter(charProfile);
+                    _objectCache[go.name] = go;
                 }
             }
 
-            // Execute interactive objects logic
+            var campaignData = CampaignManager.Instance.currentCampaignData;
+            if (campaignData != null && campaignData.characters != null)
+            {
+                foreach (var charProfile in campaignData.characters)
+                {
+                    if (charProfile != null) SpawnOrUpdateCharacter(charProfile);
+                }
+            }
+
             if (scenario.interactiveObjects != null)
             {
                 foreach (var interaction in scenario.interactiveObjects)
                 {
-                    ApplyInteraction(interaction);
+                    if (interaction != null) ApplyInteraction(interaction);
                 }
             }
         }
 
-        private void SpawnOrUpdateCharacter(CharacterProfile profile)
+        public void SpawnOrUpdateCharacter(CharacterProfile profile)
         {
-            if (profile == null) return;
+            if (profile == null || !profile.IsValid()) return;
+
             GameObject? characterObj = GetCachedObject(profile.name);
 
             if (characterObj == null)
             {
                 GameObject? prefab = GetPrefab(profile.name);
-
                 if (prefab != null)
                 {
-                    characterObj = Instantiate(prefab, characterSpawnRoot);
+                    characterObj = Instantiate<GameObject>(prefab, characterSpawnRoot);
                     characterObj.name = profile.name;
-
-                    // BOLT: Immediately cache the newly instantiated object
                     _objectCache[profile.name] = characterObj;
                 }
             }
@@ -203,21 +135,79 @@ namespace MilehighWorld.Core
 
         private void ApplyInteraction(ObjectInteraction interaction)
         {
-            if (interaction == null) return;
+            if (interaction == null || string.IsNullOrEmpty(interaction.objectId)) return;
+
+            string sanitizedId = interaction.objectId.TrimStart('/');
+            string[] segments = sanitizedId.Split('/');
+            foreach (string segment in segments)
+            {
+                if (_protectedManagers.Contains(segment))
+                {
+                    Debug.LogWarning($"[Security] Blocked unauthorized interaction attempt on core system: {sanitizedId}");
+                    return;
+                }
+            }
+
             GameObject? target = GetCachedObject(interaction.objectId);
 
             if (target != null)
             {
-                Debug.Log($"Applying {interaction.action} to {interaction.objectId}");
                 if (interaction.isVector)
                 {
                     target.transform.position = interaction.GetVectorValue();
                 }
                 else
                 {
-                    target.transform.localScale = Vector3.one * interaction.floatValue;
+                    target.transform.localScale = UnityEngine.Vector3.one * interaction.floatValue;
                 }
             }
+        }
+
+        private GameObject? GetCachedObject(string objectName)
+        {
+            if (string.IsNullOrEmpty(objectName)) return null;
+
+            if (objectName.Length > 128 || !_nameValidator.IsMatch(objectName))
+            {
+                Debug.LogWarning($"[Security] GetCachedObject blocked potentially malicious input: {objectName}");
+                return null;
+            }
+
+            if (_objectCache.TryGetValue(objectName, out GameObject? obj))
+            {
+                if (obj != null) return obj;
+            }
+
+            obj = GameObject.Find(objectName);
+            _objectCache[objectName] = obj;
+            return obj;
+        }
+
+        private GameObject? GetPrefab(string profileName)
+        {
+            if (string.IsNullOrEmpty(profileName)) return null;
+
+            if (_prefabCache.TryGetValue(profileName, out GameObject? prefab))
+            {
+                if (prefab != null) return prefab;
+            }
+
+            prefab = characterPrefabs?.Find(p => p != null && (p.name == profileName || p.name.Contains(profileName)));
+            if (prefab != null) _prefabCache[profileName] = prefab;
+            return prefab;
+        }
+
+        private CharacterControllerBase? GetCharacterController(GameObject characterObj)
+        {
+            int id = characterObj.GetInstanceID();
+            if (_controllerCache.TryGetValue(id, out CharacterControllerBase? controller))
+            {
+                if (controller != null) return controller;
+            }
+
+            controller = characterObj.GetComponent<CharacterControllerBase>();
+            if (controller != null) _controllerCache[id] = controller;
+            return controller;
         }
     }
 }

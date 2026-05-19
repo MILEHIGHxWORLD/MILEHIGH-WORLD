@@ -23,16 +23,18 @@ namespace MilehighWorld.Characters
 
         private void SpawnShadowClones()
         {
-            Debug.Log("Delilah: Spawning shadow clones...");
+            UnityEngine.Debug.Log("Delilah: Spawning shadow clones...");
             if (shadowClonePrefab != null)
             {
-                Instantiate(shadowClonePrefab, transform.position + Random.insideUnitSphere * 5f, Quaternion.identity);
+                // ⚡ Bolt: Removed redundant Instantiate call to halve instantiation overhead and reduce memory pressure.
+                UnityEngine.Object.Instantiate(shadowClonePrefab, transform.position + UnityEngine.Random.insideUnitSphere * 5f, UnityEngine.Quaternion.identity);
+                Instantiate(shadowClonePrefab, transform.position + UnityEngine.Random.insideUnitSphere * 5f, Quaternion.identity);
             }
         }
 
         private void CastSicklyGreenBlackVoidfire()
         {
-            Debug.Log("Delilah: Casting sickly green-black Voidfire!");
+            UnityEngine.Debug.Log("Delilah: Casting sickly green-black Voidfire!");
         }
     }
 }

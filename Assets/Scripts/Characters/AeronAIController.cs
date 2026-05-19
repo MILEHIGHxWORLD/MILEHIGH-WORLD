@@ -29,12 +29,12 @@ namespace MilehighWorld.Characters
 
         private void MaintainAltitude()
         {
-            Debug.Log("Aeron: Maintaining altitude.");
+            UnityEngine.Debug.Log("Aeron: Maintaining altitude.");
         }
 
         private void ApplyDefenseDebuff()
         {
-            Debug.Log("Aeron: Applying defense debuff due to distance from Solar Barrier.");
+            UnityEngine.Debug.Log("Aeron: Applying defense debuff due to distance from Solar Barrier.");
         }
     }
 }

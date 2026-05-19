@@ -1,44 +1,50 @@
 // Copyright 2026 MILEHIGH-WORLD LLC. All Rights Reserved.
 // PROPRIETARY AND CONFIDENTIAL: DO NOT DISTRIBUTE.
 
+using System;
 using UnityEngine;
 using System.IO;
 using MilehighWorld.Data;
 
 namespace MilehighWorld.Core
 {
-    public class CampaignManager : MonoBehaviour
+    [UnityEngine.DefaultExecutionOrder(-100)]
+    public class CampaignManager : UnityEngine.MonoBehaviour
     {
         private static CampaignManager? _instance;
+
         public static CampaignManager Instance
         {
             get
             {
                 if (_instance == null)
                 {
-                    _instance = FindObjectOfType<CampaignManager>();
+                    _instance = UnityEngine.Object.FindAnyObjectByType<CampaignManager>();
                     if (_instance == null)
                     {
-                        GameObject go = new GameObject("CampaignManager");
+                        UnityEngine.GameObject go = new UnityEngine.GameObject("CampaignManager");
                         _instance = go.AddComponent<CampaignManager>();
                     }
                 }
-                return _instance!;
+                return _instance;
             }
         }
 
         public HorizonGameData? currentCampaignData;
         public float currentVoidSaturationLevel;
 
+        // 🛡️ Sentinel: Cache deviceUniqueIdentifier to avoid expensive native boundary crossing
+        private static string? _cachedDeviceIdentifier;
+
         private void Awake()
         {
             if (_instance != null && _instance != this)
             {
-                Destroy(gameObject);
+                UnityEngine.Object.Destroy(this.gameObject);
                 return;
             }
             _instance = this;
-            DontDestroyOnLoad(gameObject);
+            UnityEngine.Object.DontDestroyOnLoad(this.gameObject);
             LoadCampaignData();
         }
 
@@ -48,54 +54,95 @@ namespace MilehighWorld.Core
             string filePath;
 
 #if UNITY_EDITOR
-            filePath = Path.Combine(Application.dataPath, "Scripts/Data", fileName);
+            filePath = System.IO.Path.Combine(UnityEngine.Application.dataPath, "Scripts/Data", fileName);
 #else
-            filePath = Path.Combine(Application.streamingAssetsPath, fileName);
+            filePath = System.IO.Path.Combine(UnityEngine.Application.streamingAssetsPath, fileName);
 #endif
 
-            if (File.Exists(filePath))
+            if (System.IO.File.Exists(filePath))
             {
                 try
                 {
-                    string json = File.ReadAllText(filePath);
-                    currentCampaignData = JsonUtility.FromJson<HorizonGameData>(json);
+                    string json = System.IO.File.ReadAllText(filePath);
+                    HorizonGameData? data = UnityEngine.JsonUtility.FromJson<HorizonGameData>(json);
 
-                    // 🛡️ Sentinel: Perform validation after deserialization to ensure data integrity.
-                    if (currentCampaignData != null && currentCampaignData.IsValid())
+                    // 🛡️ Sentinel: Perform security and integrity validation after deserialization.
+                    if (data != null && data.IsValid())
                     {
-                        currentVoidSaturationLevel = currentCampaignData.metadata.voidSaturationLevel;
-                        // SECURITY: Log only the file name, not the absolute path, to prevent information disclosure
-                        Debug.Log($"Campaign data loaded and validated from {fileName}");
+                        currentCampaignData = data;
+                        if (data.metadata != null)
+                        {
+                            currentVoidSaturationLevel = data.metadata.voidSaturationLevel;
+                        }
+                        // SECURITY: Log only the filename to avoid exposing absolute filesystem paths.
+                        UnityEngine.Debug.Log($"Campaign data loaded and validated from {fileName}");
                     }
                     else
                     {
-                        // SECURITY: Fail securely and don't use invalid data
-                        Debug.LogError($"Failed to parse or validate campaign data from {fileName}.");
+                        // SECURITY: Fail securely by nullifying corrupted data and logging the error without leaking internal paths.
+                        UnityEngine.Debug.LogError($"[Security] Campaign data from {fileName} failed validation or is malformed.");
                         currentCampaignData = null;
-                        // SECURITY: Mask runtime exception details and avoid leaking absolute paths in logs
-                        Debug.LogError($"Failed to parse or security-validate campaign data from {fileName}.");
-                        currentCampaignData = null; // Ensure we don't use invalid data
                     }
                 }
                 catch (System.Exception ex)
                 {
-                    // SECURITY: Catch exceptions during file read/JSON parse to fail securely and avoid leaking internal stack traces.
-                    // SECURITY: Mask runtime exception stack traces and avoid leaking absolute paths in logs
-                    Debug.LogError($"Error loading campaign data from {fileName}: {ex.Message}");
+                    // SECURITY: Mask runtime exception details and avoid leaking absolute paths in logs
+                    // Log only the file name and exception type to prevent information disclosure of internal paths.
+                    UnityEngine.Debug.LogError($"[Security] Error loading campaign data from {fileName}: ({ex.GetType().Name})");
                     currentCampaignData = null;
                 }
             }
             else
             {
-                // SECURITY: Log only the file name, not the absolute path, to prevent information disclosure
-                Debug.LogError($"Campaign master JSON not found: {fileName}");
+                // SECURITY: Log only the file name, not the absolute path, to prevent information disclosure.
+                UnityEngine.Debug.LogError($"Campaign master JSON not found: {fileName}");
             }
         }
 
         public void IncreaseVoidSaturation(float amount)
         {
-            currentVoidSaturationLevel = Mathf.Clamp01(currentVoidSaturationLevel + amount);
-            Debug.Log($"Void Saturation Level: {currentVoidSaturationLevel}");
+            currentVoidSaturationLevel = UnityEngine.Mathf.Clamp01(currentVoidSaturationLevel + amount);
+            UnityEngine.Debug.Log($"Void Saturation Level: {currentVoidSaturationLevel}");
+            this.SaveSecureData("VoidSaturation", this.currentVoidSaturationLevel.ToString());
+        }
+
+        public void SaveSecureData(string key, string data)
+        {
+            if (System.String.IsNullOrEmpty(key) || System.String.IsNullOrEmpty(data)) return;
+
+            string obfuscated = this.ProcessXOR(data);
+            UnityEngine.PlayerPrefs.SetString($"SECURE_{key}", obfuscated);
+            UnityEngine.PlayerPrefs.Save();
+        }
+
+        public string LoadSecureData(string key)
+        {
+            string obfuscated = UnityEngine.PlayerPrefs.GetString($"SECURE_{key}", "");
+            if (System.String.IsNullOrEmpty(obfuscated)) return "";
+
+            return this.ProcessXOR(obfuscated);
+        }
+
+        private string ProcessXOR(string textToProcess)
+        {
+            if (string.IsNullOrEmpty(_cachedDeviceIdentifier))
+            {
+                _cachedDeviceIdentifier = UnityEngine.SystemInfo.deviceUniqueIdentifier;
+                if (string.IsNullOrEmpty(_cachedDeviceIdentifier) || _cachedDeviceIdentifier == "n/a")
+                {
+                    _cachedDeviceIdentifier = "MILEHIGH_FALLBACK_STABLE_SALT_2025";
+                }
+            }
+
+            string salt = _cachedDeviceIdentifier;
+            char[] output = new char[textToProcess.Length];
+
+            for (int i = 0; i < textToProcess.Length; i++)
+            {
+                output[i] = (char)(textToProcess[i] ^ salt[i % salt.Length]);
+            }
+
+            return new string(output);
         }
     }
 }

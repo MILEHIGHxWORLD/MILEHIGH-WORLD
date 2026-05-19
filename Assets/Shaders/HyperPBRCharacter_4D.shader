@@ -78,13 +78,13 @@ Shader "Milehigh/HyperPBRCharacter_4D"
         void vert (inout appdata_full v, out Input o)
         {
             UNITY_INITIALIZE_OUTPUT(Input, o);
+            o.N = UnityObjectToWorldNormal(v.normal);
             o.T = UnityObjectToWorldDir(v.tangent.xyz);
             o.B = cross(o.N, o.T) * v.tangent.w; // Bitangent
-            o.N = UnityObjectToWorldNormal(v.normal);
 
             // Parallax Occlusion Mapping
             half h = tex2Dlod(_ParallaxMap, float4(v.texcoord.xy, 0, 0)).a;
-            float2 offset = ParallaxOffset(h, _Parallax, v.viewDir);
+            float2 offset = ParallaxOffset(h, _Parallax, ObjSpaceViewDir(v.vertex));
             v.texcoord.xy += offset;
         }
 
@@ -98,7 +98,9 @@ Shader "Milehigh/HyperPBRCharacter_4D"
 
         void surf (Input IN, inout SurfaceOutputStandardSpecular o)
         {
+            // BOLT: Sample albedo once and assign to o.Albedo at the start to allow additive effects (like SSS) to layer correctly.
             fixed4 albedo = tex2D(_MainTex, IN.uv_MainTex) * _Color;
+            o.Albedo = albedo.rgb;
             clip(albedo.a - _Cutoff);
 
             // --- PBR Properties ---
@@ -135,6 +137,8 @@ Shader "Milehigh/HyperPBRCharacter_4D"
                 o.Specular = lerp(o.Specular, o.Specular * iridescence, iridescenceMask);
             }
 
+            // BOLT: Removed redundant o.Albedo overwrites that were discarding additive effects.
+
             // --- Subsurface Scattering ---
             half sssMask = tex2D(_SSSMask, IN.uv_MainTex).r;
             if (sssMask > 0)
@@ -147,13 +151,7 @@ Shader "Milehigh/HyperPBRCharacter_4D"
                 half sss_sq = sss_base * sss_base;
                 half sss_4 = sss_sq * sss_sq;
                 half sss = sss_4 * sss_4 * _SSSScale;
-                // BOLT: Ensure albedo is assigned *before* SSS is added to avoid overwriting SSS calculation
-                o.Albedo = albedo.rgb;
                 o.Albedo += _SSSColor.rgb * sss * NdotL * sssMask;
-            }
-            else
-            {
-                o.Albedo = albedo.rgb;
             }
         }
         ENDCG

@@ -52,11 +52,33 @@ def check_files():
 
     return all_exist
 
+def validate_compliance_assets():
+    """Verify SOC 2 compliance directory structure and core files."""
+    required_paths = [
+        "Compliance/Scripts/evidence_collector.py",
+        "Compliance/Scripts/identity_audit.py",
+        "Compliance/Infrastructure/main.tf",
+        "Compliance/Policies/information_security_policy.md",
+        "Compliance/Policies/access_control_policy.md",
+        ".github/workflows/compliance-monitor.yml"
+    ]
+
+    missing = []
+    for path in required_paths:
+        if not os.path.exists(path):
+            missing.append(path)
+            print(f"Error: Compliance asset missing: {path}")
+        else:
+            print(f"Confirmed: Compliance asset exists: {path}")
+
+    return len(missing) == 0
+
 if __name__ == "__main__":
     v_json = validate_json()
     v_files = check_files()
+    v_compliance = validate_compliance_assets()
 
-    if v_json and v_files:
+    if v_json and v_files and v_compliance:
         print("\nAll validation checks passed!")
     else:
         print("\nValidation failed.")
