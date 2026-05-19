@@ -70,3 +70,8 @@
 **Vulnerability:** Redundant command processing logic in `OtisTerminal.cs` echoed user input to the terminal before performing length or regex validation. Since the terminal supports Rich Text tags, an attacker could inject malicious tags (e.g., extremely large font sizes or overlapping colors) to disrupt the UI or bypass intended interface constraints.
 **Learning:** Code rot (duplicate logic paths and redundant echoes) often hides missing security controls. In this case, one echo path was correctly placed but another was redundant and unvalidated.
 **Prevention:** Consolidate interactive input processing into a single, linear pipeline: Validate -> Sanitize -> Echo -> Execute. Never echo untrusted input before it has passed all security checks.
+
+## 2026-05-18 - [Security Validation Bypass via Code Rot]
+**Vulnerability:** A missing closing brace in a redundant scenario check within `HorizonGameData.cs` caused the C# compiler to skip subsequent character and scenario validation loops, effectively bypassing deep-validation for untrusted JSON data.
+**Learning:** Code rot, specifically orphaned or malformed conditional blocks, can lead to silent security failures where critical validation logic is bypassed without triggering immediate runtime errors.
+**Prevention:** Regularly audit validation logic for redundancy and ensure that all validation paths are fully covered by unit tests and static analysis. Favor clean, linear validation pipelines over complex, nested, or redundant checks.

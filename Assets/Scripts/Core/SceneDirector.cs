@@ -17,7 +17,7 @@ namespace Milehigh.Core
         private Dictionary<string, GameObject?> _prefabCache = new Dictionary<string, GameObject?>();
         private Dictionary<int, CharacterControllerBase?> _controllerCache = new Dictionary<int, CharacterControllerBase?>();
 
-        private static readonly Regex SafeNameRegex = new Regex(@"^[a-zA-Z0-9_\s\(\)\-\.\[\]\/]+$", RegexOptions.Compiled);
+        private static readonly Regex SafeNameRegex = new Regex(@"^[a-zA-Z0-9_\s\(\)\-\.\[\]]+$", RegexOptions.Compiled);
 
         private void Awake()
         {
