@@ -102,6 +102,10 @@ namespace UnityEngine
         public const float PI = 3.14159265f;
         public static float Sin(float f) => 0;
     }
+    public static class Random
+    {
+        public static float Range(float min, float max) => 0;
+    }
     public class Color
     {
         public static Color white => new Color();
@@ -182,6 +186,12 @@ namespace TMPro
 {
     public class TMP_Text : UnityEngine.UI.Graphic
     {
+        public virtual string text { get; set; } = "";
+    }
+    public class TextMeshProUGUI : TMP_Text
+    {
+        public override string text { get; set; } = "";
+        public int maxVisibleCharacters { get; set; }
         public string text { get; set; } = "";
         public TMP_TextInfo textInfo { get; } = new TMP_TextInfo();
     }
