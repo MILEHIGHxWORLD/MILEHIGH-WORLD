@@ -149,6 +149,10 @@
 ## 2024-05-23 - [Premium UI Transitions and Pulsing Interaction Cues]
 **Learning:** Moving beyond linear interpolation (Lerp) to cubic easing (SmoothStep) significantly elevates the perceived quality of UI transitions in Unity. Additionally, adding a subtle alpha pulse to interaction cues (like '▽') using vertex color manipulation provides an intuitive, non-distracting signal for user progression without the performance cost of layout rebuilds.
 **Action:** Use 'Mathf.SmoothStep' for UI panel animations and prefer vertex-based animation for interactive text elements to maintain high performance and polish.
+
+## 2026-05-18 - [Terminal Productivity Shortcuts]
+**Learning:** In terminal-style interfaces (e.g., OtisTerminal.cs), implementing standard productivity shortcuts like 'Ctrl+L' for clearing output provides a familiar and delightful experience for power users. Discoverability is key, so these shortcuts should be explicitly mentioned in 'help' command outputs.
+**Action:** Always implement standard CLI shortcuts and ensure they are discoverable via in-app documentation.
 ## 2026-06-15 - [Familiar Terminal Shortcuts for Power Users]
 **Learning:** In-game terminal UIs (e.g., `OtisTerminal.cs`) feel significantly more "authentic" and efficient when they support standard CLI shortcuts like `Ctrl+L` for clearing the output. Power users often attempt these shortcuts instinctively, and meeting that expectation provides a subtle touch of delight while improving workspace management.
 **Action:** Implement standard command-line shortcuts (e.g., `Ctrl+L`) in all terminal-style micro-interactions to enhance user productivity and immersion.
