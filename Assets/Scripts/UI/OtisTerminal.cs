@@ -45,7 +45,7 @@ namespace MilehighWorld.UI
             // Format this as a hacking/query attempt for the Universal Action Resolver
             var context = new NarrativeActionContext
             {
-                ActionTypeProperty = NarrativeActionContext.ActionType.HACK_TERMINAL,
+                ActionType = NarrativeActionContext.ActionType.HACK_TERMINAL,
                 TargetId = "Otis_Mainframe",
                 RequiresVisualValidation = false,
                 CurrentDimension = "ŁĪNC"
