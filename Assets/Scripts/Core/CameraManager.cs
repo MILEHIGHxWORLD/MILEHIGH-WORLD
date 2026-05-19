@@ -7,14 +7,7 @@ namespace MilehighWorld.Core
 {
     public class CameraManager : MonoBehaviour
     {
-        // CameraManager code...
-using UnityEngine;
-
-namespace Milehigh.Core
-{
-    public class CameraManager : MonoBehaviour
-    {
-        public Camera mainCamera;
+        public Camera mainCamera = null!;
 
         public void SwitchCamera(Camera newCamera)
         {
