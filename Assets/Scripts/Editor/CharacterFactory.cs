@@ -1,6 +1,8 @@
 using UnityEngine;
 using UnityEditor;
 using System.IO;
+using System.Collections.Generic;
+using System.Text.RegularExpressions;
 using Milehigh.Data;
 
 namespace Milehigh.Editor
@@ -10,24 +12,32 @@ namespace Milehigh.Editor
         [MenuItem("Milehigh/Import Campaign Data")]
         public static void ImportCampaignData()
         {
-            string path = "Assets/Scripts/Data/campaign_master.json";
+            string fileName = "campaign_master.json";
+            string path = Path.Combine("Assets/Scripts/Data", fileName);
+
             if (!File.Exists(path))
             {
-                Debug.LogError("Campaign master JSON not found at " + path);
+                Debug.LogError($"Campaign master JSON not found at {path}");
                 return;
             }
 
-            string json = File.ReadAllText(path);
-            HorizonGameData data = JsonUtility.FromJson<HorizonGameData>(json);
+            HorizonGameData? data = null;
+            try
+            {
+                string json = File.ReadAllText(path);
+                data = JsonUtility.FromJson<HorizonGameData>(json);
+            }
+            catch (System.Exception ex)
+            {
+                // 🛡️ Sentinel: Fail securely and mask stack traces
+                Debug.LogError($"Failed to load or parse campaign data: {ex.Message}");
+                return;
+            }
 
             // 🛡️ Sentinel: Security validation of deserialized data.
             if (data == null || !data.IsValid())
             {
                 Debug.LogError("[Security] Character import aborted: Campaign data failed validation.");
-            // SECURITY: Always validate data after deserialization
-            if (data == null || !data.IsValid())
-            {
-                Debug.LogError("Failed to parse or validate campaign data.");
                 return;
             }
 
@@ -41,38 +51,54 @@ namespace Milehigh.Editor
                 AssetDatabase.CreateFolder("Assets/Data", "Characters");
             }
 
-            foreach (var charProfile in data.characters)
+            if (data.characters != null)
             {
-                CharacterData asset = ScriptableObject.CreateInstance<CharacterData>();
-                asset.characterName = charProfile.name;
-                asset.role = charProfile.role;
-                asset.traits = charProfile.traits;
-                asset.behaviorScript = charProfile.behaviorScript;
-
-                // 🛡️ Sentinel: Sanitize character name to prevent Path Traversal vulnerabilities
-                // Malicious JSON could use "../" to write assets outside the intended directory.
-                // We use Path.GetFileName to ensure only the final component is used, and replace invalid chars.
-                string baseName = charProfile.name ?? "unnamed_character";
-                string safeFileName = baseName;
-                // Malicious JSON could use "../" to write assets outside the intended directory
-                string sanitizedName = charProfile.name;
-                foreach (char c in Path.GetInvalidFileNameChars())
+                foreach (var charProfile in data.characters)
                 {
-                    safeFileName = safeFileName.Replace(c, '_');
+                    if (charProfile == null) continue;
+
+                    CharacterData asset = ScriptableObject.CreateInstance<CharacterData>();
+                    asset.characterName = charProfile.name;
+                    asset.role = charProfile.role;
+                    asset.traits = charProfile.traits;
+                    asset.behaviorScript = charProfile.behaviorScript;
+
+                    // 🛡️ Sentinel: Sanitize character name to prevent Path Traversal.
+                    string safeFileName = GetSafeFileName(charProfile.name);
+                    string assetPath = $"{folderPath}/{safeFileName}.asset";
+
+                    AssetDatabase.CreateAsset(asset, assetPath);
+                    // SECURITY: Log relative asset path only.
+                    Debug.Log($"Created character asset: {assetPath}");
                 }
-                safeFileName = Path.GetFileName(safeFileName).Replace(" ", "_");
-
-                // Ensure no directory traversal sequences remain
-                string safeFileName = Path.GetFileName(sanitizedName);
-
-                string assetPath = $"{folderPath}/{safeFileName}.asset";
-                AssetDatabase.CreateAsset(asset, assetPath);
-                // SECURITY: Log relative asset path to avoid absolute path disclosure
-                Debug.Log($"Created character asset: {assetPath}");
             }
 
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
+        }
+
+        /// <summary>
+        /// 🛡️ Sentinel: Robust path sanitization helper.
+        /// </summary>
+        private static string GetSafeFileName(string input)
+        {
+            if (string.IsNullOrEmpty(input)) return "unnamed_character_" + System.Guid.NewGuid().ToString().Substring(0, 8);
+
+            // Whitelist: Allow only alphanumeric, underscores, and hyphens.
+            string sanitized = Regex.Replace(input, @"[^a-zA-Z0-9_\-]", "_");
+
+            // Use Path.GetFileName as a final safety check and normalize.
+            sanitized = Path.GetFileName(sanitized);
+
+            // Strip leading dots/underscores to prevent hidden files or traversal.
+            sanitized = sanitized.TrimStart('.', '_');
+
+            if (string.IsNullOrEmpty(sanitized))
+            {
+                sanitized = "character_" + System.Guid.NewGuid().ToString().Substring(0, 8);
+            }
+
+            return sanitized;
         }
     }
 }
