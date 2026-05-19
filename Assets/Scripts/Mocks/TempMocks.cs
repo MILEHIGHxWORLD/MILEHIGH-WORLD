@@ -180,6 +180,10 @@ namespace UnityEngine.UI
 {
     public class Selectable : UnityEngine.MonoBehaviour {}
     public class Graphic : UnityEngine.MonoBehaviour {}
+    public class Text : Graphic
+    {
+        public string text { get; set; } = "";
+    }
 }
 
 namespace TMPro
@@ -216,6 +220,11 @@ namespace TMPro
         public void MoveTextEnd(bool shift) {}
         public UnityEngine.Transform transform { get; } = new UnityEngine.Transform();
         public UnityEngine.UI.Graphic placeholder { get; set; }
+        public int characterLimit { get; set; }
+    }
+    public class TMP_Text : UnityEngine.UI.Graphic
+    {
+        public string text { get; set; } = "";
     }
     public class TMP_TextInfo
     {

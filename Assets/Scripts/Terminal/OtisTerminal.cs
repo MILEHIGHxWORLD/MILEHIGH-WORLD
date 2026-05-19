@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.UI;
 using TMPro;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
@@ -23,6 +24,10 @@ namespace Milehigh.World.Terminal
         private Coroutine? _typewriterCoroutine;
         private string _lastCommand = "";
 
+        // ⚡ Bolt: Cache for WaitForSeconds to eliminate GC allocations during coroutine execution.
+        private static readonly Dictionary<int, WaitForSeconds> _waitCache = new Dictionary<int, WaitForSeconds>();
+
+        private WaitForSeconds GetWait(float seconds)
         // ⚡ Bolt: Shared cache for WaitForSeconds to eliminate GC allocations during typewriter effects.
         // Using int millisecond keys to avoid floating-point precision issues in dictionary lookups.
         private static readonly Dictionary<int, WaitForSeconds> _waitCache = new Dictionary<int, WaitForSeconds>();
@@ -91,6 +96,15 @@ namespace Milehigh.World.Terminal
                 }
                 return;
             }
+
+            // UX Enhancement: Clear input and refocus immediately for better flow
+            if (commandInput != null)
+            {
+                commandInput.text = "";
+                commandInput.ActivateInputField();
+            }
+
+            if (string.IsNullOrWhiteSpace(input)) return;
 
             // 🛡️ Sentinel: Input validation and DoS protection
             // 🛡️ Sentinel: Input validation and DoS protection BEFORE echoing to prevent UI injection.
