@@ -14,10 +14,13 @@
     <Compile Include="Core/CampaignManager.cs" />
     <Compile Include="Core/CameraManager.cs" />
     <Compile Include="Core/SceneDirector.cs" />
+    <Compile Include="Core/GlobalResonanceManager.cs" />
+    <Compile Include="Core/CombatManager.cs" />
     <Compile Include="Core/AlliancePowerManager.cs" />
     <Compile Include="Core/CharacterAbilitiesBase.cs" />
     <Compile Include="Core/GameManager.cs" />
     <Compile Include="Core/IXNodeController.cs" />
+    <Compile Include="Core/WorldCharacterData.cs" />
     <Compile Include="Physics/CustomCollision.cs" />
     <Compile Include="Physics/UnderwaterPhysics.cs" />
     <Compile Include="Character/AdvancedMovement.cs" />

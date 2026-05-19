@@ -15,11 +15,12 @@ namespace MilehighWorld.Tests
         public void CalculateVanguardDamage_ReturnsCorrectCalculation(float baseDamage, float vanguardMultiplier, float resonanceFactor, float expected)
         {
             // Arrange
-            var resonanceManager = new GlobalResonanceManager();
+            // Create a dummy game object to hold the manager
+            var resonanceManager = new GameObject().AddComponent<GlobalResonanceManager>();
             resonanceManager.resonanceFactor = resonanceFactor;
             GlobalResonanceManager.Instance = resonanceManager;
 
-            var combatManager = new CombatManager();
+            var combatManager = new GameObject().AddComponent<CombatManager>();
 
             var attacker = new MilehighWorld.World.Core.CharacterData
             {
@@ -41,7 +42,7 @@ namespace MilehighWorld.Tests
         {
             // Arrange
             GlobalResonanceManager.Instance = null;
-            var combatManager = new CombatManager();
+            var combatManager = new GameObject().AddComponent<CombatManager>();
 
             var attacker = new MilehighWorld.World.Core.CharacterData
             {
