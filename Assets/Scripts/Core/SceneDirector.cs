@@ -17,7 +17,7 @@ namespace Milehigh.Core
         private Dictionary<string, GameObject?> _prefabCache = new Dictionary<string, GameObject?>();
         private Dictionary<int, CharacterControllerBase?> _controllerCache = new Dictionary<int, CharacterControllerBase?>();
 
-        private static readonly Regex SafeNameRegex = new Regex(@"^[a-zA-Z0-9_\s\(\)\-\.\[\]\/]+$", RegexOptions.Compiled);
+        private static readonly Regex SafeNameRegex = new Regex(@"^[a-zA-Z0-9_\s\(\)\-\.\[\]]+$", RegexOptions.Compiled);
 
         private void Awake()
         {
@@ -161,6 +161,15 @@ namespace Milehigh.Core
 
         private void ApplyInteraction(ObjectInteraction interaction)
         {
+            // 🛡️ Sentinel: Prevent Insecure Direct Object Reference (IDOR) by sanitizing untrusted external object IDs
+            if (interaction.objectId == "CampaignManager" || interaction.objectId == "SceneDirector" ||
+                interaction.objectId == "CameraManager" || interaction.objectId == "AlliancePowerManager")
+            {
+                Debug.LogError($"[Security] Blocked unauthorized interaction attempt to system object: {interaction.objectId}");
+                return;
+            }
+
+            GameObject target = GetCachedObject(interaction.objectId);
             if (interaction == null || string.IsNullOrEmpty(interaction.objectId)) return;
 
             GameObject? target = GetCachedObject(interaction.objectId);

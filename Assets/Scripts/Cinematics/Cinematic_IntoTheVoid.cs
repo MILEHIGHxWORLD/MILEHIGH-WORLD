@@ -417,6 +417,20 @@ namespace Milehigh.Cinematics
         }
     }
 
+    /// <summary>
+    /// Waits for a specified duration, but returns immediately if a skip is requested.
+    /// </summary>
+    private IEnumerator WaitForSecondsOrSkip(float duration)
+    {
+        float elapsed = 0f;
+        while (elapsed < duration && !skipRequested)
+        {
+            elapsed += Time.deltaTime;
+            yield return null;
+        }
+        skipRequested = false;
+    }
+
     void Start()
     private void Start()
     {
@@ -757,6 +771,11 @@ namespace Milehigh.Cinematics
             yield return null;
         }
 
+        // UX Enhancement: Visual progression cue indicating text reveal is complete.
+        DialogueText.text = message + " ▽";
+        DialogueText.maxVisibleCharacters = totalVisibleCharacters + 2;
+
+        typingCoroutine = null;
         SpeakerNameText.transform.localScale = originalScale;
         popScaleCoroutine = null;
     }
@@ -767,6 +786,8 @@ namespace Milehigh.Cinematics
         float elapsed = 0f;
         Vector3 popScale = originalSpeakerScale * 1.2f;
 
+        DialogueBox.SetActive(true);
+        yield return WaitForSecondsOrSkip(1.0f);
         while (elapsed < duration)
         {
             elapsed += Time.unscaledDeltaTime;
