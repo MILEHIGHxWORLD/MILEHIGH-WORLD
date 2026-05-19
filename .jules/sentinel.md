@@ -250,3 +250,11 @@
 **Vulnerability:** The `CombatManager` singleton was missing from the `_protectedManagers` blocklist in `SceneDirector.cs`.
 **Learning:** Any new core manager or singleton must be explicitly added to the IDOR blocklists to prevent external data from manipulating its state via `GameObject.Find`.
 **Prevention:** Maintain a comprehensive list of all critical singletons and ensure they are all included in the `_protectedManagers` blocklist.
+
+## 2026-05-19 - Hardcoded Salt in XOR Obfuscation
+
+**Vulnerability:** Weak Cryptography / Hardcoded Salt in `CampaignManager.cs`. The use of a static, hardcoded string literal as a fallback XOR salt made data obfuscation trivial to reverse through static analysis.
+
+**Learning:** Relying on hardcoded secrets within source code for any form of cryptographic or obfuscation operation is a major security risk. Even if the goal is only "obfuscation", a hardcoded key provides zero security against a motivated attacker.
+
+**Prevention:** Always derive keys or salts from environment-specific or application-specific metadata if a true unique identifier (like `deviceUniqueIdentifier`) is unavailable. Avoid string literals for sensitive values.

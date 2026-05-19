@@ -130,7 +130,11 @@ namespace MilehighWorld.Core
                 _cachedDeviceIdentifier = UnityEngine.SystemInfo.deviceUniqueIdentifier;
                 if (string.IsNullOrEmpty(_cachedDeviceIdentifier) || _cachedDeviceIdentifier == "n/a")
                 {
-                    _cachedDeviceIdentifier = "MILEHIGH_FALLBACK_STABLE_SALT_2025";
+                    // 🛡️ Sentinel: Fall back to a derived salt from application metadata to avoid hardcoded string literals.
+                    // This makes the obfuscation key more difficult to discover via static analysis.
+                    string cName = UnityEngine.Application.companyName ?? "Milehigh";
+                    string pName = UnityEngine.Application.productName ?? "World";
+                    _cachedDeviceIdentifier = string.Format("{0}_{1}_{2}", pName, cName, pName.Length ^ cName.Length);
                 }
             }
 
