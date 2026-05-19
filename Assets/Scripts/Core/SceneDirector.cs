@@ -118,7 +118,7 @@ namespace MilehighWorld.Core
                 var controller = GetCharacterController(characterObj);
                 if (controller != null)
                 {
-                    CharacterData data = ScriptableObject.CreateInstance<CharacterData>();
+                    CharacterProfileData data = ScriptableObject.CreateInstance<CharacterProfileData>();
                     data.characterName = profile.name;
                     data.role = profile.role;
                     data.traits = profile.traits;

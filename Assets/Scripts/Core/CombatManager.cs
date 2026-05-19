@@ -3,6 +3,7 @@
 
 using UnityEngine;
 using MilehighWorld.Data;
+using MilehighWorld.World.Core;
 
 namespace MilehighWorld.Core
 {
@@ -22,23 +23,10 @@ namespace MilehighWorld.Core
             }
         }
 
-        public float CalculateVanguardDamage(RuntimeCharacterData attacker, RuntimeCharacterData target, float baseWeaponDamage)
+        public float CalculateVanguardDamage(MilehighWorld.World.Core.CharacterData attacker, float baseDamage)
         {
-            float finalDamage = baseWeaponDamage;
-
-            if (target.IsVoidCorrupted && (attacker.TechAlignment == "Arcane" || attacker.TechAlignment == "Hybrid"))
-            {
-                finalDamage *= 1.5f;
-                Debug.Log($"<color=orange>[COMBAT]: {attacker.Id} triggered Arcane Resonance against Void Corruption!</color>");
-            }
-
-            if (GlobalResonanceManager.Instance != null)
-            {
-                finalDamage *= GlobalResonanceManager.Instance.GetIntegrityMultiplier();
-            }
-
-            return finalDamage;
+            float integrityMult = GlobalResonanceManager.Instance != null ? GlobalResonanceManager.Instance.GetIntegrityMultiplier() : 1.0f;
+            return (baseDamage * attacker.vanguardMultiplier) * integrityMult;
         }
-
     }
 }

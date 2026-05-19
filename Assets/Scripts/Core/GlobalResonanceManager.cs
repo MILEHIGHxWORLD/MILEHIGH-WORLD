@@ -8,7 +8,7 @@ namespace MilehighWorld.Core
     public class GlobalResonanceManager : MonoBehaviour
     {
         public static GlobalResonanceManager Instance;
-        public float CurrentVoidVariance { get; private set; } = 0.5f;
+        public float resonanceFactor = 0.5f;
 
         private void Awake()
         {
@@ -25,8 +25,7 @@ namespace MilehighWorld.Core
 
         public float GetIntegrityMultiplier()
         {
-            float integrity = 1.0f - CurrentVoidVariance;
-            return Mathf.Clamp01(integrity);
+            return resonanceFactor * 1.25f;
         }
 
         public void RedirectVoidData(byte[] rawData)
@@ -40,8 +39,8 @@ namespace MilehighWorld.Core
 
         public void UpdateResonance(float state)
         {
-            CurrentVoidVariance = state;
-            Debug.Log($"Global Resonance: Updated to {CurrentVoidVariance} due to state {state}");
+            resonanceFactor = state;
+            Debug.Log($"Global Resonance: Updated to {resonanceFactor} due to state {state}");
         }
 
         private void ProcessData(byte[] data)
