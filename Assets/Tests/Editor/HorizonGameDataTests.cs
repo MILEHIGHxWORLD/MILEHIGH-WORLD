@@ -14,14 +14,14 @@ namespace Milehigh.Tests
         [InlineData(1.1f, false)]
         public void Metadata_IsValid_ValidatesVoidSaturationLevel(float level, bool expected)
         {
-            var metadata = new Metadata { voidSaturationLevel = level };
+            var metadata = new Metadata { environment = "Test", voidSaturationLevel = level };
             Assert.Equal(expected, metadata.IsValid());
         }
 
         [Fact]
         public void HorizonGameData_IsValid_FailsIfMetadataMissing()
         {
-            var data = new HorizonGameData { metadata = null };
+            var data = new HorizonGameData { sceneId = "Test", metadata = null };
             Assert.False(data.IsValid());
         }
 
@@ -30,7 +30,8 @@ namespace Milehigh.Tests
         {
             var data = new HorizonGameData
             {
-                metadata = new Metadata { voidSaturationLevel = 2.0f }
+                sceneId = "Test",
+                metadata = new Metadata { environment = "Test", voidSaturationLevel = 2.0f }
             };
             Assert.False(data.IsValid());
         }
@@ -70,7 +71,8 @@ namespace Milehigh.Tests
         {
             return new HorizonGameData
             {
-                metadata = new Metadata { voidSaturationLevel = 0.5f },
+                sceneId = "TestScene",
+                metadata = new Metadata { environment = "TestEnv", voidSaturationLevel = 0.5f },
                 characters = new List<CharacterProfile>
                 {
                     new CharacterProfile { name = "Test", role = "Tester" }

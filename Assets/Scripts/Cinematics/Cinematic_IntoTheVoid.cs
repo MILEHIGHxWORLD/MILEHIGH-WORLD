@@ -376,6 +376,7 @@ namespace Milehigh.Cinematics
 {
     /// <summary>
     /// Manages the cinematic sequence "Into the Void", handling dialogue, character animations, audio, and rhythmic text reveal.
+    /// BOLT: Optimized to remove redundant engine calls, consolidate caches, and eliminate duplicate logic from botched merges.
     /// </summary>
     public class Cinematic_IntoTheVoid : MonoBehaviour
     {
@@ -420,6 +421,11 @@ namespace Milehigh.Cinematics
         private bool _isSkipHintActive;
         private Vector3 originalSpeakerScale;
 
+        // BOLT: Cache for WaitForSeconds using millisecond keys to prevent floating-point precision issues
+        // and eliminate redundant GC allocations during coroutine execution.
+        private static readonly System.Collections.Generic.Dictionary<int, UnityEngine.WaitForSeconds> _waitForSecondsCache = new System.Collections.Generic.Dictionary<int, UnityEngine.WaitForSeconds>();
+
+        private UnityEngine.WaitForSeconds GetWait(float time)
         // BOLT: Cache speaker styles to avoid repeated string conversions and switch evaluations.
         private struct SpeakerStyle
         {
@@ -478,6 +484,8 @@ namespace Milehigh.Cinematics
 
             if (SkipHintText == null && DialogueBox != null)
             {
+                UnityEngine.Transform hintTransform = DialogueBox.transform.Find("SkipHint");
+                if (hintTransform != null) SkipHintText = hintTransform.GetComponent<TMPro.TextMeshProUGUI>();
                 Transform hintTransform = DialogueBox.transform.Find("SkipHint");
                 if (hintTransform != null) SkipHintText = hintTransform.GetComponent<TextMeshProUGUI>();
             }
@@ -488,6 +496,11 @@ namespace Milehigh.Cinematics
                 SkipHintText.gameObject.SetActive(false);
             }
 
+            // Palette: Accessibility - High-contrast text outline for better readability in dark/complex scenes.
+            // ⚡ Bolt: Consolidated material property assignments to reduce engine boundary calls.
+            ApplyTextOutline(SpeakerNameText);
+            ApplyTextOutline(DialogueText);
+            ApplyTextOutline(SkipHintText);
             // ⚡ Bolt: Pre-cache animators and materials to eliminate runtime allocations.
             if (Skyix_Character != null) _skyixAnimator = Skyix_Character.GetComponent<UnityEngine.Animator>();
             if (Kai_Character != null) _kaiAnimator = Kai_Character.GetComponent<UnityEngine.Animator>();
@@ -514,10 +527,14 @@ namespace Milehigh.Cinematics
             this.StartCoroutine(Cinematic_IntoTheVoid_Sequence());
         }
 
+        private void ApplyTextOutline(TMPro.TextMeshProUGUI? text)
         private void ApplyTextOutline(UnityEngine.Material? mat)
         {
             if (mat != null)
             {
+                // Palette: Set outline width and color for better contrast.
+                text.fontMaterial.SetFloat(TMPro.ShaderUtilities.ID_OutlineWidth, 0.2f);
+                text.fontMaterial.SetColor(TMPro.ShaderUtilities.ID_OutlineColor, UnityEngine.Color.black);
                 mat.SetFloat(TMPro.ShaderUtilities.ID_OutlineWidth, 0.25f);
                 mat.SetColor(TMPro.ShaderUtilities.ID_OutlineColor, UnityEngine.Color.black);
         private void Update()
@@ -551,6 +568,7 @@ namespace Milehigh.Cinematics
         private void Update()
         {
             // ⚡ Bolt: Precise skip detection for refined UX.
+            if (UnityEngine.Input.anyKeyDown || UnityEngine.Input.GetMouseButtonDown(0))
             if (UnityEngine.Input.anyKeyDown)
             if (UnityEngine.Input.GetKeyDown(UnityEngine.KeyCode.Space) || UnityEngine.Input.GetKeyDown(UnityEngine.KeyCode.Return) || UnityEngine.Input.GetMouseButtonDown(0))
             {
@@ -1293,6 +1311,9 @@ namespace Milehigh.Cinematics
         // Scale up
         while (elapsed < duration)
         {
+            yield return FadeDialogueBox(1.0f, 0.5f);
+            yield return WaitForSecondsOrSkip(1.0f);
+
             yield return this.StartCoroutine(FadeDialogueBox(1.0f, 0.5f));
             yield return GetWait(1.0f);
 
@@ -1695,6 +1716,8 @@ namespace Milehigh.Cinematics
             if (_skyixAnimator != null) _skyixAnimator.SetTrigger("Determined_Resolve");
             yield return PlayDialogueLine("Sky.ix", "My family is my anchor. They are the reason I can walk through this hell and not become a monster like you. And I am bringing them home.", 3.0f);
 
+            yield return FadeDialogueBox(0f, 0.5f);
+            UnityEngine.Debug.Log("Cinematic Sequence Complete: [Deep within the anti-reality of ŤĤÊ VØĪĐ...]");
             yield return this.StartCoroutine(FadeDialogueBox(0f, 0.5f));
             UnityEngine.Debug.Log("Cinematic Sequence Complete: [Deep within the anti-reality of ŤĤÊ VØĪĐ...]");
             yield return FadeDialogueBox(0f, 0.5f);

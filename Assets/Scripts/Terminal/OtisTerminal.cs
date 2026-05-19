@@ -38,6 +38,21 @@ namespace Milehigh.World.Terminal
 
         private void Update()
         {
+            // Palette: Productivity - Ctrl+L shortcut to clear the terminal for better workspace management.
+            bool isControlPressed = Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl);
+            if (isControlPressed && Input.GetKeyDown(KeyCode.L))
+            {
+                ClearTerminal();
+            }
+        }
+
+        private void ClearTerminal()
+        {
+            if (outputDisplay != null)
+            {
+                outputDisplay.text = "";
+                outputDisplay.maxVisibleCharacters = 0;
+            }
             if (commandInput == null || !commandInput.isFocused) return;
 
             // Power User Shortcut: Ctrl+L to clear the terminal
@@ -92,12 +107,16 @@ namespace Milehigh.World.Terminal
             if (command == "clear")
             {
                 ClearTerminalDisplay();
+                ClearTerminal();
                 return;
             }
 
             if (command == "help")
             {
                 WriteToTerminal("\n[SYSTEM]: <color=#FFFF00>Available Commands:</color>" +
+                                "\n - <color=#00FFFF>help</color>: Show this message." +
+                                "\n - <color=#00FFFF>clear</color>: Clear the terminal display (or Ctrl+L)." +
+                                "\n - <color=#00FFFF>[cmd] [arg1] [arg2]</color>: Execute extended system commands.");
                                 "\n - <color=#00FFFF>help/clear</color>: Show help or clear display." +
                                 "\n - <color=#00FFFF>[cmd] [arg1] [arg2]</color>: Execute commands." +
                                 "\n\n[SYSTEM]: <color=#FFFF00>Shortcuts:</color> Up/Down Arrow for History, Ctrl+L to Clear.");
