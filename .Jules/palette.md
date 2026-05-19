@@ -47,6 +47,9 @@
 **Learning:** Rhythmic punctuation pauses in typewriter effects are most effective when they occur *after* the punctuation character is revealed (checking index `i-1`) and use multipliers (e.g., 15x, 8x) instead of fixed delays. This ensures the cadence remains natural even when base typing speeds vary by character. Additionally, appending a visual completion character after typewriter reveals to improve readability and interaction clarity.
 **Action:** Always use speed multipliers for rhythmic pauses and include a visual completion character after typewriter reveals to improve readability and interaction clarity.
 
+## 2026-03-25 - [Unified Cinematic Skipping]
+**Learning:** In interactive cinematics, players expect a single input to advance the scene meaningfully. By centralizing the 'skipRequested' flag lifecycle within a dedicated 'WaitForSecondsOrSkip' coroutine, we ensure that skipping a typewriter reveal naturally flows into skipping the subsequent pause, creating a more responsive and respectful UX.
+**Action:** Implement 'WaitForSecondsOrSkip' for all cinematic delays and only reset the skip flag at the end of the pause, not the reveal.
 ## 2026-04-16 - [Persistent Skip Intent in Cinematic Sequences]
 **Learning:** In dialogue-heavy cinematics, users expect a single "Skip" action to bypass both the text reveal and the subsequent post-dialogue pause. Carrying the 'skipRequested' flag through both the typewriter coroutine and a custom 'WaitForSecondsOrSkip' coroutine creates a much more responsive and intuitive feel than requiring multiple clicks per line.
 **Action:** Implement 'WaitForSecondsOrSkip' and ensure 'skipRequested' flags are not prematurely reset between typing and pausing phases.
