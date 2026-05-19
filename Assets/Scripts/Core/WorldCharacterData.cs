@@ -1,4 +1,4 @@
-namespace Milehigh.World.Core
+namespace MilehighWorld.World.Core
 {
     [System.Serializable]
     public struct CharacterData

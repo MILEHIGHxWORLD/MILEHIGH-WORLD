@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Milehigh.World.Engine
+namespace MilehighWorld.World.Engine
 {
     public class BicameralBattleEngine : MonoBehaviour
     {

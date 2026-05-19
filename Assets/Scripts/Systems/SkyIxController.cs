@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Milehigh.World.Systems
+namespace MilehighWorld.World.Systems
 {
     // Error 1 Fix: Rename from Sky.ixController
     public class SkyIxController : MonoBehaviour

@@ -1,4 +1,4 @@
-namespace Milehigh.World.Systems
+namespace MilehighWorld.World.Systems
 {
     // Error 13 Fix: Interface definition for MemoryBridge
     public interface IMemoryBridgeClient

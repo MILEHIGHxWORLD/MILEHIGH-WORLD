@@ -1,8 +1,8 @@
 using Xunit;
-using Milehigh.Data;
+using MilehighWorld.Data;
 using System.Collections.Generic;
 
-namespace Milehigh.Tests
+namespace MilehighWorld.Tests
 {
     public class HorizonGameDataTests
     {

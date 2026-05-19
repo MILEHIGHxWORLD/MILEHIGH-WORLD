@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Milehigh.Core
+namespace MilehighWorld.Core
 {
     public class EncounterDirector : MonoBehaviour
     {

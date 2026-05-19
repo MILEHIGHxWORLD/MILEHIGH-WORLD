@@ -2,7 +2,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using UnityEngine.Networking;
 
-namespace Milehigh.Core
+namespace MilehighWorld.Core
 {
     public static class AsyncExtensions
     {

@@ -1,6 +1,6 @@
 using System;
 
-namespace Milehigh.Systems.Agency
+namespace MilehighWorld.Systems.Agency
 {
     public enum ActionType
     {

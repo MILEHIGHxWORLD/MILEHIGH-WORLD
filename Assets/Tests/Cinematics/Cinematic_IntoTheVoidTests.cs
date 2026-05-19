@@ -4,7 +4,7 @@ using TMPro;
 using System.Collections;
 using UnityEngine.TestTools;
 
-namespace Milehigh.Tests.Cinematics
+namespace MilehighWorld.Tests.Cinematics
 {
     public class Cinematic_IntoTheVoidTests
     {

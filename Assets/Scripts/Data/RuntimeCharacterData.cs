@@ -2,7 +2,6 @@
 // PROPRIETARY AND CONFIDENTIAL: DO NOT DISTRIBUTE.
 
 namespace MilehighWorld.Data
-namespace Milehigh.Data
 {
     [System.Serializable]
     public struct RuntimeCharacterData
@@ -14,8 +13,5 @@ namespace Milehigh.Data
         public float BaseTraumaModifier;
         public bool IsVoidCorrupted;
         public bool HasMagenActive; // From Narrative Constraints
-        public float HealthPercentage;
-        public string TechAlignment;
-        public bool HasMagenActive;
     }
 }

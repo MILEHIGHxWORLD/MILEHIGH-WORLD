@@ -1,12 +1,12 @@
 using NUnit.Framework;
 using UnityEngine;
-using Milehigh.Core;
-using Milehigh.Data;
-using Milehigh.Characters;
+using MilehighWorld.Core;
+using MilehighWorld.Data;
+using MilehighWorld.Characters;
 using System.Collections.Generic;
 using System.Reflection;
 
-namespace Milehigh.Tests
+namespace MilehighWorld.Tests
 {
     public class SceneDirectorTests
     {

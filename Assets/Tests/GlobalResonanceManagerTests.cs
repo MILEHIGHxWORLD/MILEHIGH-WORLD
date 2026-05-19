@@ -1,7 +1,7 @@
 using Xunit;
-using Milehigh.Core;
+using MilehighWorld.Core;
 
-namespace Milehigh.Tests
+namespace MilehighWorld.Tests
 {
     public class GlobalResonanceManagerTests
     {

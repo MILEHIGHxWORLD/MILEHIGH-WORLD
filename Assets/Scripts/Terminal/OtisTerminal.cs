@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using System.Collections;
 
-namespace Milehigh.World.Terminal
+namespace MilehighWorld.World.Terminal
 {
     public class OtisTerminal : MonoBehaviour
     {
