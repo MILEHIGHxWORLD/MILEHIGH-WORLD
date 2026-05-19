@@ -404,3 +404,7 @@
 ## 2024-06-01 - Redundant Input Checks in Update Loop
 **Learning:** Repeatedly calling `Input` properties/methods (like `Input.anyKeyDown` alongside specific keydown checks) inside `Update()` loops introduces unnecessary C#/C++ native boundary crossings. This overhead accumulates, leading to micro-stutters, especially in input-heavy or critical path systems like cinematic playback.
 **Action:** Eliminate duplicate or redundant input execution paths to reduce CPU overhead and prevent micro-stutters.
+
+## 2026-05-19 - Negative Caching and Unity Fake Nulls
+**Learning:** In Unity, dictionaries storing Unity objects (like `GameObject`) that implement negative caching (storing `null` when an object isn't found) suffer from cache misses if checked using standard `!= null`. A legitimate `null` from a failed search evaluates the same as a "fake null" (a previously found object that was natively destroyed), causing redundant, expensive `GameObject.Find` calls.
+**Action:** Use `ReferenceEquals(obj, null)` to correctly distinguish between a legitimately unpopulated cache entry (true null) and a natively destroyed object (fake null) to prevent redundant scene traversal.
