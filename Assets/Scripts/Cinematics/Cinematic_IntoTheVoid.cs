@@ -30,7 +30,6 @@ namespace Milehigh.Cinematics
         public TextMeshProUGUI SpeakerNameText = null!;
         public TextMeshProUGUI DialogueText = null!;
         public TextMeshProUGUI SkipHintText = null!;
-        public TextMeshProUGUI? SkipHintText;
 
         [Header("UX Settings")]
         [Tooltip("Base delay in seconds between each character being revealed.")]
@@ -106,10 +105,16 @@ namespace Milehigh.Cinematics
             }
 
             // Palette: Accessibility - Text outline for better contrast in dark scenes.
-            SpeakerNameText.fontMaterial.SetFloat(ShaderUtilities.ID_OutlineWidth, 0.25f);
-            SpeakerNameText.fontMaterial.SetColor(ShaderUtilities.ID_OutlineColor, Color.black);
-            DialogueText.fontMaterial.SetFloat(ShaderUtilities.ID_OutlineWidth, 0.25f);
-            DialogueText.fontMaterial.SetColor(ShaderUtilities.ID_OutlineColor, Color.black);
+            if (SpeakerNameText.fontMaterial != null)
+            {
+                SpeakerNameText.fontMaterial.SetFloat(ShaderUtilities.ID_OutlineWidth, 0.25f);
+                SpeakerNameText.fontMaterial.SetColor(ShaderUtilities.ID_OutlineColor, Color.black);
+            }
+            if (DialogueText.fontMaterial != null)
+            {
+                DialogueText.fontMaterial.SetFloat(ShaderUtilities.ID_OutlineWidth, 0.25f);
+                DialogueText.fontMaterial.SetColor(ShaderUtilities.ID_OutlineColor, Color.black);
+            }
 
             StartCoroutine(Cinematic_IntoTheVoid_Sequence());
         }
@@ -133,6 +138,14 @@ namespace Milehigh.Cinematics
                 {
                     SkipHintText.gameObject.SetActive(true);
                 }
+            }
+
+            // Palette: Subtle alpha pulse for the skip hint to improve discoverability.
+            if (SkipHintText != null && SkipHintText.gameObject.activeInHierarchy)
+            {
+                Color c = SkipHintText.color;
+                c.a = Mathf.PingPong(Time.time * 0.5f, 0.5f) + 0.5f;
+                SkipHintText.color = c;
             }
         }
 
@@ -356,5 +369,6 @@ namespace Milehigh.Cinematics
             }
             DialogueCanvasGroup.alpha = targetAlpha;
         }
+
     }
 }
