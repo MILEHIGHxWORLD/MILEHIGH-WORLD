@@ -250,3 +250,7 @@
 **Vulnerability:** The `CombatManager` singleton was missing from the `_protectedManagers` blocklist in `SceneDirector.cs`.
 **Learning:** Any new core manager or singleton must be explicitly added to the IDOR blocklists to prevent external data from manipulating its state via `GameObject.Find`.
 **Prevention:** Maintain a comprehensive list of all critical singletons and ensure they are all included in the `_protectedManagers` blocklist.
+## 2024-05-19 - Missing Managers in IDOR Blocklist
+**Vulnerability:** Several critical core managers (GameManager, BackendSyncService) were missing from the `_protectedManagers` blocklist in `SceneDirector.cs`, exposing them to unauthorized interaction and potential IDOR vulnerabilities.
+**Learning:** Hardcoded blocklists for dynamic core systems are prone to omitting newly added or less prominent singleton managers, leaving gaps in IDOR protection.
+**Prevention:** Ensure all critical singletons and core managers are explicitly included in the `_protectedManagers` HashSet blocklist within `SceneDirector.cs` to block unauthorized external access via `GameObject.Find`.
