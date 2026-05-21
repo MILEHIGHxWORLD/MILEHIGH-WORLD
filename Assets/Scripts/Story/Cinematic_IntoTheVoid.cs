@@ -169,16 +169,17 @@ namespace MilehighWorld.Cinematics
             {
                 dialogueText.maxVisibleCharacters = i;
 
-                if (i > 0 && i <= content.Length)
+                if (i > 0 && i <= messageLength)
                 {
-                    char c = content[i - 1];
+                    // Palette: Use textInfo.characterInfo to correctly identify the revealed character even with rich text tags.
+                    char c = dialogueText.textInfo.characterInfo[i - 1].character;
                     float multiplier = 1f;
 
                     // Palette: Rhythmic pacing - check for sentence ends and clauses.
                     if (c == '.' || c == '!' || c == '?')
                     {
-                        // Lookahead for Sky.ix or ellipsis
-                        bool isMidWord = (i < content.Length && !char.IsWhiteSpace(content[i]));
+                        // Lookahead for Sky.ix or ellipsis - check next visible character if available
+                        bool isMidWord = (i < messageLength && !char.IsWhiteSpace(dialogueText.textInfo.characterInfo[i].character));
                         if (!isMidWord) multiplier = 15f;
                     }
                     else if (c == ',' || c == ':')

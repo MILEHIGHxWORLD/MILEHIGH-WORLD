@@ -185,9 +185,9 @@ namespace MilehighWorld.World.Terminal
                 if (i > 0 && i <= charactersToReveal)
                 {
                     char c = outputDisplay.textInfo.characterInfo[startVisibleCount + i - 1].character;
-                    if (c == '.' || c == ':' || c == '!')
+                    if (c == '.' || c == '!')
                         yield return new WaitForSeconds(0.15f);
-                    else if (c == ',')
+                    else if (c == ',' || c == ':')
                         yield return new WaitForSeconds(0.08f);
                 }
 
