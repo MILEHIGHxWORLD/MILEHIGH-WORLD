@@ -19,6 +19,21 @@ namespace MilehighWorld.World.Terminal
         private List<string> _commandHistory = new List<string>();
         private int _historyIndex = -1;
 
+        // BOLT: Cache for WaitForSeconds using millisecond keys to prevent floating-point precision issues
+        // and eliminate redundant GC allocations during typewriter execution.
+        private static readonly Dictionary<int, WaitForSeconds> _waitCache = new Dictionary<int, WaitForSeconds>();
+
+        private WaitForSeconds GetWait(float seconds)
+        {
+            int ms = Mathf.RoundToInt(seconds * 1000f);
+            if (!_waitCache.TryGetValue(ms, out var wait))
+            {
+                wait = new WaitForSeconds(seconds);
+                _waitCache[ms] = wait;
+            }
+            return wait;
+        }
+
         private void Start()
         {
             if (outputDisplay != null)
@@ -124,9 +139,6 @@ namespace MilehighWorld.World.Terminal
                 WriteToTerminal("\n[SYSTEM]: <color=#FFFF00>Available Commands:</color>" +
                                 "\n - <color=#00FFFF>help</color>: Show this message." +
                                 "\n - <color=#00FFFF>clear</color>: Clear the terminal display (or Ctrl+L)." +
-                                "\n - <color=#00FFFF>help/clear</color>: Show help or clear display." +
-                                "\n - <color=#00FFFF>[cmd] [arg1] [arg2]</color>: Execute commands." +
-                                "\n\n[SYSTEM]: <color=#FFFF00>Shortcuts:</color> Up/Down Arrow for History, Ctrl+L to Clear.");
                                 "\n - <color=#00FFFF>[cmd] [arg1] [arg2]</color>: Execute extended system commands." +
                                 "\n\n[SYSTEM]: <color=#FFFF00>Shortcuts:</color> Up/Down Arrow for History, Tab to Autocomplete, Ctrl+L to Clear.");
                 return;
@@ -189,12 +201,12 @@ namespace MilehighWorld.World.Terminal
                 {
                     char c = outputDisplay.textInfo.characterInfo[startVisibleCount + i - 1].character;
                     if (c == '.' || c == ':' || c == '!')
-                        yield return new WaitForSeconds(0.15f);
+                        yield return GetWait(0.15f);
                     else if (c == ',')
-                        yield return new WaitForSeconds(0.08f);
+                        yield return GetWait(0.08f);
                 }
 
-                yield return new WaitForSeconds(0.02f);
+                yield return GetWait(0.02f);
             }
 
             _typewriterCoroutine = null;

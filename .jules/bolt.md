@@ -404,3 +404,7 @@
 ## 2024-06-01 - Redundant Input Checks in Update Loop
 **Learning:** Repeatedly calling `Input` properties/methods (like `Input.anyKeyDown` alongside specific keydown checks) inside `Update()` loops introduces unnecessary C#/C++ native boundary crossings. This overhead accumulates, leading to micro-stutters, especially in input-heavy or critical path systems like cinematic playback.
 **Action:** Eliminate duplicate or redundant input execution paths to reduce CPU overhead and prevent micro-stutters.
+
+## 2026-05-20 - [Coroutine Yield Caching in Terminal Typewriter]
+**Learning:** In 'OtisTerminal.cs', the typewriter effect was instantiating 'new WaitForSeconds' on every character and punctuation pause, leading to significant GC pressure during long system messages.
+**Action:** Implement a 'static Dictionary<int, WaitForSeconds>' with millisecond-based integer keys to cache and reuse yield instructions. This eliminates per-character allocations and resolves potential floating-point precision issues with dictionary lookups.
