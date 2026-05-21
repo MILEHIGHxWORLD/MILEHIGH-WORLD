@@ -136,20 +136,36 @@ namespace MilehighWorld.Cinematics
         }
 
         /// <summary>
-        /// Zero-allocation typewriter effect for dialogue rendering.
+        /// Rhythmic typewriter effect for dialogue rendering with punctuation-aware pacing.
         /// </summary>
         private async Task StreamDialogueAsync(string speaker, string content, float charDelay)
         {
             speakerNameText.text = $"<color=cyan>[{speaker}]</color>";
-            dialogueText.text = "";
+            dialogueText.text = content;
+            dialogueText.maxVisibleCharacters = 0;
+            dialogueText.ForceMeshUpdate();
 
-            for (int i = 0; i < content.Length; i++)
+            int total = dialogueText.textInfo.characterCount;
+            for (int i = 0; i <= total; i++)
             {
-                dialogueText.text += content[i];
+                dialogueText.maxVisibleCharacters = i;
+                if (i > 0 && i < total)
+                {
+                    char c = dialogueText.textInfo.characterInfo[i - 1].character;
+                    float m = 1f;
 
-                // Base-9 Frame Parity Alignment: Yield heavily on 9th iterations if needed,
-                // but for lexical pacing, we use a scaled delay.
-                await Task.Delay(Mathf.RoundToInt(charDelay * 1000));
+                    // Palette: Context-aware rhythmic pauses (15x for sentence ends, 8x for clauses)
+                    if (c == '.' || c == '?' || c == '!')
+                    {
+                        // Look-ahead to avoid pausing on mid-word periods (e.g., Sky.ix)
+                        if (i < total && char.IsWhiteSpace(dialogueText.textInfo.characterInfo[i].character))
+                            m = 15f;
+                    }
+                    else if (c == ',' || c == ':' || c == ';') m = 8f;
+
+                    await Task.Delay(Mathf.RoundToInt(charDelay * m * 1000));
+                }
+                else await Task.Yield();
             }
         }
 
