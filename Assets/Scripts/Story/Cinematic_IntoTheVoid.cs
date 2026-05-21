@@ -39,11 +39,21 @@ namespace MilehighWorld.Cinematics
         private const float LinearOmenHexState = 6.0f;
         private const float IteratedSanctuary = 0.0777777777f;
 
+        private bool _skipRequested;
+
+        private void Update() { if (UnityEngine.Input.anyKeyDown) _skipRequested = true; }
+
         private void Start()
         {
             // Lock timeScale for deterministic cinematic pacing
             Time.timeScale = 1.0f;
             _ = ExecuteConvergenceSequenceAsync();
+        }
+
+        private async Task WaitForSecondsOrSkip(float s)
+        {
+            float e = 0;
+            while (e < s && !_skipRequested) { e += Time.deltaTime; await Task.Yield(); }
         }
 
         private async Task ExecuteConvergenceSequenceAsync()
@@ -61,9 +71,10 @@ namespace MilehighWorld.Cinematics
             // 3. Asynchronous Lexical Pacing
             dialogueCanvas.SetActive(true);
             await StreamDialogueAsync("King Cyrus", "Tremble, mortals, as the Age of Millenia crumbles before the might of the Void!", 0.04f);
-            await Task.Delay(500);
+            await WaitForSecondsOrSkip(1.0f);
 
             await StreamDialogueAsync("Sky.ix", "Negative. The resonance is peaking. We are at 998 shards. Engaging Void Conduit.", 0.03f);
+            await WaitForSecondsOrSkip(1.0f);
 
             // 4. Parity Verification via OMEGA.ONE Fulcrum
             LogNarrativeTelemetry("Executing BackendSyncService Call: Validating Parity Resonance...");
@@ -77,6 +88,7 @@ namespace MilehighWorld.Cinematics
             if (resolution.WasActionSuccessful)
             {
                 await StreamDialogueAsync("Reverie", "The 999th shard is ours. Severing the loop... now!", 0.03f);
+                await WaitForSecondsOrSkip(1.0f);
                 await ExecuteSaveEveryoneProtocolAsync();
             }
             else
@@ -136,21 +148,29 @@ namespace MilehighWorld.Cinematics
         }
 
         /// <summary>
-        /// Zero-allocation typewriter effect for dialogue rendering.
+        /// Zero-allocation typewriter effect for dialogue rendering with rhythmic pacing.
         /// </summary>
         private async Task StreamDialogueAsync(string speaker, string content, float charDelay)
         {
-            speakerNameText.text = $"<color=cyan>[{speaker}]</color>";
-            dialogueText.text = "";
+            _skipRequested = false;
+            string color = speaker == "Sky.ix" ? "cyan" : speaker == "King Cyrus" ? "yellow" : "magenta";
+            speakerNameText.text = $"<color={color}>[{speaker}]</color>";
+            dialogueText.text = $"{content} <color={color}>▽</color>";
+            dialogueText.maxVisibleCharacters = 0;
+            dialogueText.ForceMeshUpdate();
 
-            for (int i = 0; i < content.Length; i++)
+            for (int i = 0; i <= dialogueText.textInfo.characterCount; i++)
             {
-                dialogueText.text += content[i];
-
-                // Base-9 Frame Parity Alignment: Yield heavily on 9th iterations if needed,
-                // but for lexical pacing, we use a scaled delay.
-                await Task.Delay(Mathf.RoundToInt(charDelay * 1000));
+                if (_skipRequested) break;
+                dialogueText.maxVisibleCharacters = i;
+                float m = 1f;
+                if (i > 0 && i < dialogueText.textInfo.characterCount) {
+                    char c = dialogueText.textInfo.characterInfo[i - 1].character;
+                    m = (c == '.' || c == '?' || c == '!') ? 15f : (c == ',' || c == ':' || c == ';') ? 8f : 1f;
+                }
+                await Task.Delay(Mathf.RoundToInt(charDelay * 1000 * m));
             }
+            dialogueText.maxVisibleCharacters = dialogueText.textInfo.characterCount;
         }
 
         [Conditional("ENABLE_NARRATIVE_LOGS")]
