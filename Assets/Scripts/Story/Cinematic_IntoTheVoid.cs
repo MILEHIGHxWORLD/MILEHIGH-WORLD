@@ -114,7 +114,7 @@ namespace MilehighWorld.Cinematics
             LogNarrativeTelemetry("PROTOCOL_SAVE_EVERYONE Initiated. Physics re-aligning.");
 
             // Fade out Cyrus using Object Pooling SOP (Alpha Decay)
-            await TweenAlphaDecayAsync(kingCyrusPrefab.GetComponentInChildren<Renderer>().material, 1.5f);
+            await TweenAlphaDecayAsync(kingCyrusPrefab.GetComponentInChildren<Renderer>(), 1.5f);
             kingCyrusPrefab.SetActive(false); // Return to pool
 
             // Clamp environmental delta changes instantly upon loop completion
@@ -123,29 +123,41 @@ namespace MilehighWorld.Cinematics
             LogNarrativeTelemetry("Omen Singularity Severed. Verse Stabilized.");
         }
 
-        private async Task TweenAlphaDecayAsync(Material mat, float duration)
+        private static MaterialPropertyBlock? _alphaDecayPropertyBlock;
+
+        private async Task TweenAlphaDecayAsync(Renderer renderer, float duration)
         {
+            if (renderer == null) return;
+            if (_alphaDecayPropertyBlock == null) _alphaDecayPropertyBlock = new MaterialPropertyBlock();
+
             float elapsed = 0f;
             while (elapsed < duration)
             {
                 elapsed += Time.deltaTime;
                 float alpha = Mathf.Lerp(1f, 0f, elapsed / duration);
-                mat.SetFloat(baseColorAlphaId, alpha);
+
+                renderer.GetPropertyBlock(_alphaDecayPropertyBlock);
+                _alphaDecayPropertyBlock.SetFloat(baseColorAlphaId, alpha);
+                renderer.SetPropertyBlock(_alphaDecayPropertyBlock);
+
                 await Task.Yield();
             }
         }
 
         /// <summary>
-        /// Zero-allocation typewriter effect for dialogue rendering.
+        /// Zero-allocation typewriter effect for dialogue rendering using maxVisibleCharacters.
         /// </summary>
         private async Task StreamDialogueAsync(string speaker, string content, float charDelay)
         {
             speakerNameText.text = $"<color=cyan>[{speaker}]</color>";
-            dialogueText.text = "";
+            dialogueText.text = content;
+            dialogueText.maxVisibleCharacters = 0;
+            dialogueText.ForceMeshUpdate();
 
-            for (int i = 0; i < content.Length; i++)
+            int totalCharacters = content.Length;
+            for (int i = 0; i <= totalCharacters; i++)
             {
-                dialogueText.text += content[i];
+                dialogueText.maxVisibleCharacters = i;
 
                 // Base-9 Frame Parity Alignment: Yield heavily on 9th iterations if needed,
                 // but for lexical pacing, we use a scaled delay.
