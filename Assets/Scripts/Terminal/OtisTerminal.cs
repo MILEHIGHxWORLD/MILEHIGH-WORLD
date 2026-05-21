@@ -15,20 +15,6 @@ namespace MilehighWorld.World.Terminal
         private const int MaxInputLength = 256;
         private static readonly Regex SafeCommandRegex = new Regex(@"^[a-zA-Z0-9\s._\-]+$", RegexOptions.Compiled);
 
-        // ⚡ Bolt: Cache WaitForSeconds to prevent GC allocations per character during typewriter effect.
-        private static readonly Dictionary<int, WaitForSeconds> _wfsCache = new Dictionary<int, WaitForSeconds>();
-
-        private WaitForSeconds GetWaitForSeconds(float time)
-        {
-            int key = Mathf.RoundToInt(time * 1000f);
-            if (!_wfsCache.TryGetValue(key, out var wfs))
-            {
-                wfs = new WaitForSeconds(time);
-                _wfsCache[key] = wfs;
-            }
-            return wfs;
-        }
-
         private Coroutine? _typewriterCoroutine;
         private List<string> _commandHistory = new List<string>();
         private int _historyIndex = -1;
@@ -99,21 +85,7 @@ namespace MilehighWorld.World.Terminal
         public void ProcessCommand(string input)
         {
             if (string.IsNullOrWhiteSpace(input)) return;
-
-            // 🛡️ Sentinel: Input validation and DoS protection at the very beginning
-            if (input.Length > MaxInputLength)
-            {
-                WriteToTerminal("\n[SECURITY]: <color=#FF0000>Input exceeds maximum length (256 characters).</color>");
-                if (commandInput != null) StartCoroutine(ShakeInputField());
-                return;
-            }
-
-            // Sentinel: Implement a 100-entry history limit to prevent memory exhaustion (DoS)
-            if (_commandHistory.Count == 0 || _commandHistory[^1] != input)
-            {
-                if (_commandHistory.Count >= 100) _commandHistory.RemoveAt(0);
-                _commandHistory.Add(input);
-            }
+            if (_commandHistory.Count == 0 || _commandHistory[^1] != input) _commandHistory.Add(input);
             _historyIndex = _commandHistory.Count;
 
             // UX Enhancement: Clear input and refocus immediately for better flow
@@ -121,6 +93,14 @@ namespace MilehighWorld.World.Terminal
             {
                 commandInput.text = "";
                 commandInput.ActivateInputField();
+            }
+
+            // 🛡️ Sentinel: Input validation and DoS protection
+            if (input.Length > MaxInputLength)
+            {
+                WriteToTerminal("\n[SECURITY]: <color=#FF0000>Input exceeds maximum length (256 characters).</color>");
+                if (commandInput != null) StartCoroutine(ShakeInputField());
+                return;
             }
 
             if (!SafeCommandRegex.IsMatch(input))
@@ -144,8 +124,9 @@ namespace MilehighWorld.World.Terminal
                 WriteToTerminal("\n[SYSTEM]: <color=#FFFF00>Available Commands:</color>" +
                                 "\n - <color=#00FFFF>help</color>: Show this message." +
                                 "\n - <color=#00FFFF>clear</color>: Clear the terminal display (or Ctrl+L)." +
-                                "\n - <color=#00FFFF>[cmd] [arg1] [arg2]</color>: Execute system commands." +
-                                "\n - <color=#00FFFF>clear</color>: Clear the terminal display." +
+                                "\n - <color=#00FFFF>help/clear</color>: Show help or clear display." +
+                                "\n - <color=#00FFFF>[cmd] [arg1] [arg2]</color>: Execute commands." +
+                                "\n\n[SYSTEM]: <color=#FFFF00>Shortcuts:</color> Up/Down Arrow for History, Ctrl+L to Clear.");
                                 "\n - <color=#00FFFF>[cmd] [arg1] [arg2]</color>: Execute extended system commands." +
                                 "\n\n[SYSTEM]: <color=#FFFF00>Shortcuts:</color> Up/Down Arrow for History, Tab to Autocomplete, Ctrl+L to Clear.");
                 return;
@@ -208,12 +189,12 @@ namespace MilehighWorld.World.Terminal
                 {
                     char c = outputDisplay.textInfo.characterInfo[startVisibleCount + i - 1].character;
                     if (c == '.' || c == ':' || c == '!')
-                        yield return GetWaitForSeconds(0.15f);
+                        yield return new WaitForSeconds(0.15f);
                     else if (c == ',')
-                        yield return GetWaitForSeconds(0.08f);
+                        yield return new WaitForSeconds(0.08f);
                 }
 
-                yield return GetWaitForSeconds(0.02f);
+                yield return new WaitForSeconds(0.02f);
             }
 
             _typewriterCoroutine = null;

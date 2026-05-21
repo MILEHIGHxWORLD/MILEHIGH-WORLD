@@ -24,11 +24,6 @@ namespace MilehighWorld.Core
         private static readonly HashSet<string> _protectedManagers = new HashSet<string>
         {
             "CampaignManager", "SceneDirector", "CameraManager", "AlliancePowerManager", "GlobalResonanceManager", "CombatManager", "EncounterDirector", "NarrativeActionResolver", "GameManager", "BackendSyncService"
-            "CampaignManager", "SceneDirector", "CameraManager", "AlliancePowerManager",
-            "GlobalResonanceManager", "CombatManager", "EncounterDirector", "NarrativeActionResolver",
-            "GameManager", "BackendSyncService", "RealitySyncEngine", "CinematicController",
-            "BicameralBattleEngine", "RealityAnchor", "FoxParadeDirector"
-            "CampaignManager", "SceneDirector", "CameraManager", "AlliancePowerManager", "GlobalResonanceManager", "CombatManager", "EncounterDirector", "NarrativeActionResolver", "GameManager"
         };
 
         private static readonly Regex _nameValidator = new Regex(@"^[a-zA-Z0-9_\s\(\)\-$\.\/\[\]]+$", RegexOptions.Compiled);
@@ -177,12 +172,6 @@ namespace MilehighWorld.Core
             if (_objectCache.TryGetValue(objectName, out GameObject? obj))
             {
                 if (obj != null) return obj;
-
-                // ⚡ Bolt: Negative Caching Optimization
-                // Use ReferenceEquals to differentiate between a true null (legitimately missing object)
-                // and a fake null (natively destroyed object). Returns immediately for true nulls
-                // to prevent redundant and expensive GameObject.Find calls spanning the entire scene hierarchy.
-                if (ReferenceEquals(obj, null)) return null;
             }
 
             obj = GameObject.Find(objectName);
