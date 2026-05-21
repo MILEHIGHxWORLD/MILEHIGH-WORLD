@@ -149,7 +149,7 @@ namespace MilehighWorld.Cinematics
             for (int i = 0; i <= total; i++)
             {
                 dialogueText.maxVisibleCharacters = i;
-                if (i > 0 && i < total)
+                if (i > 0)
                 {
                     char c = dialogueText.textInfo.characterInfo[i - 1].character;
                     float m = 1f;
