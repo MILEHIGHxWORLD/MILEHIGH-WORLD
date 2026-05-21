@@ -404,3 +404,7 @@
 ## 2024-06-01 - Redundant Input Checks in Update Loop
 **Learning:** Repeatedly calling `Input` properties/methods (like `Input.anyKeyDown` alongside specific keydown checks) inside `Update()` loops introduces unnecessary C#/C++ native boundary crossings. This overhead accumulates, leading to micro-stutters, especially in input-heavy or critical path systems like cinematic playback.
 **Action:** Eliminate duplicate or redundant input execution paths to reduce CPU overhead and prevent micro-stutters.
+
+## 2026-05-20 - TMPro String Concatenation in Loops
+**Learning:** Performing string concatenation (`text += character`) inside a loop for a TextMeshPro typewriter effect causes O(N^2) memory allocations and forces the UI to rebuild the text mesh on every character. This introduces significant GC pressure and frame stuttering.
+**Action:** Achieve a true zero-allocation typewriter effect by setting the full string to `text` once, and then incrementing `maxVisibleCharacters` over time.
