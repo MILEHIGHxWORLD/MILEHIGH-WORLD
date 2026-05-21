@@ -27,6 +27,7 @@ namespace MilehighWorld.Core
             "GlobalResonanceManager", "CombatManager", "EncounterDirector", "NarrativeActionResolver",
             "GameManager", "BackendSyncService", "RealitySyncEngine", "CinematicController",
             "BicameralBattleEngine", "RealityAnchor", "FoxParadeDirector"
+            "CampaignManager", "SceneDirector", "CameraManager", "AlliancePowerManager", "GlobalResonanceManager", "CombatManager", "EncounterDirector", "NarrativeActionResolver", "GameManager"
         };
 
         private static readonly Regex _nameValidator = new Regex(@"^[a-zA-Z0-9_\s\(\)\-$\.\/\[\]]+$", RegexOptions.Compiled);

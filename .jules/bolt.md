@@ -404,3 +404,14 @@
 ## 2024-06-01 - Redundant Input Checks in Update Loop
 **Learning:** Repeatedly calling `Input` properties/methods (like `Input.anyKeyDown` alongside specific keydown checks) inside `Update()` loops introduces unnecessary C#/C++ native boundary crossings. This overhead accumulates, leading to micro-stutters, especially in input-heavy or critical path systems like cinematic playback.
 **Action:** Eliminate duplicate or redundant input execution paths to reduce CPU overhead and prevent micro-stutters.
+
+## 2026-05-20 - Zero-Allocation Typewriter Effect
+**Learning:** In Unity with TextMeshPro, using string concatenation (`text += char`) inside a typewriter loop causes O(N^2) memory allocations and forces UI mesh rebuilds per character. This was found in `Cinematic_IntoTheVoid.cs` and causes significant GC pressure during dialogue.
+**Action:** Always achieve a zero-allocation typewriter effect by assigning the full string to the `text` property once, and then incrementing the `maxVisibleCharacters` property over time within the loop.
+## 2025-01-22 - Coroutine WaitForSeconds Caching Optimization
+**Learning:** Using `float` keys in a `Dictionary` to cache `WaitForSeconds` in Unity can lead to cache misses due to floating-point imprecision, causing hidden GC allocations.
+**Action:** Always use an integer key (e.g., `Mathf.RoundToInt(time * 1000f)`) when caching time-based objects in Dictionaries.
+
+## 2024-05-21 - [Cinematic UI Optimization & Build Hygiene]
+**Learning:** In Unity, modifying material properties directly (e.g., via `Renderer.material`) causes material instantiation, leading to memory leaks and broken draw call batching. Additionally, incremental string concatenation in TextMeshPro typewriter effects causes expensive mesh regeneration on every frame. Finally, committing build artifacts like `bin/` or `obj/` or environment-specific mocks (like `TempMocks.cs`) pollutes the repository and causes namespace collisions in the Unity Editor.
+**Action:** Use `MaterialPropertyBlock` for per-renderer property updates and `TextMeshProUGUI.maxVisibleCharacters` for typewriter effects. Always ensure build artifacts and temporary mock files are removed before submission to maintain a clean, buildable repository.
