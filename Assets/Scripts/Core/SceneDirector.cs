@@ -176,6 +176,12 @@ namespace MilehighWorld.Core
             if (_objectCache.TryGetValue(objectName, out GameObject? obj))
             {
                 if (obj != null) return obj;
+
+                // ⚡ Bolt: Negative Caching Optimization
+                // Use ReferenceEquals to differentiate between a true null (legitimately missing object)
+                // and a fake null (natively destroyed object). Returns immediately for true nulls
+                // to prevent redundant and expensive GameObject.Find calls spanning the entire scene hierarchy.
+                if (ReferenceEquals(obj, null)) return null;
             }
 
             obj = GameObject.Find(objectName);
