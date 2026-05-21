@@ -15,6 +15,20 @@ namespace MilehighWorld.World.Terminal
         private const int MaxInputLength = 256;
         private static readonly Regex SafeCommandRegex = new Regex(@"^[a-zA-Z0-9\s._\-]+$", RegexOptions.Compiled);
 
+        // ⚡ Bolt: Cache WaitForSeconds to prevent GC allocations per character during typewriter effect.
+        private static readonly Dictionary<int, WaitForSeconds> _wfsCache = new Dictionary<int, WaitForSeconds>();
+
+        private WaitForSeconds GetWaitForSeconds(float time)
+        {
+            int key = Mathf.RoundToInt(time * 1000f);
+            if (!_wfsCache.TryGetValue(key, out var wfs))
+            {
+                wfs = new WaitForSeconds(time);
+                _wfsCache[key] = wfs;
+            }
+            return wfs;
+        }
+
         private Coroutine? _typewriterCoroutine;
         private List<string> _commandHistory = new List<string>();
         private int _historyIndex = -1;
@@ -189,12 +203,12 @@ namespace MilehighWorld.World.Terminal
                 {
                     char c = outputDisplay.textInfo.characterInfo[startVisibleCount + i - 1].character;
                     if (c == '.' || c == ':' || c == '!')
-                        yield return new WaitForSeconds(0.15f);
+                        yield return GetWaitForSeconds(0.15f);
                     else if (c == ',')
-                        yield return new WaitForSeconds(0.08f);
+                        yield return GetWaitForSeconds(0.08f);
                 }
 
-                yield return new WaitForSeconds(0.02f);
+                yield return GetWaitForSeconds(0.02f);
             }
 
             _typewriterCoroutine = null;
