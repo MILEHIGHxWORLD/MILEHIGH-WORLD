@@ -82,6 +82,10 @@
 **Learning:** Pacing in dialogue-heavy cinematics is significantly improved by distinguishing between sentence endings (long pause), ellipses (medium pause), and mid-word periods (no pause, e.g., 'Sky.ix'). Furthermore, color-coding progress indicators (like the '▽' cue) to match the speaker's theme strengthens the visual association between the narrative content and the character, reducing cognitive load for the player.
 **Action:** Implement look-ahead/look-behind logic for punctuation to refine pacing, and use speaker-specific colors for interactive UI cues via TMP rich text tags.
 
+## 2026-06-25 - [Accessibility Outlines and Rhythmic Typewriter Layout]
+**Learning:** Programmatically applying high-contrast outlines to TextMeshPro elements in 'Start' ensures accessible readability across varying cinematic backgrounds without manual Inspector overhead. Additionally, using 'maxVisibleCharacters' with pre-appended completion cues ('▽') prevents jarring layout shifts that occur when text wrapping recalculates mid-reveal.
+**Action:** Always use 'maxVisibleCharacters' for dialogue reveal and apply programmatic black outlines (0.25f) to ensure high-contrast readability in dynamic scenes.
+
 ## 2026-06-15 - [Terminal Command History for User Flow]
 **Learning:** In terminal-style interfaces, command history navigation (Up/Down arrows) is a critical "quality of life" feature that reduces repetitive typing and significantly improves user flow. For Unity InputFields, manually managing the caret position after updating the text is essential to ensure a seamless "command-line" feel.
 **Action:** Always implement command history and inclusive shortcut hints for terminal components to enhance accessibility and intuitiveness.
