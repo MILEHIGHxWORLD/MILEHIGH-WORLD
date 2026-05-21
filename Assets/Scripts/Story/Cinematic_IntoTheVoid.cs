@@ -43,7 +43,20 @@ namespace MilehighWorld.Cinematics
         {
             // Lock timeScale for deterministic cinematic pacing
             Time.timeScale = 1.0f;
+
+            // Palette: Apply high-contrast outlines for better accessibility/readability
+            ApplyHighContrastOutline(speakerNameText);
+            ApplyHighContrastOutline(dialogueText);
+
             _ = ExecuteConvergenceSequenceAsync();
+        }
+
+        private void ApplyHighContrastOutline(TextMeshProUGUI text)
+        {
+            if (text == null) return;
+            text.fontMaterial.EnableKeyword("OUTLINE_ON");
+            text.fontMaterial.SetColor(ShaderUtilities.ID_OutlineColor, Color.black);
+            text.fontMaterial.SetFloat(ShaderUtilities.ID_OutlineWidth, 0.25f);
         }
 
         private async Task ExecuteConvergenceSequenceAsync()
@@ -136,20 +149,53 @@ namespace MilehighWorld.Cinematics
         }
 
         /// <summary>
-        /// Zero-allocation typewriter effect for dialogue rendering.
+        /// Rhythmic typewriter effect with layout stability and speaker-themed cues.
         /// </summary>
         private async Task StreamDialogueAsync(string speaker, string content, float charDelay)
         {
-            speakerNameText.text = $"<color=cyan>[{speaker}]</color>";
-            dialogueText.text = "";
-
-            for (int i = 0; i < content.Length; i++)
+            string speakerColor = speaker switch
             {
-                dialogueText.text += content[i];
+                "Sky.ix" => "cyan",
+                "King Cyrus" => "yellow",
+                "Reverie" => "magenta",
+                _ => "white"
+            };
 
-                // Base-9 Frame Parity Alignment: Yield heavily on 9th iterations if needed,
-                // but for lexical pacing, we use a scaled delay.
-                await Task.Delay(Mathf.RoundToInt(charDelay * 1000));
+            speakerNameText.text = $"<color={speakerColor}>[{speaker}]</color>";
+
+            // Layout stability: Set full text (with cue) to pre-calculate wrapping
+            dialogueText.text = $"{content} <color={speakerColor}>▽</color>";
+            dialogueText.maxVisibleCharacters = 0;
+            dialogueText.ForceMeshUpdate();
+
+            int totalVisible = dialogueText.textInfo.characterCount;
+
+            for (int i = 0; i <= totalVisible; i++)
+            {
+                dialogueText.maxVisibleCharacters = i;
+
+                if (i > 0 && i < totalVisible)
+                {
+                    char c = dialogueText.textInfo.characterInfo[i - 1].character;
+                    float multiplier = 1f;
+
+                    // Rhythmic Pacing: Sentence ends (15x), clauses (8x), ellipses (5x)
+                    if (c == '.' || c == '!' || c == '?')
+                    {
+                        bool isEllipsis = i < totalVisible && dialogueText.textInfo.characterInfo[i].character == '.';
+                        multiplier = isEllipsis ? 5f : 15f;
+                    }
+                    else if (c == ',' || c == ';' || c == ':')
+                    {
+                        multiplier = 8f;
+                    }
+
+                    await Task.Delay(Mathf.RoundToInt(charDelay * 1000 * multiplier));
+                }
+                else
+                {
+                    await Task.Delay(Mathf.RoundToInt(charDelay * 1000));
+                }
             }
         }
 
