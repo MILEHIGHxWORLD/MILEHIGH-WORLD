@@ -257,6 +257,14 @@ namespace MilehighWorld.Cinematics
         private async Task StreamDialogueAsync(string speaker, string content, float charDelay)
         {
             speakerNameText.text = $"<color=cyan>[{speaker}]</color>";
+
+            // ⚡ Bolt: Zero-allocation typewriter effect.
+            dialogueText.text = content;
+            dialogueText.maxVisibleCharacters = 0;
+
+            for (int i = 1; i <= content.Length; i++)
+            {
+                dialogueText.maxVisibleCharacters = i;
             dialogueText.text = content;
             dialogueText.maxVisibleCharacters = 0;
             dialogueText.ForceMeshUpdate();
