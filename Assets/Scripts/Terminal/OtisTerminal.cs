@@ -85,7 +85,21 @@ namespace MilehighWorld.World.Terminal
         public void ProcessCommand(string input)
         {
             if (string.IsNullOrWhiteSpace(input)) return;
-            if (_commandHistory.Count == 0 || _commandHistory[^1] != input) _commandHistory.Add(input);
+
+            // 🛡️ Sentinel: Input validation and DoS protection at the very beginning
+            if (input.Length > MaxInputLength)
+            {
+                WriteToTerminal("\n[SECURITY]: <color=#FF0000>Input exceeds maximum length (256 characters).</color>");
+                if (commandInput != null) StartCoroutine(ShakeInputField());
+                return;
+            }
+
+            // Sentinel: Implement a 100-entry history limit to prevent memory exhaustion (DoS)
+            if (_commandHistory.Count == 0 || _commandHistory[^1] != input)
+            {
+                if (_commandHistory.Count >= 100) _commandHistory.RemoveAt(0);
+                _commandHistory.Add(input);
+            }
             _historyIndex = _commandHistory.Count;
 
             // UX Enhancement: Clear input and refocus immediately for better flow
@@ -93,14 +107,6 @@ namespace MilehighWorld.World.Terminal
             {
                 commandInput.text = "";
                 commandInput.ActivateInputField();
-            }
-
-            // 🛡️ Sentinel: Input validation and DoS protection
-            if (input.Length > MaxInputLength)
-            {
-                WriteToTerminal("\n[SECURITY]: <color=#FF0000>Input exceeds maximum length (256 characters).</color>");
-                if (commandInput != null) StartCoroutine(ShakeInputField());
-                return;
             }
 
             if (!SafeCommandRegex.IsMatch(input))
@@ -124,10 +130,7 @@ namespace MilehighWorld.World.Terminal
                 WriteToTerminal("\n[SYSTEM]: <color=#FFFF00>Available Commands:</color>" +
                                 "\n - <color=#00FFFF>help</color>: Show this message." +
                                 "\n - <color=#00FFFF>clear</color>: Clear the terminal display (or Ctrl+L)." +
-                                "\n - <color=#00FFFF>help/clear</color>: Show help or clear display." +
-                                "\n - <color=#00FFFF>[cmd] [arg1] [arg2]</color>: Execute commands." +
-                                "\n\n[SYSTEM]: <color=#FFFF00>Shortcuts:</color> Up/Down Arrow for History, Ctrl+L to Clear.");
-                                "\n - <color=#00FFFF>[cmd] [arg1] [arg2]</color>: Execute extended system commands." +
+                                "\n - <color=#00FFFF>[cmd] [arg1] [arg2]</color>: Execute system commands." +
                                 "\n\n[SYSTEM]: <color=#FFFF00>Shortcuts:</color> Up/Down Arrow for History, Tab to Autocomplete, Ctrl+L to Clear.");
                 return;
             }
