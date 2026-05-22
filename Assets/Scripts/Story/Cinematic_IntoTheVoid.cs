@@ -33,6 +33,7 @@ namespace MilehighWorld.Cinematics
         // Cached Shader Property IDs for zero-allocation performance
         private readonly int emissiveIntensityId = Shader.PropertyToID("_EmissiveIntensity");
         private readonly int baseColorAlphaId = Shader.PropertyToID("_BaseColor_Alpha");
+        private static MaterialPropertyBlock _propertyBlock = null!;
 
         // Mathematical Constants
         private const float TrueMonadBaseline = 1.0f;
@@ -113,8 +114,9 @@ namespace MilehighWorld.Cinematics
         {
             LogNarrativeTelemetry("PROTOCOL_SAVE_EVERYONE Initiated. Physics re-aligning.");
 
-            // Fade out Cyrus using Object Pooling SOP (Alpha Decay)
-            await TweenAlphaDecayAsync(kingCyrusPrefab.GetComponentInChildren<Renderer>().material, 1.5f);
+            // ⚡ Bolt: Use MaterialPropertyBlock to avoid material cloning.
+            Renderer cyrusRenderer = kingCyrusPrefab.GetComponentInChildren<Renderer>();
+            await TweenAlphaDecayAsync(cyrusRenderer, 1.5f);
             kingCyrusPrefab.SetActive(false); // Return to pool
 
             // Clamp environmental delta changes instantly upon loop completion
@@ -123,14 +125,22 @@ namespace MilehighWorld.Cinematics
             LogNarrativeTelemetry("Omen Singularity Severed. Verse Stabilized.");
         }
 
-        private async Task TweenAlphaDecayAsync(Material mat, float duration)
+        private async Task TweenAlphaDecayAsync(Renderer renderer, float duration)
         {
+            if (renderer == null) return;
+            if (_propertyBlock == null) _propertyBlock = new MaterialPropertyBlock();
+
             float elapsed = 0f;
             while (elapsed < duration)
             {
                 elapsed += Time.deltaTime;
                 float alpha = Mathf.Lerp(1f, 0f, elapsed / duration);
-                mat.SetFloat(baseColorAlphaId, alpha);
+
+                // ⚡ Bolt: Use MaterialPropertyBlock to prevent material instantiation and preserve draw call batching.
+                renderer.GetPropertyBlock(_propertyBlock);
+                _propertyBlock.SetFloat(baseColorAlphaId, alpha);
+                renderer.SetPropertyBlock(_propertyBlock);
+
                 await Task.Yield();
             }
         }
@@ -141,11 +151,15 @@ namespace MilehighWorld.Cinematics
         private async Task StreamDialogueAsync(string speaker, string content, float charDelay)
         {
             speakerNameText.text = $"<color=cyan>[{speaker}]</color>";
-            dialogueText.text = "";
 
-            for (int i = 0; i < content.Length; i++)
+            // ⚡ Bolt: Use maxVisibleCharacters instead of string concatenation to eliminate O(N^2) allocations.
+            dialogueText.text = content;
+            dialogueText.maxVisibleCharacters = 0;
+            dialogueText.ForceMeshUpdate();
+
+            for (int i = 0; i <= content.Length; i++)
             {
-                dialogueText.text += content[i];
+                dialogueText.maxVisibleCharacters = i;
 
                 // Base-9 Frame Parity Alignment: Yield heavily on 9th iterations if needed,
                 // but for lexical pacing, we use a scaled delay.
