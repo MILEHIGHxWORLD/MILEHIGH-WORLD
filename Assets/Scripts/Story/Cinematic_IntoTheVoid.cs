@@ -39,27 +39,11 @@ namespace MilehighWorld.Cinematics
         private const float LinearOmenHexState = 6.0f;
         private const float IteratedSanctuary = 0.0777777777f;
 
-        // Palette: Visual Polish
-        private Vector3 originalSpeakerScale;
-
         private void Start()
         {
             // Lock timeScale for deterministic cinematic pacing
             Time.timeScale = 1.0f;
-
-            // Palette: Accessibility - High-contrast outlines for better readability
-            ApplyHighContrastOutline(speakerNameText);
-            ApplyHighContrastOutline(dialogueText);
-            if (speakerNameText != null) originalSpeakerScale = speakerNameText.transform.localScale;
-
             _ = ExecuteConvergenceSequenceAsync();
-        }
-
-        private void ApplyHighContrastOutline(TextMeshProUGUI text)
-        {
-            if (text == null) return;
-            text.fontMaterial.SetFloat(ShaderUtilities.ID_OutlineWidth, 0.2f);
-            text.fontMaterial.SetColor(ShaderUtilities.ID_OutlineColor, Color.black);
         }
 
         private async Task ExecuteConvergenceSequenceAsync()
@@ -152,87 +136,26 @@ namespace MilehighWorld.Cinematics
         }
 
         /// <summary>
-        /// High-polish rhythmic typewriter effect with layout stability and speaker-specific themes.
+        /// Layout-safe rhythmic typewriter effect for cinematic dialogue.
         /// </summary>
         private async Task StreamDialogueAsync(string speaker, string content, float charDelay)
         {
-            string colorHex = GetSpeakerColorHex(speaker);
-
-            // Palette: Trigger "Pop" effect and color speaker name if it changes
-            if (speakerNameText.text != $"<color={colorHex}>[{speaker}]</color>")
-            {
-                speakerNameText.text = $"<color={colorHex}>[{speaker}]</color>";
-                _ = PopScaleAsync(speakerNameText.transform);
-            }
-
-            // Palette: Pre-calculate layout with completion cue to prevent shifts
-            dialogueText.text = content + $" <color={colorHex}>▽</color>";
+            speakerNameText.text = $"<color=cyan>[{speaker}]</color>";
+            dialogueText.text = content;
             dialogueText.maxVisibleCharacters = 0;
             dialogueText.ForceMeshUpdate();
 
-            int totalCharacters = dialogueText.textInfo.characterCount;
-
-            for (int i = 0; i <= totalCharacters; i++)
+            for (int i = 0; i <= dialogueText.textInfo.characterCount; i++)
             {
                 dialogueText.maxVisibleCharacters = i;
-
-                // Palette: Rhythmic Pacing - Apply delays based on punctuation
-                if (i > 0 && i < totalCharacters)
+                if (i > 0 && i < dialogueText.textInfo.characterCount)
                 {
                     char c = dialogueText.textInfo.characterInfo[i - 1].character;
-                    float multiplier = 1f;
-
-                    // Look-ahead for "Sky.ix" and abbreviations (no pause if followed by alphanumeric)
-                    bool isTechnicalPeriod = false;
-                    if (c == '.' && i < content.Length)
-                    {
-                        char next = content[i];
-                        if (!char.IsWhiteSpace(next)) isTechnicalPeriod = true;
-                    }
-
-                    if (!isTechnicalPeriod)
-                    {
-                        if (c == '.' || c == '?' || c == '!') multiplier = 15f;
-                        else if (c == ',' || c == ':' || c == ';') multiplier = 8f;
-
-                        // Palette: Ellipsis check (reduced multiplier for consecutive dots)
-                        if (c == '.' && i > 1 && content[i - 2] == '.') multiplier = 5f;
-                    }
-
-                    if (multiplier > 1f)
-                    {
-                        await Task.Delay(Mathf.RoundToInt(charDelay * multiplier * 1000));
-                    }
+                    if (c == '.' || c == '?' || c == '!') await Task.Delay(Mathf.RoundToInt(charDelay * 15 * 1000));
+                    else if (c == ',' || c == ':' || c == ';') await Task.Delay(Mathf.RoundToInt(charDelay * 8 * 1000));
                 }
-
                 await Task.Delay(Mathf.RoundToInt(charDelay * 1000));
             }
-        }
-
-        private async Task PopScaleAsync(Transform target)
-        {
-            if (target == null) return;
-            float duration = 0.2f;
-            float elapsed = 0f;
-            while (elapsed < duration)
-            {
-                elapsed += Time.deltaTime;
-                float s = 1f + Mathf.Sin((elapsed / duration) * Mathf.PI) * 0.1f;
-                target.localScale = originalSpeakerScale * s;
-                await Task.Yield();
-            }
-            target.localScale = originalSpeakerScale;
-        }
-
-        private string GetSpeakerColorHex(string speaker)
-        {
-            return speaker switch
-            {
-                "Sky.ix" => "#00FFFF", // Cyan
-                "King Cyrus" => "#FFFF00", // Yellow
-                "Reverie" => "#FF00FF", // Magenta
-                _ => "#FFFFFF" // White
-            };
         }
 
         [Conditional("ENABLE_NARRATIVE_LOGS")]
