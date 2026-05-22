@@ -404,3 +404,11 @@
 ## 2024-06-01 - Redundant Input Checks in Update Loop
 **Learning:** Repeatedly calling `Input` properties/methods (like `Input.anyKeyDown` alongside specific keydown checks) inside `Update()` loops introduces unnecessary C#/C++ native boundary crossings. This overhead accumulates, leading to micro-stutters, especially in input-heavy or critical path systems like cinematic playback.
 **Action:** Eliminate duplicate or redundant input execution paths to reduce CPU overhead and prevent micro-stutters.
+
+## 2026-05-18 - TextMeshPro Typewriter O(N^2) Allocations
+**Learning:** Appending characters to a string in a loop to create a typewriter effect (e.g., `text += content[i]`) causes O(N^2) string allocations and severe GC pressure in Unity/TMPro. TextMeshPro's `maxVisibleCharacters` property allows for the same effect with zero additional allocations.
+**Action:** Always use `maxVisibleCharacters` for typewriter effects in TextMeshPro instead of string concatenation.
+
+## 2026-05-18 - Material Cloning via .material Access
+**Learning:** Accessing `Renderer.material` in Unity creates a unique clone of the material, breaking draw call batching and increasing memory usage.
+**Action:** Use `MaterialPropertyBlock` and `Renderer.SetPropertyBlock` to modify material properties (like alpha or color) at runtime to preserve batching and prevent material leaks.
