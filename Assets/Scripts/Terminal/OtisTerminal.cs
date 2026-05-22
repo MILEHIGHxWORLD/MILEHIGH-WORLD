@@ -77,7 +77,7 @@ namespace MilehighWorld.World.Terminal
         private void NavigateHistory(int direction)
         {
             if (_commandHistory.Count == 0) return;
-            _historyIndex = Mathf.Clamp(_historyIndex + direction, 0, _commandHistory.Count);
+            _historyIndex = (int)Mathf.Clamp(_historyIndex + direction, 0, _commandHistory.Count);
             commandInput.text = _historyIndex < _commandHistory.Count ? _commandHistory[_historyIndex] : "";
             commandInput.caretPosition = commandInput.text.Length;
         }
@@ -124,9 +124,6 @@ namespace MilehighWorld.World.Terminal
                 WriteToTerminal("\n[SYSTEM]: <color=#FFFF00>Available Commands:</color>" +
                                 "\n - <color=#00FFFF>help</color>: Show this message." +
                                 "\n - <color=#00FFFF>clear</color>: Clear the terminal display (or Ctrl+L)." +
-                                "\n - <color=#00FFFF>help/clear</color>: Show help or clear display." +
-                                "\n - <color=#00FFFF>[cmd] [arg1] [arg2]</color>: Execute commands." +
-                                "\n\n[SYSTEM]: <color=#FFFF00>Shortcuts:</color> Up/Down Arrow for History, Ctrl+L to Clear.");
                                 "\n - <color=#00FFFF>[cmd] [arg1] [arg2]</color>: Execute extended system commands." +
                                 "\n\n[SYSTEM]: <color=#FFFF00>Shortcuts:</color> Up/Down Arrow for History, Tab to Autocomplete, Ctrl+L to Clear.");
                 return;

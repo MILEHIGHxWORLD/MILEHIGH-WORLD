@@ -140,17 +140,51 @@ namespace MilehighWorld.Cinematics
         /// </summary>
         private async Task StreamDialogueAsync(string speaker, string content, float charDelay)
         {
-            speakerNameText.text = $"<color=cyan>[{speaker}]</color>";
-            dialogueText.text = "";
-
-            for (int i = 0; i < content.Length; i++)
+            string speakerColor = speaker switch
             {
-                dialogueText.text += content[i];
+                "King Cyrus" => "#FF4500",
+                "Sky.ix" => "#00FFFF",
+                "Reverie" => "#A855F7",
+                _ => "#FFFFFF"
+            };
 
-                // Base-9 Frame Parity Alignment: Yield heavily on 9th iterations if needed,
-                // but for lexical pacing, we use a scaled delay.
-                await Task.Delay(Mathf.RoundToInt(charDelay * 1000));
+            speakerNameText.text = $"<color={speakerColor}>[{speaker}]</color>";
+            string fullContent = content + $" <color={speakerColor}>▽</color>";
+            dialogueText.text = fullContent;
+            dialogueText.maxVisibleCharacters = 0;
+            dialogueText.ForceMeshUpdate();
+
+            for (int i = 0; i <= content.Length; i++)
+            {
+                dialogueText.maxVisibleCharacters = i;
+
+                if (i > 0 && i < content.Length)
+                {
+                    char c = content[i - 1];
+                    float delayFactor = 1.0f;
+
+                    // Palette: Rhythmic pacing - pause for punctuation
+                    if (c == '.' || c == '!' || c == '?')
+                    {
+                        // Look-ahead to avoid pausing on abbreviations (e.g., Sky.ix)
+                        if (i == content.Length || char.IsWhiteSpace(content[i]))
+                            delayFactor = 15.0f;
+                    }
+                    else if (c == ',' || c == ':')
+                    {
+                        delayFactor = 8.0f;
+                    }
+
+                    await Task.Delay(Mathf.RoundToInt(charDelay * delayFactor * 1000));
+                }
+                else
+                {
+                    await Task.Delay(Mathf.RoundToInt(charDelay * 1000));
+                }
             }
+
+            // Reveal the completion cue
+            dialogueText.maxVisibleCharacters = fullContent.Length;
         }
 
         [Conditional("ENABLE_NARRATIVE_LOGS")]
