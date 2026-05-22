@@ -404,3 +404,6 @@
 ## 2024-06-01 - Redundant Input Checks in Update Loop
 **Learning:** Repeatedly calling `Input` properties/methods (like `Input.anyKeyDown` alongside specific keydown checks) inside `Update()` loops introduces unnecessary C#/C++ native boundary crossings. This overhead accumulates, leading to micro-stutters, especially in input-heavy or critical path systems like cinematic playback.
 **Action:** Eliminate duplicate or redundant input execution paths to reduce CPU overhead and prevent micro-stutters.
+## 2024-05-24 - Fake Zero-Allocation Typewriter
+**Learning:** The cinematic typewriter effect was documented as "zero-allocation" but used `text += char` in a loop. In Unity, concatenating strings on a TextMeshPro component per frame causes O(N^2) memory allocations and forces the UI mesh to rebuild for every character, causing major GC spikes.
+**Action:** Always assign the full string to TextMeshPro once and increment `maxVisibleCharacters` to achieve a true zero-allocation typewriter effect.
