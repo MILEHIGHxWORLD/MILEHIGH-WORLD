@@ -404,3 +404,6 @@
 ## 2024-06-01 - Redundant Input Checks in Update Loop
 **Learning:** Repeatedly calling `Input` properties/methods (like `Input.anyKeyDown` alongside specific keydown checks) inside `Update()` loops introduces unnecessary C#/C++ native boundary crossings. This overhead accumulates, leading to micro-stutters, especially in input-heavy or critical path systems like cinematic playback.
 **Action:** Eliminate duplicate or redundant input execution paths to reduce CPU overhead and prevent micro-stutters.
+## $(date +%Y-%m-%d) - Coroutine GC Spikes in UI Typewriter Effects
+**Learning:** Instantiating `new WaitForSeconds` inside high-frequency loops like UI typewriter effects causes O(N) GC allocations per string, triggering garbage collection spikes and micro-stutters during text rendering.
+**Action:** Implement a static dictionary cache using `Mathf.RoundToInt(seconds * 1000f)` as integer keys to store and reuse `WaitForSeconds` instances, eliminating runtime allocations. Ensure helper methods like `GetWait` are also declared static.
