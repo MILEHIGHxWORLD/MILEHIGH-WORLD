@@ -27,12 +27,22 @@ namespace MilehighWorld.Cinematics
         [SerializeField] private TextMeshProUGUI dialogueText = null!;
         [SerializeField] private GameObject dialogueCanvas = null!;
 
+        public TextMeshProUGUI SpeakerNameText { get => speakerNameText; set => speakerNameText = value; }
+        public TextMeshProUGUI DialogueText { get => dialogueText; set => dialogueText = value; }
+        public GameObject DialogueBox { get => dialogueCanvas; set => dialogueCanvas = value; }
+
+        [Header("Typing Settings")]
+        public float baseTypingSpeed = 0.04f;
+        public float kaiSpeedMultiplier = 3.0f;
+        public float skyixSpeedMultiplier = 1.2f;
+
         [Header("Environmental Shaders")]
         [SerializeField] private Material hyperrealisticPlatformShader = null!;
 
         // Cached Shader Property IDs for zero-allocation performance
         private readonly int emissiveIntensityId = Shader.PropertyToID("_EmissiveIntensity");
         private readonly int baseColorAlphaId = Shader.PropertyToID("_BaseColor_Alpha");
+        private static MaterialPropertyBlock _sharedPropertyBlock = null!;
 
         // Mathematical Constants
         private const float TrueMonadBaseline = 1.0f;
@@ -113,8 +123,12 @@ namespace MilehighWorld.Cinematics
         {
             LogNarrativeTelemetry("PROTOCOL_SAVE_EVERYONE Initiated. Physics re-aligning.");
 
-            // Fade out Cyrus using Object Pooling SOP (Alpha Decay)
-            await TweenAlphaDecayAsync(kingCyrusPrefab.GetComponentInChildren<Renderer>().material, 1.5f);
+            // ⚡ Bolt: Cache renderer to avoid repeated GetComponent calls and use MaterialPropertyBlock for fading.
+            Renderer cyrusRenderer = kingCyrusPrefab.GetComponentInChildren<Renderer>();
+            if (cyrusRenderer != null)
+            {
+                await TweenAlphaDecayAsync(cyrusRenderer, 1.5f);
+            }
             kingCyrusPrefab.SetActive(false); // Return to pool
 
             // Clamp environmental delta changes instantly upon loop completion
@@ -123,16 +137,44 @@ namespace MilehighWorld.Cinematics
             LogNarrativeTelemetry("Omen Singularity Severed. Verse Stabilized.");
         }
 
-        private async Task TweenAlphaDecayAsync(Material mat, float duration)
+        private async Task TweenAlphaDecayAsync(Renderer renderer, float duration)
         {
+            if (_sharedPropertyBlock == null) _sharedPropertyBlock = new MaterialPropertyBlock();
+
             float elapsed = 0f;
             while (elapsed < duration)
             {
                 elapsed += Time.deltaTime;
                 float alpha = Mathf.Lerp(1f, 0f, elapsed / duration);
-                mat.SetFloat(baseColorAlphaId, alpha);
+
+                // ⚡ Bolt: Use MaterialPropertyBlock to prevent material cloning and preserve draw call batching.
+                renderer.GetPropertyBlock(_sharedPropertyBlock);
+                _sharedPropertyBlock.SetFloat(baseColorAlphaId, alpha);
+                renderer.SetPropertyBlock(_sharedPropertyBlock);
+
                 await Task.Yield();
             }
+        }
+
+        public float GetSpeedMultiplier(string speaker)
+        {
+            return speaker switch
+            {
+                "Kai" => kaiSpeedMultiplier,
+                "Sky.ix" => skyixSpeedMultiplier,
+                _ => 1.0f
+            };
+        }
+
+        public Color GetSpeakerColor(string speaker)
+        {
+            return speaker switch
+            {
+                "Sky.ix" => Color.cyan,
+                "Kai" => new Color(1f, 0.84f, 0f), // Gold
+                "Delilah" => new Color(0.6f, 0.1f, 0.9f), // Void Purple
+                _ => Color.white
+            };
         }
 
         /// <summary>
@@ -140,16 +182,26 @@ namespace MilehighWorld.Cinematics
         /// </summary>
         private async Task StreamDialogueAsync(string speaker, string content, float charDelay)
         {
-            speakerNameText.text = $"<color=cyan>[{speaker}]</color>";
-            dialogueText.text = "";
+            Color speakerColor = GetSpeakerColor(speaker);
+            string hexColor = ColorUtility.ToHtmlStringRGB(speakerColor);
+            speakerNameText.text = $"<color=#{hexColor}>[{speaker}]</color>";
 
-            for (int i = 0; i < content.Length; i++)
+            // ⚡ Bolt: Use maxVisibleCharacters and ForceMeshUpdate to eliminate O(N^2) string allocations.
+            dialogueText.text = content;
+            dialogueText.maxVisibleCharacters = 0;
+            dialogueText.ForceMeshUpdate();
+
+            float multiplier = GetSpeedMultiplier(speaker);
+            // ⚡ Bolt: Corrected speed multiplier logic - higher multiplier means lower delay.
+            int delayMs = Mathf.RoundToInt((charDelay / multiplier) * 1000);
+
+            for (int i = 0; i <= content.Length; i++)
             {
-                dialogueText.text += content[i];
+                dialogueText.maxVisibleCharacters = i;
 
                 // Base-9 Frame Parity Alignment: Yield heavily on 9th iterations if needed,
                 // but for lexical pacing, we use a scaled delay.
-                await Task.Delay(Mathf.RoundToInt(charDelay * 1000));
+                await Task.Delay(delayMs);
             }
         }
 
