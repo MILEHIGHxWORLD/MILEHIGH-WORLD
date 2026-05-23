@@ -136,20 +136,53 @@ namespace MilehighWorld.Cinematics
         }
 
         /// <summary>
-        /// Zero-allocation typewriter effect for dialogue rendering.
+        /// Rhythmic typewriter effect for dialogue rendering with speaker-themed cues.
         /// </summary>
         private async Task StreamDialogueAsync(string speaker, string content, float charDelay)
         {
-            speakerNameText.text = $"<color=cyan>[{speaker}]</color>";
-            dialogueText.text = "";
-
-            for (int i = 0; i < content.Length; i++)
+            string color = speaker switch
             {
-                dialogueText.text += content[i];
+                "Sky.ix" => "cyan",
+                "King Cyrus" => "yellow",
+                "Reverie" => "magenta",
+                _ => "white"
+            };
 
-                // Base-9 Frame Parity Alignment: Yield heavily on 9th iterations if needed,
-                // but for lexical pacing, we use a scaled delay.
-                await Task.Delay(Mathf.RoundToInt(charDelay * 1000));
+            speakerNameText.text = $"<color={color}>[{speaker}]</color>";
+
+            // Layout stability: set full text (with cue) and reveal characters
+            dialogueText.text = $"{content} <color={color}>▽</color>";
+            dialogueText.maxVisibleCharacters = 0;
+            dialogueText.ForceMeshUpdate();
+
+            int totalVisibleCharacters = dialogueText.textInfo.characterCount;
+            int baseDelayMs = Mathf.RoundToInt(charDelay * 1000);
+
+            for (int i = 1; i <= totalVisibleCharacters; i++)
+            {
+                dialogueText.maxVisibleCharacters = i;
+
+                if (i == totalVisibleCharacters) break;
+
+                int currentDelay = baseDelayMs;
+
+                // Rhythmic Pacing: look at the character we just revealed
+                var charInfo = dialogueText.textInfo.characterInfo[i - 1];
+                char c = charInfo.character;
+
+                if (c == '.' || c == '?' || c == '!')
+                {
+                    // Look ahead at the next rendered character to distinguish sentence ends from abbreviations
+                    char nextChar = dialogueText.textInfo.characterInfo[i].character;
+                    if (char.IsWhiteSpace(nextChar))
+                        currentDelay *= 15; // Full stop
+                }
+                else if (c == ',' || c == ':' || c == ';')
+                {
+                    currentDelay *= 8; // Brief pause
+                }
+
+                await Task.Delay(currentDelay);
             }
         }
 
