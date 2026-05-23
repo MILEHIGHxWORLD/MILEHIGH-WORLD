@@ -19,6 +19,21 @@ namespace MilehighWorld.World.Terminal
         private List<string> _commandHistory = new List<string>();
         private int _historyIndex = -1;
 
+        // ⚡ Bolt: Cache yield instructions using millisecond keys to prevent floating-point precision issues
+        // and eliminate redundant GC allocations during frequent typewriter coroutine execution.
+        private static readonly Dictionary<int, WaitForSeconds> _waitCache = new Dictionary<int, WaitForSeconds>();
+
+        private static WaitForSeconds GetWait(float seconds)
+        {
+            int msKey = Mathf.RoundToInt(seconds * 1000f);
+            if (!_waitCache.TryGetValue(msKey, out var wait))
+            {
+                wait = new WaitForSeconds(seconds);
+                _waitCache[msKey] = wait;
+            }
+            return wait;
+        }
+
         private void Start()
         {
             if (outputDisplay != null)
