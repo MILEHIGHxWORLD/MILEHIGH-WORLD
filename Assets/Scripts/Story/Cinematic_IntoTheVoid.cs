@@ -141,11 +141,17 @@ namespace MilehighWorld.Cinematics
         private async Task StreamDialogueAsync(string speaker, string content, float charDelay)
         {
             speakerNameText.text = $"<color=cyan>[{speaker}]</color>";
-            dialogueText.text = "";
+
+            // ⚡ Bolt: Zero-allocation typewriter effect.
+            // 💡 What: Replaced string concatenation with maxVisibleCharacters increment.
+            // 🎯 Why: String concatenation in loops causes O(N^2) memory allocations and forces UI mesh rebuilds.
+            // 📊 Impact: Eliminates GC allocations during typing and significantly reduces CPU overhead.
+            dialogueText.text = content;
+            dialogueText.maxVisibleCharacters = 0;
 
             for (int i = 0; i < content.Length; i++)
             {
-                dialogueText.text += content[i];
+                dialogueText.maxVisibleCharacters = i + 1;
 
                 // Base-9 Frame Parity Alignment: Yield heavily on 9th iterations if needed,
                 // but for lexical pacing, we use a scaled delay.
