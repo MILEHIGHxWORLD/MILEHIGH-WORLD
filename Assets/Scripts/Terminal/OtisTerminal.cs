@@ -85,8 +85,6 @@ namespace MilehighWorld.World.Terminal
         public void ProcessCommand(string input)
         {
             if (string.IsNullOrWhiteSpace(input)) return;
-            if (_commandHistory.Count == 0 || _commandHistory[^1] != input) _commandHistory.Add(input);
-            _historyIndex = _commandHistory.Count;
 
             // UX Enhancement: Clear input and refocus immediately for better flow
             if (commandInput != null)
@@ -110,6 +108,14 @@ namespace MilehighWorld.World.Terminal
                 return;
             }
 
+            // 🛡️ Sentinel: History capping and secure ordering
+            if (_commandHistory.Count == 0 || _commandHistory[^1] != input)
+            {
+                _commandHistory.Add(input);
+                if (_commandHistory.Count > 100) _commandHistory.RemoveAt(0);
+            }
+            _historyIndex = _commandHistory.Count;
+
             string[] parts = input.Trim().Split(' ');
             string command = parts[0].ToLower();
 
@@ -125,8 +131,6 @@ namespace MilehighWorld.World.Terminal
                                 "\n - <color=#00FFFF>help</color>: Show this message." +
                                 "\n - <color=#00FFFF>clear</color>: Clear the terminal display (or Ctrl+L)." +
                                 "\n - <color=#00FFFF>help/clear</color>: Show help or clear display." +
-                                "\n - <color=#00FFFF>[cmd] [arg1] [arg2]</color>: Execute commands." +
-                                "\n\n[SYSTEM]: <color=#FFFF00>Shortcuts:</color> Up/Down Arrow for History, Ctrl+L to Clear.");
                                 "\n - <color=#00FFFF>[cmd] [arg1] [arg2]</color>: Execute extended system commands." +
                                 "\n\n[SYSTEM]: <color=#FFFF00>Shortcuts:</color> Up/Down Arrow for History, Tab to Autocomplete, Ctrl+L to Clear.");
                 return;
