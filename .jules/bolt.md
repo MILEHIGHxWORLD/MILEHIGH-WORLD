@@ -404,3 +404,6 @@
 ## 2024-06-01 - Redundant Input Checks in Update Loop
 **Learning:** Repeatedly calling `Input` properties/methods (like `Input.anyKeyDown` alongside specific keydown checks) inside `Update()` loops introduces unnecessary C#/C++ native boundary crossings. This overhead accumulates, leading to micro-stutters, especially in input-heavy or critical path systems like cinematic playback.
 **Action:** Eliminate duplicate or redundant input execution paths to reduce CPU overhead and prevent micro-stutters.
+## 2024-05-25 - Cached WaitForSeconds in Typewriter Effects
+**Learning:** The OtisTerminal uses a typewriter effect that was instantiating 'new WaitForSeconds' for every single character revealed. This is a common anti-pattern in Unity that causes rapid heap allocations and GC spikes.
+**Action:** Implement a static dictionary cache keyed by integer milliseconds to reuse WaitForSeconds instances, reducing per-character GC allocations to zero.

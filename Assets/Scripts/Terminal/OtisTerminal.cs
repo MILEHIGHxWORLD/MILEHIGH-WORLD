@@ -15,6 +15,9 @@ namespace MilehighWorld.World.Terminal
         private const int MaxInputLength = 256;
         private static readonly Regex SafeCommandRegex = new Regex(@"^[a-zA-Z0-9\s._\-]+$", RegexOptions.Compiled);
 
+        // ⚡ Bolt Optimization: Cache WaitForSeconds using ms keys to prevent GC spikes in per-character typewriter loops
+        private static readonly Dictionary<int, WaitForSeconds> _waitCache = new Dictionary<int, WaitForSeconds>();
+
         private Coroutine? _typewriterCoroutine;
         private List<string> _commandHistory = new List<string>();
         private int _historyIndex = -1;
@@ -169,6 +172,17 @@ namespace MilehighWorld.World.Terminal
             _typewriterCoroutine = StartCoroutine(TypewriterEffect(message));
         }
 
+        private static WaitForSeconds GetWait(float seconds)
+        {
+            int msKey = Mathf.RoundToInt(seconds * 1000f);
+            if (!_waitCache.TryGetValue(msKey, out var wait))
+            {
+                wait = new WaitForSeconds(seconds);
+                _waitCache[msKey] = wait;
+            }
+            return wait;
+        }
+
         private IEnumerator TypewriterEffect(string message)
         {
             outputDisplay.ForceMeshUpdate();
@@ -189,12 +203,12 @@ namespace MilehighWorld.World.Terminal
                 {
                     char c = outputDisplay.textInfo.characterInfo[startVisibleCount + i - 1].character;
                     if (c == '.' || c == ':' || c == '!')
-                        yield return new WaitForSeconds(0.15f);
+                        yield return GetWait(0.15f);
                     else if (c == ',')
-                        yield return new WaitForSeconds(0.08f);
+                        yield return GetWait(0.08f);
                 }
 
-                yield return new WaitForSeconds(0.02f);
+                yield return GetWait(0.02f);
             }
 
             _typewriterCoroutine = null;
