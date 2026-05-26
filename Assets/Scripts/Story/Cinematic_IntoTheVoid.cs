@@ -141,16 +141,22 @@ namespace MilehighWorld.Cinematics
         private async Task StreamDialogueAsync(string speaker, string content, float charDelay)
         {
             speakerNameText.text = $"<color=cyan>[{speaker}]</color>";
-            dialogueText.text = "";
+
+            // ⚡ BOLT: Assign the full text once to prevent O(N^2) string allocations and mesh rebuilds.
+            dialogueText.text = content;
+            dialogueText.maxVisibleCharacters = 0;
 
             for (int i = 0; i < content.Length; i++)
             {
-                dialogueText.text += content[i];
+                dialogueText.maxVisibleCharacters = i + 1;
 
                 // Base-9 Frame Parity Alignment: Yield heavily on 9th iterations if needed,
                 // but for lexical pacing, we use a scaled delay.
                 await Task.Delay(Mathf.RoundToInt(charDelay * 1000));
             }
+
+            // ⚡ BOLT: Ensure visibility is fully restored for future use to prevent truncation
+            dialogueText.maxVisibleCharacters = content.Length;
         }
 
         [Conditional("ENABLE_NARRATIVE_LOGS")]
