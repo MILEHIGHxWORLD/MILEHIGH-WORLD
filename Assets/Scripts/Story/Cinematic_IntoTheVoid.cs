@@ -27,15 +27,6 @@ namespace MilehighWorld.Cinematics
         [SerializeField] private TextMeshProUGUI dialogueText = null!;
         [SerializeField] private GameObject dialogueCanvas = null!;
 
-        public TextMeshProUGUI SpeakerNameText { get => speakerNameText; set => speakerNameText = value; }
-        public TextMeshProUGUI DialogueText { get => dialogueText; set => dialogueText = value; }
-        public GameObject DialogueBox { get => dialogueCanvas; set => dialogueCanvas = value; }
-
-        [Header("Typing Settings")]
-        public float baseTypingSpeed = 0.03f;
-        public float kaiSpeedMultiplier = 3.0f;
-        public float skyixSpeedMultiplier = 1.2f;
-
         [Header("Environmental Shaders")]
         [SerializeField] private Material hyperrealisticPlatformShader = null!;
 
@@ -145,74 +136,24 @@ namespace MilehighWorld.Cinematics
         }
 
         /// <summary>
-        /// Zero-allocation typewriter effect for dialogue rendering using maxVisibleCharacters.
+        /// Zero-allocation typewriter effect for dialogue rendering.
         /// </summary>
         private async Task StreamDialogueAsync(string speaker, string content, float charDelay)
         {
-            Color speakerColor = GetSpeakerColor(speaker);
-            string hexColor = ColorUtility.ToHtmlStringRGB(speakerColor);
-            speakerNameText.text = $"<color=#{hexColor}>[{speaker}]</color>";
+            speakerNameText.text = $"<color=cyan>[{speaker}]</color>";
+            dialogueText.text = "";
 
-            // Layout-Safe Pattern: Pre-append themed completion cue and set full text at start
-            dialogueText.text = content + $" <color=#{hexColor}>▽</color>";
-            dialogueText.maxVisibleCharacters = 0;
-            dialogueText.ForceMeshUpdate();
-
-            float speakerMultiplier = GetSpeedMultiplier(speaker);
-            float effectiveDelay = charDelay / speakerMultiplier;
-
-            for (int i = 0; i <= content.Length; i++)
+            for (int i = 0; i < content.Length; i++)
             {
-                dialogueText.maxVisibleCharacters = i;
+                dialogueText.text += content[i];
 
-                if (i < content.Length)
-                {
-                    char c = content[i];
-                    float punctuationMultiplier = 1f;
-
-                    // Lexical Pacing: Rhythmic pauses based on punctuation
-                    if (c == '.')
-                    {
-                        // Look-ahead for ellipsis or mid-word period (like Sky.ix)
-                        bool isPartOfEllipsis = (i + 1 < content.Length && content[i+1] == '.') || (i > 0 && content[i-1] == '.');
-                        bool isEndOfSentence = (i + 1 == content.Length || char.IsWhiteSpace(content[i+1]));
-
-                        if (isPartOfEllipsis) punctuationMultiplier = 5f;
-                        else if (isEndOfSentence) punctuationMultiplier = 15f;
-                        else punctuationMultiplier = 1f; // Mid-word dot, no extra pause
-                    }
-                    else if ("!?".Contains(c)) punctuationMultiplier = 15f;
-                    else if (",:".Contains(c)) punctuationMultiplier = 8f;
-
-                    await Task.Delay(Mathf.RoundToInt(effectiveDelay * punctuationMultiplier * 1000));
-                }
-            }
-
-            // Show the completion cue
-            dialogueText.maxVisibleCharacters = content.Length + 2;
-        }
-
-        public float GetSpeedMultiplier(string speaker)
-        {
-            if (speaker == "Kai") return kaiSpeedMultiplier;
-            if (speaker == "Sky.ix") return skyixSpeedMultiplier;
-            return 1.0f;
-        }
-
-        public Color GetSpeakerColor(string speaker)
-        {
-            switch (speaker)
-            {
-                case "Sky.ix": return Color.cyan;
-                case "Kai": return new Color(1f, 0.84f, 0f); // Gold
-                case "Delilah": return new Color(0.6f, 0.1f, 0.9f); // Void Purple
-                case "King Cyrus": return new Color(1f, 0.27f, 0f); // Orangered-ish
-                case "Reverie": return new Color(0.66f, 0.33f, 0.97f); // Lavender/Purple
-                default: return Color.white;
+                // Base-9 Frame Parity Alignment: Yield heavily on 9th iterations if needed,
+                // but for lexical pacing, we use a scaled delay.
+                await Task.Delay(Mathf.RoundToInt(charDelay * 1000));
             }
         }
 
-        [System.Diagnostics.Conditional("ENABLE_NARRATIVE_LOGS")]
+        [Conditional("ENABLE_NARRATIVE_LOGS")]
         private void LogNarrativeTelemetry(string message)
         {
             UnityEngine.Debug.Log($"<color=#E0BBE4>[CINEMATIC_ORCHESTRATOR]: {message}</color>");
