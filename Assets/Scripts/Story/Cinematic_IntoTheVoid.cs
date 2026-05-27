@@ -182,8 +182,56 @@ namespace MilehighWorld.Cinematics
                     currentDelay *= 8; // Brief pause
                 }
 
+        /// Zero-allocation typewriter effect with rhythmic pacing and character-themed cues.
+        /// </summary>
+        private async Task StreamDialogueAsync(string speaker, string content, float charDelay)
+        {
+            string colorHex = GetSpeakerColor(speaker);
+            speakerNameText.text = $"<color={colorHex}>[{speaker}]</color>";
+
+            // Pre-calculate layout with completion cue to avoid jarring shifts
+            dialogueText.text = $"{content} <color={colorHex}>▽</color>";
+            dialogueText.maxVisibleCharacters = 0;
+            dialogueText.ForceMeshUpdate();
+
+            int totalCharacters = dialogueText.textInfo.characterCount;
+            int baseDelayMs = Mathf.RoundToInt(charDelay * 1000);
+
+            for (int i = 1; i <= totalCharacters; i++)
+            {
+                dialogueText.maxVisibleCharacters = i;
+
+                // Get the character that was just revealed
+                char c = dialogueText.textInfo.characterInfo[i - 1].character;
+                int currentDelay = baseDelayMs;
+
+                // Rhythmic Pacing Logic: Apply pauses for punctuation to mimic natural speech
+                if (c == '.' || c == '?' || c == '!')
+                {
+                    bool isEllipsis = (i < totalCharacters && dialogueText.textInfo.characterInfo[i].character == '.');
+                    bool isEndOfSentence = (i == totalCharacters || char.IsWhiteSpace(dialogueText.textInfo.characterInfo[i].character));
+
+                    if (isEllipsis) currentDelay *= 5;
+                    else if (isEndOfSentence) currentDelay *= 15;
+                }
+                else if (c == ',' || c == ';' || c == ':')
+                {
+                    currentDelay *= 8;
+                }
+
                 await Task.Delay(currentDelay);
             }
+        }
+
+        private string GetSpeakerColor(string speaker)
+        {
+            return speaker switch
+            {
+                "Sky.ix" => "#00FFFF",
+                "King Cyrus" => "#FFFF00",
+                "Reverie" => "#FF00FF",
+                _ => "#FFFFFF"
+            };
         }
 
         [Conditional("ENABLE_NARRATIVE_LOGS")]
