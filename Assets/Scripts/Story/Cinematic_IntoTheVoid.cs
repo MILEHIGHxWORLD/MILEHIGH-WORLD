@@ -8,6 +8,7 @@ using UnityEngine;
 using TMPro;
 using MilehighWorld.Core;
 using MilehighWorld.Backend;
+using Milehigh.World.CoreLogic;
 
 namespace MilehighWorld.Cinematics
 {
@@ -17,6 +18,10 @@ namespace MilehighWorld.Cinematics
     /// </summary>
     public class Cinematic_IntoTheVoid : MonoBehaviour
     {
+        [Header("Core Engine References")]
+        [SerializeField] private TimelineSimulationEngine timelineEngine = null!;
+        [SerializeField] private VitisAIBridge vitisBridge = null!;
+
         [Header("Entity References")]
         [SerializeField] private GameObject skyixPrefab = null!;
         [SerializeField] private GameObject reveriePrefab = null!;
@@ -39,10 +44,18 @@ namespace MilehighWorld.Cinematics
         private const float LinearOmenHexState = 6.0f;
         private const float IteratedSanctuary = 0.0777777777f;
 
+        private bool _isStabilized = false;
+
         private void Start()
         {
             // Lock timeScale for deterministic cinematic pacing
             Time.timeScale = 1.0f;
+
+            TimelineSimulationEngine.OnTimelineStabilized += () => {
+                _isStabilized = true;
+                LogNarrativeTelemetry("EVENT: Timeline Stabilized Signal Received.");
+            };
+
             _ = ExecuteConvergenceSequenceAsync();
         }
 
@@ -63,25 +76,27 @@ namespace MilehighWorld.Cinematics
             await StreamDialogueAsync("King Cyrus", "Tremble, mortals, as the Age of Millenia crumbles before the might of the Void!", 0.04f);
             await Task.Delay(500);
 
-            await StreamDialogueAsync("Sky.ix", "Negative. The resonance is peaking. We are at 998 shards. Engaging Void Conduit.", 0.03f);
+            await StreamDialogueAsync("Sky.ix", "Negative. The resonance is peaking. Engaging Void Conduit via Vitis AI Bridge.", 0.03f);
 
-            // 4. Parity Verification via OMEGA.ONE Fulcrum
-            LogNarrativeTelemetry("Executing BackendSyncService Call: Validating Parity Resonance...");
-            var resolution = await BackendSyncService.Instance.RequestAIResolutionAsync(
-                stateHash: 998,
-                parityResonance: 0.999f,
-                activeReality: "Void",
-                zoneId: "LOC_001_LINQ"
-            );
+            // 4. Parity Verification via Vitis AI and Timeline Engine
+            LogNarrativeTelemetry("Executing Vitis AI Bridge Analysis: Calculating System Tension...");
 
-            if (resolution.WasActionSuccessful)
+            // Register final shards to reach parity
+            for (int i = 0; i < 999; i++) timelineEngine.RegisterSynchronizedShard();
+
+            double tension = vitisBridge.CalculateSystemTension();
+            timelineEngine.EvaluateSystemTension(tension);
+
+            if (_isStabilized && !timelineEngine.IsRealityFractured)
             {
-                await StreamDialogueAsync("Reverie", "The 999th shard is ours. Severing the loop... now!", 0.03f);
+                await StreamDialogueAsync("Reverie", "The 999th shard is ours. System tension within limits. Severing the loop... now!", 0.03f);
                 await ExecuteSaveEveryoneProtocolAsync();
             }
             else
             {
-                LogNarrativeTelemetry("WARNING: Parity Lock Failed. Initiating Fallback.");
+                string reason = timelineEngine.IsRealityFractured ? "Structural Reality Fracture" : "Parity Synchronization Failure";
+                LogNarrativeTelemetry($"WARNING: Convergence Failed. Reason: {reason}");
+                await StreamDialogueAsync("King Cyrus", "Your reality is too brittle for this power!", 0.04f);
             }
 
             dialogueCanvas.SetActive(false);
