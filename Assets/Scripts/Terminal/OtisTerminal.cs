@@ -100,8 +100,6 @@ namespace MilehighWorld.World.Terminal
         public void ProcessCommand(string input)
         {
             if (string.IsNullOrWhiteSpace(input)) return;
-            if (_commandHistory.Count == 0 || _commandHistory[^1] != input) _commandHistory.Add(input);
-            _historyIndex = _commandHistory.Count;
 
             // UX Enhancement: Clear input and refocus immediately for better flow
             if (commandInput != null)
@@ -110,7 +108,7 @@ namespace MilehighWorld.World.Terminal
                 commandInput.ActivateInputField();
             }
 
-            // 🛡️ Sentinel: Input validation and DoS protection
+            // 🛡️ Sentinel: Input validation and DoS protection (Resource Exhaustion)
             if (input.Length > MaxInputLength)
             {
                 WriteToTerminal("\n[SECURITY]: <color=#FF0000>Input exceeds maximum length (256 characters).</color>");
@@ -124,6 +122,15 @@ namespace MilehighWorld.World.Terminal
                 if (commandInput != null) StartCoroutine(ShakeInputField());
                 return;
             }
+
+            // 🛡️ Sentinel: Capping command history to 100 entries to prevent memory exhaustion (DoS).
+            // UX: History index is reset for every processed command to ensure navigation starts from the end.
+            if (_commandHistory.Count == 0 || _commandHistory[^1] != input)
+            {
+                _commandHistory.Add(input);
+                if (_commandHistory.Count > 100) _commandHistory.RemoveAt(0);
+            }
+            _historyIndex = _commandHistory.Count;
 
             string[] parts = input.Trim().Split(' ');
             string command = parts[0].ToLower();
