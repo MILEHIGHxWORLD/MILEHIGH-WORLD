@@ -26,6 +26,7 @@ namespace MilehighWorld.Cinematics
         [SerializeField] private TextMeshProUGUI speakerNameText = null!;
         [SerializeField] private TextMeshProUGUI dialogueText = null!;
         [SerializeField] private GameObject dialogueCanvas = null!;
+        [SerializeField] private GameObject skipHint = null!;
 
         [Header("Environmental Shaders")]
         [SerializeField] private Material hyperrealisticPlatformShader = null!;
@@ -40,6 +41,9 @@ namespace MilehighWorld.Cinematics
         private const float IteratedSanctuary = 0.0777777777f;
 
         private bool skipRequested;
+        private bool skipRequested = false;
+        private float idleTimer = 0f;
+        private bool playerInteracted = false;
         private Vector3 originalSpeakerScale;
 
         private void Start()
@@ -51,6 +55,13 @@ namespace MilehighWorld.Cinematics
             {
                 originalSpeakerScale = speakerNameText.transform.localScale;
             }
+            if (skipHint != null) skipHint.SetActive(false);
+
+            // Palette: Accessibility - High-contrast outlines for better readability
+            if (speakerNameText != null) ApplyHighContrastOutline(speakerNameText);
+            if (dialogueText != null) ApplyHighContrastOutline(dialogueText);
+
+            if (speakerNameText != null) originalSpeakerScale = speakerNameText.transform.localScale;
 
             _ = ExecuteConvergenceSequenceAsync();
         }
@@ -61,6 +72,31 @@ namespace MilehighWorld.Cinematics
             if (Input.anyKeyDown || Input.GetMouseButtonDown(0))
             {
                 skipRequested = true;
+        private void ApplyHighContrastOutline(TextMeshProUGUI text)
+        {
+            text.fontMaterial.EnableKeyword(ShaderUtilities.Keyword_Outline);
+            text.fontMaterial.SetColor(ShaderUtilities.ID_OutlineColor, Color.black);
+            text.fontMaterial.SetFloat(ShaderUtilities.ID_OutlineWidth, 0.2f);
+        }
+
+        private void Update()
+        {
+            // Palette: Universal skip accessibility - Capture any key or click to bypass dialogue pacing
+            if (Input.anyKeyDown)
+            {
+                skipRequested = true;
+                playerInteracted = true;
+                idleTimer = 0f;
+                if (skipHint != null) skipHint.SetActive(false);
+            }
+            else
+            {
+                // Palette: Idle skip hint discoverability
+                idleTimer += Time.deltaTime;
+                if (!playerInteracted && idleTimer >= 2.0f && skipHint != null)
+                {
+                    skipHint.SetActive(true);
+                }
             }
         }
 
@@ -80,8 +116,10 @@ namespace MilehighWorld.Cinematics
             dialogueCanvas.SetActive(true);
             await StreamDialogueAsync("King Cyrus", "Tremble, mortals, as the Age of Millenia crumbles before the might of the Void!", 0.04f);
             await DelayOrSkipAsync(500);
+            await WaitForSecondsOrSkip(0.5f);
 
             await StreamDialogueAsync("Sky.ix", "Negative. The resonance is peaking. We are at 998 shards. Engaging Void Conduit.", 0.03f);
+            await WaitForSecondsOrSkip(0.5f);
 
             // 4. Parity Verification via OMEGA.ONE Fulcrum
             LogNarrativeTelemetry("Executing BackendSyncService Call: Validating Parity Resonance...");
@@ -95,6 +133,7 @@ namespace MilehighWorld.Cinematics
             if (resolution.WasActionSuccessful)
             {
                 await StreamDialogueAsync("Reverie", "The 999th shard is ours. Severing the loop... now!", 0.03f);
+                await WaitForSecondsOrSkip(0.5f);
                 await ExecuteSaveEveryoneProtocolAsync();
             }
             else
@@ -170,8 +209,19 @@ namespace MilehighWorld.Cinematics
 
             // Palette: Reset skip flag for each new dialogue line.
             skipRequested = false;
+            // Palette: Reset interaction state for each new line
+            skipRequested = false;
+            playerInteracted = false;
+
+            string newSpeakerText = $"<color={GetSpeakerColor(speaker)}>[{speaker}]</color>";
+            if (speakerNameText.text != newSpeakerText)
+            {
+                speakerNameText.text = newSpeakerText;
+                _ = PopScaleAsync(speakerNameText.transform);
+            }
 
             // Pre-calculate layout with completion cue to avoid jarring shifts
+            string colorHex = GetSpeakerColor(speaker);
             dialogueText.text = $"{content} <color={colorHex}>▽</color>";
             dialogueText.maxVisibleCharacters = 0;
             dialogueText.ForceMeshUpdate();
@@ -181,6 +231,12 @@ namespace MilehighWorld.Cinematics
 
             for (int i = 1; i <= totalCharacters; i++)
             {
+                if (skipRequested)
+                {
+                    dialogueText.maxVisibleCharacters = totalCharacters;
+                    break;
+                }
+
                 dialogueText.maxVisibleCharacters = i;
 
                 // Palette: Instant reveal if skip is requested.
@@ -208,6 +264,7 @@ namespace MilehighWorld.Cinematics
                     currentDelay *= 8;
                 }
 
+                if (skipRequested) break;
                 await Task.Delay(currentDelay);
             }
         }
@@ -241,6 +298,29 @@ namespace MilehighWorld.Cinematics
             }
 
             speakerNameText.transform.localScale = originalSpeakerScale;
+        private async Task PopScaleAsync(Transform target)
+        {
+            float duration = 0.2f;
+            float elapsed = 0f;
+            while (elapsed < duration)
+            {
+                elapsed += Time.deltaTime;
+                float scale = 1f + Mathf.Sin((elapsed / duration) * Mathf.PI) * 0.1f;
+                target.localScale = originalSpeakerScale * scale;
+                await Task.Yield();
+            }
+            target.localScale = originalSpeakerScale;
+        }
+
+        private async Task WaitForSecondsOrSkip(float seconds)
+        {
+            float elapsed = 0f;
+            while (elapsed < seconds && !skipRequested)
+            {
+                elapsed += Time.deltaTime;
+                await Task.Yield();
+            }
+            skipRequested = false; // Palette: Reset skip for the next dialogue beat
         }
 
         private string GetSpeakerColor(string speaker)
