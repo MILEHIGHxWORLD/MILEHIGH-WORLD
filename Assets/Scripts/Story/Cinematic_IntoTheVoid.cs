@@ -40,6 +40,7 @@ namespace MilehighWorld.Cinematics
         private const float LinearOmenHexState = 6.0f;
         private const float IteratedSanctuary = 0.0777777777f;
 
+        private bool skipRequested;
         private bool skipRequested = false;
         private float idleTimer = 0f;
         private bool playerInteracted = false;
@@ -50,6 +51,10 @@ namespace MilehighWorld.Cinematics
             // Lock timeScale for deterministic cinematic pacing
             Time.timeScale = 1.0f;
 
+            if (speakerNameText != null)
+            {
+                originalSpeakerScale = speakerNameText.transform.localScale;
+            }
             if (skipHint != null) skipHint.SetActive(false);
 
             // Palette: Accessibility - High-contrast outlines for better readability
@@ -61,6 +66,12 @@ namespace MilehighWorld.Cinematics
             _ = ExecuteConvergenceSequenceAsync();
         }
 
+        private void Update()
+        {
+            // Palette: Capture skip intent globally for narrative responsiveness.
+            if (Input.anyKeyDown || Input.GetMouseButtonDown(0))
+            {
+                skipRequested = true;
         private void ApplyHighContrastOutline(TextMeshProUGUI text)
         {
             text.fontMaterial.EnableKeyword(ShaderUtilities.Keyword_Outline);
@@ -104,6 +115,7 @@ namespace MilehighWorld.Cinematics
             // 3. Asynchronous Lexical Pacing
             dialogueCanvas.SetActive(true);
             await StreamDialogueAsync("King Cyrus", "Tremble, mortals, as the Age of Millenia crumbles before the might of the Void!", 0.04f);
+            await DelayOrSkipAsync(500);
             await WaitForSecondsOrSkip(0.5f);
 
             await StreamDialogueAsync("Sky.ix", "Negative. The resonance is peaking. We are at 998 shards. Engaging Void Conduit.", 0.03f);
@@ -185,6 +197,18 @@ namespace MilehighWorld.Cinematics
         /// </summary>
         private async Task StreamDialogueAsync(string speaker, string content, float charDelay)
         {
+            string colorHex = GetSpeakerColor(speaker);
+            string formattedSpeaker = $"<color={colorHex}>[{speaker}]</color>";
+
+            // Palette: Trigger a subtle scale pop if the speaker has changed.
+            if (speakerNameText.text != formattedSpeaker)
+            {
+                speakerNameText.text = formattedSpeaker;
+                _ = PopScaleAsync();
+            }
+
+            // Palette: Reset skip flag for each new dialogue line.
+            skipRequested = false;
             // Palette: Reset interaction state for each new line
             skipRequested = false;
             playerInteracted = false;
@@ -215,6 +239,13 @@ namespace MilehighWorld.Cinematics
 
                 dialogueText.maxVisibleCharacters = i;
 
+                // Palette: Instant reveal if skip is requested.
+                if (skipRequested)
+                {
+                    dialogueText.maxVisibleCharacters = totalCharacters;
+                    break;
+                }
+
                 // Get the character that was just revealed
                 char c = dialogueText.textInfo.characterInfo[i - 1].character;
                 int currentDelay = baseDelayMs;
@@ -238,6 +269,35 @@ namespace MilehighWorld.Cinematics
             }
         }
 
+        private async Task DelayOrSkipAsync(int milliseconds)
+        {
+            int elapsed = 0;
+            while (elapsed < milliseconds && !skipRequested)
+            {
+                await Task.Delay(50);
+                elapsed += 50;
+            }
+            skipRequested = false;
+        }
+
+        private async Task PopScaleAsync()
+        {
+            if (speakerNameText == null) return;
+
+            float duration = 0.2f;
+            float elapsed = 0f;
+            Vector3 targetScale = originalSpeakerScale * 1.1f;
+
+            while (elapsed < duration)
+            {
+                elapsed += Time.deltaTime;
+                float t = elapsed / duration;
+                // Simple Sin wave pulse
+                speakerNameText.transform.localScale = Vector3.Lerp(originalSpeakerScale, targetScale, Mathf.Sin(t * Mathf.PI));
+                await Task.Yield();
+            }
+
+            speakerNameText.transform.localScale = originalSpeakerScale;
         private async Task PopScaleAsync(Transform target)
         {
             float duration = 0.2f;
