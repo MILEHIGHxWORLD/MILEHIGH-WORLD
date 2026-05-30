@@ -254,3 +254,8 @@
 **Vulnerability:** Several critical core managers (GameManager, BackendSyncService) were missing from the `_protectedManagers` blocklist in `SceneDirector.cs`, exposing them to unauthorized interaction and potential IDOR vulnerabilities.
 **Learning:** Hardcoded blocklists for dynamic core systems are prone to omitting newly added or less prominent singleton managers, leaving gaps in IDOR protection.
 **Prevention:** Ensure all critical singletons and core managers are explicitly included in the `_protectedManagers` HashSet blocklist within `SceneDirector.cs` to block unauthorized external access via `GameObject.Find`.
+
+## 2026-05-30 - Insecure Direct Object Reference (IDOR) in Unity Singleton Managers
+**Vulnerability:** Missing inclusion of `RealitySyncEngine`, `TimelineSimulationEngine`, `BicameralBattleEngine`, and `FoxParadeDirector` in `SceneDirector.cs` `_protectedManagers` hashset allowed unauthorized interactions via `GameObject.Find()`.
+**Learning:** The `ApplyInteraction` function correctly checks a blocklist to prevent state manipulation on core components, but newer core engines like `RealitySyncEngine` were missing from the list, exposing critical deterministic loops to external manipulation.
+**Prevention:** All critical singletons, managers, and simulation engines must be explicitly appended to the `_protectedManagers` blocklist upon creation to deny uncontrolled reference fetching.
