@@ -40,7 +40,6 @@ namespace MilehighWorld.Cinematics
         private const float LinearOmenHexState = 6.0f;
         private const float IteratedSanctuary = 0.0777777777f;
 
-        private bool skipRequested;
         private bool skipRequested = false;
         private float idleTimer = 0f;
         private bool playerInteracted = false;
@@ -61,17 +60,9 @@ namespace MilehighWorld.Cinematics
             if (speakerNameText != null) ApplyHighContrastOutline(speakerNameText);
             if (dialogueText != null) ApplyHighContrastOutline(dialogueText);
 
-            if (speakerNameText != null) originalSpeakerScale = speakerNameText.transform.localScale;
-
             _ = ExecuteConvergenceSequenceAsync();
         }
 
-        private void Update()
-        {
-            // Palette: Capture skip intent globally for narrative responsiveness.
-            if (Input.anyKeyDown || Input.GetMouseButtonDown(0))
-            {
-                skipRequested = true;
         private void ApplyHighContrastOutline(TextMeshProUGUI text)
         {
             text.fontMaterial.EnableKeyword(ShaderUtilities.Keyword_Outline);
@@ -82,7 +73,7 @@ namespace MilehighWorld.Cinematics
         private void Update()
         {
             // Palette: Universal skip accessibility - Capture any key or click to bypass dialogue pacing
-            if (Input.anyKeyDown)
+            if (Input.anyKeyDown || Input.GetMouseButtonDown(0))
             {
                 skipRequested = true;
                 playerInteracted = true;
@@ -115,7 +106,6 @@ namespace MilehighWorld.Cinematics
             // 3. Asynchronous Lexical Pacing
             dialogueCanvas.SetActive(true);
             await StreamDialogueAsync("King Cyrus", "Tremble, mortals, as the Age of Millenia crumbles before the might of the Void!", 0.04f);
-            await DelayOrSkipAsync(500);
             await WaitForSecondsOrSkip(0.5f);
 
             await StreamDialogueAsync("Sky.ix", "Negative. The resonance is peaking. We are at 998 shards. Engaging Void Conduit.", 0.03f);
@@ -204,24 +194,15 @@ namespace MilehighWorld.Cinematics
             if (speakerNameText.text != formattedSpeaker)
             {
                 speakerNameText.text = formattedSpeaker;
-                _ = PopScaleAsync();
-            }
-
-            // Palette: Reset skip flag for each new dialogue line.
-            skipRequested = false;
-            // Palette: Reset interaction state for each new line
-            skipRequested = false;
-            playerInteracted = false;
-
-            string newSpeakerText = $"<color={GetSpeakerColor(speaker)}>[{speaker}]</color>";
-            if (speakerNameText.text != newSpeakerText)
-            {
-                speakerNameText.text = newSpeakerText;
                 _ = PopScaleAsync(speakerNameText.transform);
             }
 
+            // Palette: Reset skip flag and interaction state for each new dialogue line.
+            skipRequested = false;
+            playerInteracted = false;
+            idleTimer = 0f;
+
             // Pre-calculate layout with completion cue to avoid jarring shifts
-            string colorHex = GetSpeakerColor(speaker);
             dialogueText.text = $"{content} <color={colorHex}>▽</color>";
             dialogueText.maxVisibleCharacters = 0;
             dialogueText.ForceMeshUpdate();
@@ -238,13 +219,6 @@ namespace MilehighWorld.Cinematics
                 }
 
                 dialogueText.maxVisibleCharacters = i;
-
-                // Palette: Instant reveal if skip is requested.
-                if (skipRequested)
-                {
-                    dialogueText.maxVisibleCharacters = totalCharacters;
-                    break;
-                }
 
                 // Get the character that was just revealed
                 char c = dialogueText.textInfo.characterInfo[i - 1].character;
@@ -269,37 +243,9 @@ namespace MilehighWorld.Cinematics
             }
         }
 
-        private async Task DelayOrSkipAsync(int milliseconds)
-        {
-            int elapsed = 0;
-            while (elapsed < milliseconds && !skipRequested)
-            {
-                await Task.Delay(50);
-                elapsed += 50;
-            }
-            skipRequested = false;
-        }
-
-        private async Task PopScaleAsync()
-        {
-            if (speakerNameText == null) return;
-
-            float duration = 0.2f;
-            float elapsed = 0f;
-            Vector3 targetScale = originalSpeakerScale * 1.1f;
-
-            while (elapsed < duration)
-            {
-                elapsed += Time.deltaTime;
-                float t = elapsed / duration;
-                // Simple Sin wave pulse
-                speakerNameText.transform.localScale = Vector3.Lerp(originalSpeakerScale, targetScale, Mathf.Sin(t * Mathf.PI));
-                await Task.Yield();
-            }
-
-            speakerNameText.transform.localScale = originalSpeakerScale;
         private async Task PopScaleAsync(Transform target)
         {
+            if (target == null) return;
             float duration = 0.2f;
             float elapsed = 0f;
             while (elapsed < duration)
