@@ -38,8 +38,10 @@ namespace MilehighWorld.Cinematics
         // Mathematical Constants
         private const float TrueMonadBaseline = 1.0f;
         private const float LinearOmenHexState = 6.0f;
-        private const float IteratedSanctuary = 0.0777777777f;
 
+        private bool _isTyping;
+        private bool _skipTypingRequested;
+        private bool _skipReadingRequested;
         private bool skipRequested = false;
         private float idleTimer = 0f;
         private bool playerInteracted = false;
@@ -58,12 +60,15 @@ namespace MilehighWorld.Cinematics
             if (speakerNameText != null)
             {
                 originalSpeakerScale = speakerNameText.transform.localScale;
+                ApplyHighContrastOutline(speakerNameText);
             }
-            if (skipHint != null) skipHint.SetActive(false);
 
-            // Palette: Accessibility - High-contrast outlines for better readability
-            if (speakerNameText != null) ApplyHighContrastOutline(speakerNameText);
-            if (dialogueText != null) ApplyHighContrastOutline(dialogueText);
+            if (dialogueText != null)
+            {
+                ApplyHighContrastOutline(dialogueText);
+            }
+
+            if (skipHint != null) skipHint.SetActive(false);
 
             _ = ExecuteConvergenceSequenceAsync();
         }
@@ -80,10 +85,18 @@ namespace MilehighWorld.Cinematics
             // Palette: Universal skip accessibility - Capture any key or click to bypass dialogue pacing
             if (Input.anyKeyDown || Input.GetMouseButtonDown(0))
             {
-                skipRequested = true;
                 playerInteracted = true;
                 idleTimer = 0f;
                 if (skipHint != null) skipHint.SetActive(false);
+
+                if (_isTyping)
+                {
+                    _skipTypingRequested = true; // State 1: Finish typing immediately
+                }
+                else
+                {
+                    _skipReadingRequested = true; // State 2: Advance to next line
+                }
             }
             else
             {
@@ -103,7 +116,7 @@ namespace MilehighWorld.Cinematics
             // 1. Force the local coordinate space into a Linear Omen (6.0) Hex-State
             await TweenShaderEntropyAsync(LinearOmenHexState, 2.0f);
 
-            // 2. Transfinite Data Load: Initialize entities from object pools (Disable vs Destroy SOP)
+            // 2. Transfinite Data Load: Initialize entities from object pools
             skyixPrefab.SetActive(true);
             reveriePrefab.SetActive(true);
             kingCyrusPrefab.SetActive(true);
@@ -111,10 +124,11 @@ namespace MilehighWorld.Cinematics
             // 3. Asynchronous Lexical Pacing
             dialogueCanvas.SetActive(true);
             await StreamDialogueAsync("King Cyrus", "Tremble, mortals, as the Age of Millenia crumbles before the might of the Void!", 0.04f);
+            await WaitForAdvanceOrSkipAsync(0.5f);
             await WaitForSecondsOrSkip(0.5f);
 
             await StreamDialogueAsync("Sky.ix", "Negative. The resonance is peaking. We are at 998 shards. Engaging Void Conduit.", 0.03f);
-            await WaitForSecondsOrSkip(0.5f);
+            await WaitForAdvanceOrSkipAsync(0.5f);
 
             // 4. Parity Verification via OMEGA.ONE Fulcrum
             LogNarrativeTelemetry("Executing BackendSyncService Call: Validating Parity Resonance...");
@@ -128,7 +142,7 @@ namespace MilehighWorld.Cinematics
             if (resolution.WasActionSuccessful)
             {
                 await StreamDialogueAsync("Reverie", "The 999th shard is ours. Severing the loop... now!", 0.03f);
-                await WaitForSecondsOrSkip(0.5f);
+                await WaitForAdvanceOrSkipAsync(0.5f);
                 await ExecuteSaveEveryoneProtocolAsync();
             }
             else
@@ -139,9 +153,6 @@ namespace MilehighWorld.Cinematics
             dialogueCanvas.SetActive(false);
         }
 
-        /// <summary>
-        /// Mathematically tweens the HDRP shader's emissive intensity to simulate Void corruption.
-        /// </summary>
         private async Task TweenShaderEntropyAsync(float targetIntensity, float duration)
         {
             float startIntensity = hyperrealisticPlatformShader.GetFloat(emissiveIntensityId);
@@ -152,24 +163,17 @@ namespace MilehighWorld.Cinematics
                 elapsed += Time.deltaTime;
                 float currentIntensity = Mathf.Lerp(startIntensity, targetIntensity, elapsed / duration);
                 hyperrealisticPlatformShader.SetFloat(emissiveIntensityId, currentIntensity);
-
-                // Processor Choking Prevention: Yield execution
                 await Task.Yield();
             }
         }
 
-        /// <summary>
-        /// Executes the final visual and logical reset to the True Monad (1.0).
-        /// </summary>
         private async Task ExecuteSaveEveryoneProtocolAsync()
         {
             LogNarrativeTelemetry("PROTOCOL_SAVE_EVERYONE Initiated. Physics re-aligning.");
 
-            // Fade out Cyrus using Object Pooling SOP (Alpha Decay)
             await TweenAlphaDecayAsync(kingCyrusPrefab.GetComponentInChildren<Renderer>().material, 1.5f);
-            kingCyrusPrefab.SetActive(false); // Return to pool
+            kingCyrusPrefab.SetActive(false);
 
-            // Clamp environmental delta changes instantly upon loop completion
             await TweenShaderEntropyAsync(TrueMonadBaseline, 1.0f);
 
             LogNarrativeTelemetry("Omen Singularity Severed. Verse Stabilized.");
@@ -280,15 +284,19 @@ namespace MilehighWorld.Cinematics
         /// </summary>
         private async Task StreamDialogueAsync(string speaker, string content, float charDelay)
         {
+            _isTyping = true;
+            _skipTypingRequested = false;
+            _skipReadingRequested = false;
+
             string colorHex = GetSpeakerColor(speaker);
             string formattedSpeaker = $"<color={colorHex}>[{speaker}]</color>";
 
-            // Palette: Trigger a subtle scale pop if the speaker has changed.
             if (speakerNameText.text != formattedSpeaker)
             {
                 speakerNameText.text = formattedSpeaker;
                 _ = PopScaleAsync(speakerNameText.transform);
             }
+
 
             // Palette: Reset skip flag and interaction state for each new dialogue line.
             skipRequested = false;
@@ -305,7 +313,7 @@ namespace MilehighWorld.Cinematics
 
             for (int i = 1; i <= totalCharacters; i++)
             {
-                if (skipRequested)
+                if (_skipTypingRequested)
                 {
                     dialogueText.maxVisibleCharacters = totalCharacters;
                     break;
@@ -317,7 +325,6 @@ namespace MilehighWorld.Cinematics
                 char c = dialogueText.textInfo.characterInfo[i - 1].character;
                 int currentDelay = baseDelayMs;
 
-                // Rhythmic Pacing Logic: Apply pauses for punctuation to mimic natural speech
                 if (c == '.' || c == '?' || c == '!')
                 {
                     bool isEllipsis = (i < totalCharacters && dialogueText.textInfo.characterInfo[i].character == '.');
@@ -331,9 +338,10 @@ namespace MilehighWorld.Cinematics
                     currentDelay *= 8;
                 }
 
-                if (skipRequested) break;
                 await Task.Delay(currentDelay);
             }
+
+            _isTyping = false;
         }
 
         private async Task PopScaleAsync(Transform target)
@@ -351,15 +359,16 @@ namespace MilehighWorld.Cinematics
             target.localScale = originalSpeakerScale;
         }
 
-        private async Task WaitForSecondsOrSkip(float seconds)
+        private async Task WaitForAdvanceOrSkipAsync(float minSeconds)
         {
             float elapsed = 0f;
-            while (elapsed < seconds && !skipRequested)
+            // Wait at least minSeconds, or until player requests skip advance
+            while (elapsed < minSeconds && !_skipReadingRequested)
             {
                 elapsed += Time.deltaTime;
                 await Task.Yield();
             }
-            skipRequested = false; // Palette: Reset skip for the next dialogue beat
+            _skipReadingRequested = false;
         }
 
         private string GetSpeakerColor(string speaker)
