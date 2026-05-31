@@ -408,3 +408,6 @@
 ## 2026-05-31 - Zero-Allocation Typewriter Effect in Cinematic Dialogue
 **Learning:** Standard string concatenation (`text += char`) in a typewriter loop causes O(N^2) memory allocations and forces the UI mesh to rebuild for every character, leading to performance degradation and GC pressure in long cinematic sequences.
 **Action:** Implement a zero-allocation typewriter effect by assigning the full string to the `text` property once and incrementing the `maxVisibleCharacters` property of TextMeshPro over time. Always reset `maxVisibleCharacters` to the content length upon completion to ensure stability.
+## 2026-05-31 - [Terminal UI Typewriter Cache Anti-pattern]
+**Learning:** Instantiating `new WaitForSeconds` directly inside character-by-character UI typewriter loops (like in OtisTerminal.cs) causes O(N) GC allocations per string, leading to micro-stutters during terminal output.
+**Action:** Always implement a static integer-keyed Dictionary cache for `WaitForSeconds` (e.g., `GetWait(float)`) in UI coroutines that trigger frequent delays, mapping milliseconds to the cached wait instructions to eliminate GC pressure.
