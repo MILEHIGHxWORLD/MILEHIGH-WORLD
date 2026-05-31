@@ -259,12 +259,3 @@
 **Vulnerability:** The introduction of new core systems like `TimelineSimulationEngine` and `VitisAIBridge` creates new targets for IDOR attacks if not explicitly protected in the scene-wide lookup blocklist.
 **Learning:** Every architectural addition that acts as a singleton or core manager must be immediately registered with the security boundary layer (`SceneDirector.cs`) to maintain the integrity of the simulation.
 **Prevention:** Strictly enforce the inclusion of all new core managers in the `_protectedManagers` HashSet to block unauthorized external access via `GameObject.Find`.
-## 2026-05-29 - Missing Core Managers in IDOR Blocklist
-**Vulnerability:** Insecure Direct Object Reference (IDOR) vulnerability in SceneDirector.cs where critical core managers like RealitySyncEngine and TimelineSimulationEngine were missing from the _protectedManagers blocklist, allowing unauthorized external access via GameObject.Find.
-**Learning:** Hardcoded blocklists are fragile and often become outdated when new core managers are added to the project, leaving new components unprotected.
-**Prevention:** Use dynamic registration interfaces or Unity Tags to automatically identify and protect sensitive core managers rather than relying on manual updates to a static blocklist.
-
-## 2026-05-30 - Insecure Direct Object Reference (IDOR) in Unity Singleton Managers
-**Vulnerability:** Missing inclusion of `RealitySyncEngine`, `TimelineSimulationEngine`, `BicameralBattleEngine`, and `FoxParadeDirector` in `SceneDirector.cs` `_protectedManagers` hashset allowed unauthorized interactions via `GameObject.Find()`.
-**Learning:** The `ApplyInteraction` function correctly checks a blocklist to prevent state manipulation on core components, but newer core engines like `RealitySyncEngine` were missing from the list, exposing critical deterministic loops to external manipulation.
-**Prevention:** All critical singletons, managers, and simulation engines must be explicitly appended to the `_protectedManagers` blocklist upon creation to deny uncontrolled reference fetching.
