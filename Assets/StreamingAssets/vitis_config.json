@@ -1,0 +1,21 @@
+{
+  "xclbin-location": "/run/media/mmcblk0p1/dpu.xclbin",
+  "preprocess-config": {
+    "preprocess_type": "letterbox",
+    "colour_format": "BGR",
+    "Height": 224,
+    "Width": 224,
+    "qt_fctr": 64,
+    "mean_r": 104.0, "mean_g": 117.0, "mean_b": 123.0,
+    "scale_r": 1.0, "scale_g": 1.0, "scale_b": 1.0,
+    "symmetric_padding": true
+  },
+  "postprocess-config": {
+    "labels_path": "/etc/vai/labels/labels",
+    "score_threshold": 0.3
+  },
+  "metaconvert-config": {
+    "kernel_name": "metaconvert_ihls",
+    "size": 4096
+  }
+}
