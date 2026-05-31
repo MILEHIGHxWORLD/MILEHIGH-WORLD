@@ -404,3 +404,7 @@
 ## 2024-06-01 - Redundant Input Checks in Update Loop
 **Learning:** Repeatedly calling `Input` properties/methods (like `Input.anyKeyDown` alongside specific keydown checks) inside `Update()` loops introduces unnecessary C#/C++ native boundary crossings. This overhead accumulates, leading to micro-stutters, especially in input-heavy or critical path systems like cinematic playback.
 **Action:** Eliminate duplicate or redundant input execution paths to reduce CPU overhead and prevent micro-stutters.
+
+## 2026-05-31 - Zero-Allocation Typewriter Effect in Cinematic Dialogue
+**Learning:** Standard string concatenation (`text += char`) in a typewriter loop causes O(N^2) memory allocations and forces the UI mesh to rebuild for every character, leading to performance degradation and GC pressure in long cinematic sequences.
+**Action:** Implement a zero-allocation typewriter effect by assigning the full string to the `text` property once and incrementing the `maxVisibleCharacters` property of TextMeshPro over time. Always reset `maxVisibleCharacters` to the content length upon completion to ensure stability.
