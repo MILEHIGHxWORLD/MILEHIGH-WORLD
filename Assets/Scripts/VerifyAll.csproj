@@ -33,6 +33,8 @@
     <Compile Include="Character/SkylxController.cs" />
     <Compile Include="Character/NefariousAI.cs" />
     <Compile Include="Backend/BackendSyncService.cs" />
+    <Compile Include="Backend/AIGameMasterService.cs" />
+    <Compile Include="Data/AIGameMasterContracts.cs" />
     <Compile Include="Engine/FoxParadeDirector.cs" />
     <Compile Include="Engine/RealitySyncEngine.cs" />
     <Compile Include="SceneManagement/AsyncSceneLoader.cs" />
