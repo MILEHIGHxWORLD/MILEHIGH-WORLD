@@ -8,6 +8,7 @@ using UnityEngine;
 using TMPro;
 using MilehighWorld.Core;
 using MilehighWorld.Backend;
+using Milehigh.World.CoreLogic;
 
 namespace MilehighWorld.Cinematics
 {
@@ -17,6 +18,10 @@ namespace MilehighWorld.Cinematics
     /// </summary>
     public class Cinematic_IntoTheVoid : MonoBehaviour
     {
+        [Header("Core Engine References")]
+        [SerializeField] private TimelineSimulationEngine timelineEngine = null!;
+        [SerializeField] private VitisAIBridge vitisBridge = null!;
+
         [Header("Entity References")]
         [SerializeField] private GameObject skyixPrefab = null!;
         [SerializeField] private GameObject reveriePrefab = null!;
@@ -39,10 +44,18 @@ namespace MilehighWorld.Cinematics
         private const float LinearOmenHexState = 6.0f;
         private const float IteratedSanctuary = 0.0777777777f;
 
+        private bool _isStabilized = false;
+
         private void Start()
         {
             // Lock timeScale for deterministic cinematic pacing
             Time.timeScale = 1.0f;
+
+            TimelineSimulationEngine.OnTimelineStabilized += () => {
+                _isStabilized = true;
+                LogNarrativeTelemetry("EVENT: Timeline Stabilized Signal Received.");
+            };
+
             _ = ExecuteConvergenceSequenceAsync();
         }
 
@@ -63,25 +76,27 @@ namespace MilehighWorld.Cinematics
             await StreamDialogueAsync("King Cyrus", "Tremble, mortals, as the Age of Millenia crumbles before the might of the Void!", 0.04f);
             await Task.Delay(500);
 
-            await StreamDialogueAsync("Sky.ix", "Negative. The resonance is peaking. We are at 998 shards. Engaging Void Conduit.", 0.03f);
+            await StreamDialogueAsync("Sky.ix", "Negative. The resonance is peaking. Engaging Void Conduit via Vitis AI Bridge.", 0.03f);
 
-            // 4. Parity Verification via OMEGA.ONE Fulcrum
-            LogNarrativeTelemetry("Executing BackendSyncService Call: Validating Parity Resonance...");
-            var resolution = await BackendSyncService.Instance.RequestAIResolutionAsync(
-                stateHash: 998,
-                parityResonance: 0.999f,
-                activeReality: "Void",
-                zoneId: "LOC_001_LINQ"
-            );
+            // 4. Parity Verification via Vitis AI and Timeline Engine
+            LogNarrativeTelemetry("Executing Vitis AI Bridge Analysis: Calculating System Tension...");
 
-            if (resolution.WasActionSuccessful)
+            // Register final shards to reach parity
+            for (int i = 0; i < 999; i++) timelineEngine.RegisterSynchronizedShard();
+
+            double tension = vitisBridge.CalculateSystemTension();
+            timelineEngine.EvaluateSystemTension(tension);
+
+            if (_isStabilized && !timelineEngine.IsRealityFractured)
             {
-                await StreamDialogueAsync("Reverie", "The 999th shard is ours. Severing the loop... now!", 0.03f);
+                await StreamDialogueAsync("Reverie", "The 999th shard is ours. System tension within limits. Severing the loop... now!", 0.03f);
                 await ExecuteSaveEveryoneProtocolAsync();
             }
             else
             {
-                LogNarrativeTelemetry("WARNING: Parity Lock Failed. Initiating Fallback.");
+                string reason = timelineEngine.IsRealityFractured ? "Structural Reality Fracture" : "Parity Synchronization Failure";
+                LogNarrativeTelemetry($"WARNING: Convergence Failed. Reason: {reason}");
+                await StreamDialogueAsync("King Cyrus", "Your reality is too brittle for this power!", 0.04f);
             }
 
             dialogueCanvas.SetActive(false);
@@ -136,75 +151,29 @@ namespace MilehighWorld.Cinematics
         }
 
         /// <summary>
-        /// Layout-safe rhythmic typewriter effect for cinematic dialogue.
+        /// Zero-allocation typewriter effect for dialogue rendering.
         /// </summary>
         private async Task StreamDialogueAsync(string speaker, string content, float charDelay)
         {
             speakerNameText.text = $"<color=cyan>[{speaker}]</color>";
+
+            // BOLT: Zero-allocation typewriter effect.
+            // Assign the full text once and use maxVisibleCharacters to reveal it.
+            // This prevents O(N^2) memory allocations and redundant UI mesh rebuilds.
             dialogueText.text = content;
             dialogueText.maxVisibleCharacters = 0;
-            dialogueText.ForceMeshUpdate();
 
-            for (int i = 0; i <= dialogueText.textInfo.characterCount; i++)
+            for (int i = 0; i <= content.Length; i++)
             {
                 dialogueText.maxVisibleCharacters = i;
-                if (i > 0 && i < dialogueText.textInfo.characterCount)
-                {
-                    char c = dialogueText.textInfo.characterInfo[i - 1].character;
-                    if (c == '.' || c == '?' || c == '!') await Task.Delay(Mathf.RoundToInt(charDelay * 15 * 1000));
-                    else if (c == ',' || c == ':' || c == ';') await Task.Delay(Mathf.RoundToInt(charDelay * 8 * 1000));
-                }
+
+                // Base-9 Frame Parity Alignment: Yield heavily on 9th iterations if needed,
+                // but for lexical pacing, we use a scaled delay.
                 await Task.Delay(Mathf.RoundToInt(charDelay * 1000));
-        /// Zero-allocation typewriter effect with rhythmic pacing and character-themed cues.
-        /// </summary>
-        private async Task StreamDialogueAsync(string speaker, string content, float charDelay)
-        {
-            string colorHex = GetSpeakerColor(speaker);
-            speakerNameText.text = $"<color={colorHex}>[{speaker}]</color>";
-
-            // Pre-calculate layout with completion cue to avoid jarring shifts
-            dialogueText.text = $"{content} <color={colorHex}>▽</color>";
-            dialogueText.maxVisibleCharacters = 0;
-            dialogueText.ForceMeshUpdate();
-
-            int totalCharacters = dialogueText.textInfo.characterCount;
-            int baseDelayMs = Mathf.RoundToInt(charDelay * 1000);
-
-            for (int i = 1; i <= totalCharacters; i++)
-            {
-                dialogueText.maxVisibleCharacters = i;
-
-                // Get the character that was just revealed
-                char c = dialogueText.textInfo.characterInfo[i - 1].character;
-                int currentDelay = baseDelayMs;
-
-                // Rhythmic Pacing Logic: Apply pauses for punctuation to mimic natural speech
-                if (c == '.' || c == '?' || c == '!')
-                {
-                    bool isEllipsis = (i < totalCharacters && dialogueText.textInfo.characterInfo[i].character == '.');
-                    bool isEndOfSentence = (i == totalCharacters || char.IsWhiteSpace(dialogueText.textInfo.characterInfo[i].character));
-
-                    if (isEllipsis) currentDelay *= 5;
-                    else if (isEndOfSentence) currentDelay *= 15;
-                }
-                else if (c == ',' || c == ';' || c == ':')
-                {
-                    currentDelay *= 8;
-                }
-
-                await Task.Delay(currentDelay);
             }
-        }
 
-        private string GetSpeakerColor(string speaker)
-        {
-            return speaker switch
-            {
-                "Sky.ix" => "#00FFFF",
-                "King Cyrus" => "#FFFF00",
-                "Reverie" => "#FF00FF",
-                _ => "#FFFFFF"
-            };
+            // BOLT: Explicitly reset maxVisibleCharacters to the full length to ensure stability for future reuse.
+            dialogueText.maxVisibleCharacters = content.Length;
         }
 
         [Conditional("ENABLE_NARRATIVE_LOGS")]
