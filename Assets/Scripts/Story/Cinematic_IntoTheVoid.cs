@@ -50,6 +50,11 @@ namespace MilehighWorld.Cinematics
             // Lock timeScale for deterministic cinematic pacing
             Time.timeScale = 1.0f;
 
+            // Palette: Accessibility - Apply high-contrast outlines for better readability
+            speakerNameText.fontMaterial.SetFloat(ShaderUtilities.ID_OutlineWidth, 0.2f);
+            speakerNameText.fontMaterial.SetColor(ShaderUtilities.ID_OutlineColor, Color.black);
+            dialogueText.fontMaterial.SetFloat(ShaderUtilities.ID_OutlineWidth, 0.2f);
+            dialogueText.fontMaterial.SetColor(ShaderUtilities.ID_OutlineColor, Color.black);
             if (speakerNameText != null)
             {
                 originalSpeakerScale = speakerNameText.transform.localScale;
@@ -183,6 +188,48 @@ namespace MilehighWorld.Cinematics
         }
 
         /// <summary>
+        /// Zero-allocation typewriter effect for dialogue rendering with rhythmic pacing and themed cues.
+        /// </summary>
+        private async Task StreamDialogueAsync(string speaker, string content, float charDelay)
+        {
+            // Palette: Speaker-specific color coding and themed completion cues
+            string speakerColor = speaker switch
+            {
+                "Sky.ix" => "cyan",
+                "King Cyrus" => "yellow",
+                "Reverie" => "magenta",
+                _ => "white"
+            };
+
+            speakerNameText.text = $"<color={speakerColor}>[{speaker}]</color>";
+
+            // Palette: Layout-safe reveal by pre-setting text and using maxVisibleCharacters
+            dialogueText.text = $"{content} <color={speakerColor}>▽</color>";
+            dialogueText.maxVisibleCharacters = 0;
+            dialogueText.ForceMeshUpdate();
+
+            int totalCharacters = dialogueText.textInfo.characterCount;
+
+            for (int i = 1; i <= totalCharacters; i++)
+            {
+                dialogueText.maxVisibleCharacters = i;
+
+                // Palette: Rhythmic punctuation pacing
+                float delayMultiplier = 1f;
+                if (i < totalCharacters)
+                {
+                    char c = dialogueText.textInfo.characterInfo[i - 1].character;
+                    char next = (i < totalCharacters) ? dialogueText.textInfo.characterInfo[i].character : '\0';
+
+                    if ((c == '.' || c == '!' || c == '?') && (char.IsWhiteSpace(next) || i == totalCharacters - 1))
+                        delayMultiplier = 15f; // Sentence end or end of content
+                    else if (c == ',' || c == ':' || c == ';')
+                        delayMultiplier = 8f;  // Clause pause
+                    else if (c == '.' && next == '.')
+                        delayMultiplier = 5f;  // Ellipsis dot
+                }
+
+                await Task.Delay(Mathf.RoundToInt(charDelay * delayMultiplier * 1000));
         /// Rhythmic typewriter effect for dialogue rendering with speaker-themed cues.
         /// </summary>
         private async Task StreamDialogueAsync(string speaker, string content, float charDelay)
