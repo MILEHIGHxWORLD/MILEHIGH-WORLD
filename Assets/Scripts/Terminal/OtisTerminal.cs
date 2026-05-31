@@ -56,14 +56,15 @@ namespace MilehighWorld.World.Terminal
             if (Input.GetKeyDown(KeyCode.Tab)) HandleAutocomplete();
         }
 
+        private static readonly string[] AvailableCommands = { "help", "clear" };
+
         private void HandleAutocomplete()
         {
             if (commandInput == null || string.IsNullOrWhiteSpace(commandInput.text)) return;
 
             string input = commandInput.text.ToLower();
-            string[] commands = { "help", "clear" };
 
-            foreach (string cmd in commands)
+            foreach (string cmd in AvailableCommands)
             {
                 if (cmd.StartsWith(input))
                 {
@@ -72,6 +73,45 @@ namespace MilehighWorld.World.Terminal
                     break;
                 }
             }
+        }
+
+        private string? GetClosestCommand(string input)
+        {
+            string? bestMatch = null;
+            int minDistance = 3; // Tolerance threshold for typos
+
+            foreach (string cmd in AvailableCommands)
+            {
+                int dist = ComputeLevenshteinDistance(input, cmd);
+                if (dist < minDistance)
+                {
+                    minDistance = dist;
+                    bestMatch = cmd;
+                }
+            }
+            return bestMatch;
+        }
+
+        private int ComputeLevenshteinDistance(string s, string t)
+        {
+            int n = s.Length;
+            int m = t.Length;
+            if (n == 0) return m;
+            if (m == 0) return n;
+
+            int[,] d = new int[n + 1, m + 1];
+            for (int i = 0; i <= n; d[i, 0] = i++) { }
+            for (int j = 0; j <= m; d[0, j] = j++) { }
+
+            for (int i = 1; i <= n; i++)
+            {
+                for (int j = 1; j <= m; j++)
+                {
+                    int cost = (t[j - 1] == s[i - 1]) ? 0 : 1;
+                    d[i, j] = Mathf.Min(Mathf.Min(d[i - 1, j] + 1, d[i, j - 1] + 1), d[i - 1, j - 1] + cost);
+                }
+            }
+            return d[n, m];
         }
 
         private void NavigateHistory(int direction)
@@ -124,6 +164,7 @@ namespace MilehighWorld.World.Terminal
                 WriteToTerminal("\n[SYSTEM]: <color=#FFFF00>Available Commands:</color>" +
                                 "\n - <color=#00FFFF>help</color>: Show this message." +
                                 "\n - <color=#00FFFF>clear</color>: Clear the terminal display (or Ctrl+L)." +
+                                "\n - <color=#00FFFF>help/clear</color>: Show help or clear display." +
                                 "\n - <color=#00FFFF>[cmd] [arg1] [arg2]</color>: Execute extended system commands." +
                                 "\n\n[SYSTEM]: <color=#FFFF00>Shortcuts:</color> Up/Down Arrow for History, Tab to Autocomplete, Ctrl+L to Clear.");
                 return;
@@ -141,7 +182,9 @@ namespace MilehighWorld.World.Terminal
             }
             else
             {
-                WriteToTerminal($"\n[SYSTEM]: <color=#FF0000>Unknown command or invalid argument count: '{parts[0]}'</color>");
+                string? suggestion = GetClosestCommand(command);
+                string suggestionText = suggestion != null ? $" Did you mean '<color=#00FFFF>{suggestion}</color>'?" : "";
+                WriteToTerminal($"\n[SYSTEM]: <color=#FF0000>Unknown command: '{command}'.</color>{suggestionText}");
                 if (commandInput != null) StartCoroutine(ShakeInputField());
             }
         }
