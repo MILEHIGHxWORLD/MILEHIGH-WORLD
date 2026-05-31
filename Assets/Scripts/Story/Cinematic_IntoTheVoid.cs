@@ -45,11 +45,17 @@ namespace MilehighWorld.Cinematics
         private const float IteratedSanctuary = 0.0777777777f;
 
         private bool _isStabilized = false;
+        private Vector3 _originalSpeakerScale;
 
         private void Start()
         {
             // Lock timeScale for deterministic cinematic pacing
             Time.timeScale = 1.0f;
+
+            if (speakerNameText != null)
+            {
+                _originalSpeakerScale = speakerNameText.transform.localScale;
+            }
 
             TimelineSimulationEngine.OnTimelineStabilized += () => {
                 _isStabilized = true;
@@ -151,11 +157,21 @@ namespace MilehighWorld.Cinematics
         }
 
         /// <summary>
-        /// Zero-allocation typewriter effect for dialogue rendering with rhythmic pacing.
+        /// Zero-allocation typewriter effect for dialogue rendering with rhythmic pacing and speaker transitions.
         /// </summary>
         private async Task StreamDialogueAsync(string speaker, string content, float charDelay)
         {
-            speakerNameText.text = $"<color=cyan>[{speaker}]</color>";
+            string formattedSpeaker = $"<color=cyan>[{speaker}]</color>";
+
+            // Palette: Trigger a subtle scale pulse if the speaker changes
+            if (speakerNameText.text != formattedSpeaker)
+            {
+                speakerNameText.text = formattedSpeaker;
+                if (speakerNameText.transform != null)
+                {
+                    _ = PopScaleAsync(speakerNameText.transform, 0.2f, 1.1f);
+                }
+            }
 
             // BOLT: Zero-allocation typewriter effect.
             // Assign the full text once and use maxVisibleCharacters to reveal it.
@@ -191,6 +207,20 @@ namespace MilehighWorld.Cinematics
 
             // BOLT: Explicitly reset maxVisibleCharacters to the full length to ensure stability for future reuse.
             dialogueText.maxVisibleCharacters = totalCharacters;
+        }
+
+        private async Task PopScaleAsync(Transform target, float duration, float scaleFactor)
+        {
+            float elapsed = 0f;
+            while (elapsed < duration)
+            {
+                elapsed += Time.deltaTime;
+                float t = elapsed / duration;
+                float sin = Mathf.Sin(t * Mathf.PI);
+                target.localScale = _originalSpeakerScale * (1f + (sin * (scaleFactor - 1f)));
+                await Task.Yield();
+            }
+            target.localScale = _originalSpeakerScale;
         }
 
         [Conditional("ENABLE_NARRATIVE_LOGS")]
