@@ -42,6 +42,7 @@ namespace MilehighWorld.Cinematics
         private bool _isTyping;
         private bool _skipTypingRequested;
         private bool _skipReadingRequested;
+        private bool skipRequested = false;
         private float idleTimer = 0f;
         private bool playerInteracted = false;
         private Vector3 originalSpeakerScale;
@@ -51,6 +52,11 @@ namespace MilehighWorld.Cinematics
             // Lock timeScale for deterministic cinematic pacing
             Time.timeScale = 1.0f;
 
+            // Palette: Accessibility - Apply high-contrast outlines for better readability
+            speakerNameText.fontMaterial.SetFloat(ShaderUtilities.ID_OutlineWidth, 0.2f);
+            speakerNameText.fontMaterial.SetColor(ShaderUtilities.ID_OutlineColor, Color.black);
+            dialogueText.fontMaterial.SetFloat(ShaderUtilities.ID_OutlineWidth, 0.2f);
+            dialogueText.fontMaterial.SetColor(ShaderUtilities.ID_OutlineColor, Color.black);
             if (speakerNameText != null)
             {
                 originalSpeakerScale = speakerNameText.transform.localScale;
@@ -119,6 +125,7 @@ namespace MilehighWorld.Cinematics
             dialogueCanvas.SetActive(true);
             await StreamDialogueAsync("King Cyrus", "Tremble, mortals, as the Age of Millenia crumbles before the might of the Void!", 0.04f);
             await WaitForAdvanceOrSkipAsync(0.5f);
+            await WaitForSecondsOrSkip(0.5f);
 
             await StreamDialogueAsync("Sky.ix", "Negative. The resonance is peaking. We are at 998 shards. Engaging Void Conduit.", 0.03f);
             await WaitForAdvanceOrSkipAsync(0.5f);
@@ -184,6 +191,97 @@ namespace MilehighWorld.Cinematics
             }
         }
 
+        /// <summary>
+        /// Zero-allocation typewriter effect for dialogue rendering with rhythmic pacing and themed cues.
+        /// </summary>
+        private async Task StreamDialogueAsync(string speaker, string content, float charDelay)
+        {
+            // Palette: Speaker-specific color coding and themed completion cues
+            string speakerColor = speaker switch
+            {
+                "Sky.ix" => "cyan",
+                "King Cyrus" => "yellow",
+                "Reverie" => "magenta",
+                _ => "white"
+            };
+
+            speakerNameText.text = $"<color={speakerColor}>[{speaker}]</color>";
+
+            // Palette: Layout-safe reveal by pre-setting text and using maxVisibleCharacters
+            dialogueText.text = $"{content} <color={speakerColor}>▽</color>";
+            dialogueText.maxVisibleCharacters = 0;
+            dialogueText.ForceMeshUpdate();
+
+            int totalCharacters = dialogueText.textInfo.characterCount;
+
+            for (int i = 1; i <= totalCharacters; i++)
+            {
+                dialogueText.maxVisibleCharacters = i;
+
+                // Palette: Rhythmic punctuation pacing
+                float delayMultiplier = 1f;
+                if (i < totalCharacters)
+                {
+                    char c = dialogueText.textInfo.characterInfo[i - 1].character;
+                    char next = (i < totalCharacters) ? dialogueText.textInfo.characterInfo[i].character : '\0';
+
+                    if ((c == '.' || c == '!' || c == '?') && (char.IsWhiteSpace(next) || i == totalCharacters - 1))
+                        delayMultiplier = 15f; // Sentence end or end of content
+                    else if (c == ',' || c == ':' || c == ';')
+                        delayMultiplier = 8f;  // Clause pause
+                    else if (c == '.' && next == '.')
+                        delayMultiplier = 5f;  // Ellipsis dot
+                }
+
+                await Task.Delay(Mathf.RoundToInt(charDelay * delayMultiplier * 1000));
+        /// Rhythmic typewriter effect for dialogue rendering with speaker-themed cues.
+        /// </summary>
+        private async Task StreamDialogueAsync(string speaker, string content, float charDelay)
+        {
+            string color = speaker switch
+            {
+                "Sky.ix" => "cyan",
+                "King Cyrus" => "yellow",
+                "Reverie" => "magenta",
+                _ => "white"
+            };
+
+            speakerNameText.text = $"<color={color}>[{speaker}]</color>";
+
+            // Layout stability: set full text (with cue) and reveal characters
+            dialogueText.text = $"{content} <color={color}>▽</color>";
+            dialogueText.maxVisibleCharacters = 0;
+            dialogueText.ForceMeshUpdate();
+
+            int totalVisibleCharacters = dialogueText.textInfo.characterCount;
+            int baseDelayMs = Mathf.RoundToInt(charDelay * 1000);
+
+            for (int i = 1; i <= totalVisibleCharacters; i++)
+            {
+                dialogueText.maxVisibleCharacters = i;
+
+                if (i == totalVisibleCharacters) break;
+
+                int currentDelay = baseDelayMs;
+
+                // Rhythmic Pacing: look at the character we just revealed
+                var charInfo = dialogueText.textInfo.characterInfo[i - 1];
+                char c = charInfo.character;
+
+                if (c == '.' || c == '?' || c == '!')
+                {
+                    // Look ahead at the next rendered character to distinguish sentence ends from abbreviations
+                    char nextChar = dialogueText.textInfo.characterInfo[i].character;
+                    if (char.IsWhiteSpace(nextChar))
+                        currentDelay *= 15; // Full stop
+                }
+                else if (c == ',' || c == ':' || c == ';')
+                {
+                    currentDelay *= 8; // Brief pause
+                }
+
+        /// Zero-allocation typewriter effect with rhythmic pacing and character-themed cues.
+        /// </summary>
         private async Task StreamDialogueAsync(string speaker, string content, float charDelay)
         {
             _isTyping = true;
@@ -199,6 +297,13 @@ namespace MilehighWorld.Cinematics
                 _ = PopScaleAsync(speakerNameText.transform);
             }
 
+
+            // Palette: Reset skip flag and interaction state for each new dialogue line.
+            skipRequested = false;
+            playerInteracted = false;
+            idleTimer = 0f;
+
+            // Pre-calculate layout with completion cue to avoid jarring shifts
             dialogueText.text = $"{content} <color={colorHex}>▽</color>";
             dialogueText.maxVisibleCharacters = 0;
             dialogueText.ForceMeshUpdate();
@@ -216,6 +321,7 @@ namespace MilehighWorld.Cinematics
 
                 dialogueText.maxVisibleCharacters = i;
 
+                // Get the character that was just revealed
                 char c = dialogueText.textInfo.characterInfo[i - 1].character;
                 int currentDelay = baseDelayMs;
 
@@ -240,6 +346,7 @@ namespace MilehighWorld.Cinematics
 
         private async Task PopScaleAsync(Transform target)
         {
+            if (target == null) return;
             float duration = 0.2f;
             float elapsed = 0f;
             while (elapsed < duration)
