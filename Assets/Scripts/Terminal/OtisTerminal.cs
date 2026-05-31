@@ -19,21 +19,6 @@ namespace MilehighWorld.World.Terminal
         private List<string> _commandHistory = new List<string>();
         private int _historyIndex = -1;
 
-        // ⚡ Bolt: Cache for WaitForSeconds using millisecond keys to prevent floating-point precision issues
-        // and eliminate redundant GC allocations during coroutine execution.
-        private static readonly Dictionary<int, WaitForSeconds> _waitCache = new Dictionary<int, WaitForSeconds>();
-
-        private static WaitForSeconds GetWait(float seconds)
-        {
-            int ms = Mathf.RoundToInt(seconds * 1000f);
-            if (!_waitCache.TryGetValue(ms, out var wait))
-            {
-                wait = new WaitForSeconds(seconds);
-                _waitCache[ms] = wait;
-            }
-            return wait;
-        }
-
         private void Start()
         {
             if (outputDisplay != null)
@@ -71,15 +56,14 @@ namespace MilehighWorld.World.Terminal
             if (Input.GetKeyDown(KeyCode.Tab)) HandleAutocomplete();
         }
 
-        private static readonly string[] AvailableCommands = { "help", "clear" };
-
         private void HandleAutocomplete()
         {
             if (commandInput == null || string.IsNullOrWhiteSpace(commandInput.text)) return;
 
             string input = commandInput.text.ToLower();
+            string[] commands = { "help", "clear" };
 
-            foreach (string cmd in AvailableCommands)
+            foreach (string cmd in commands)
             {
                 if (cmd.StartsWith(input))
                 {
@@ -88,45 +72,6 @@ namespace MilehighWorld.World.Terminal
                     break;
                 }
             }
-        }
-
-        private string? GetClosestCommand(string input)
-        {
-            string? bestMatch = null;
-            int minDistance = 3; // Tolerance threshold for typos
-
-            foreach (string cmd in AvailableCommands)
-            {
-                int dist = ComputeLevenshteinDistance(input, cmd);
-                if (dist < minDistance)
-                {
-                    minDistance = dist;
-                    bestMatch = cmd;
-                }
-            }
-            return bestMatch;
-        }
-
-        private int ComputeLevenshteinDistance(string s, string t)
-        {
-            int n = s.Length;
-            int m = t.Length;
-            if (n == 0) return m;
-            if (m == 0) return n;
-
-            int[,] d = new int[n + 1, m + 1];
-            for (int i = 0; i <= n; d[i, 0] = i++) { }
-            for (int j = 0; j <= m; d[0, j] = j++) { }
-
-            for (int i = 1; i <= n; i++)
-            {
-                for (int j = 1; j <= m; j++)
-                {
-                    int cost = (t[j - 1] == s[i - 1]) ? 0 : 1;
-                    d[i, j] = Mathf.Min(Mathf.Min(d[i - 1, j] + 1, d[i, j - 1] + 1), d[i - 1, j - 1] + cost);
-                }
-            }
-            return d[n, m];
         }
 
         private void NavigateHistory(int direction)
@@ -140,6 +85,8 @@ namespace MilehighWorld.World.Terminal
         public void ProcessCommand(string input)
         {
             if (string.IsNullOrWhiteSpace(input)) return;
+            if (_commandHistory.Count == 0 || _commandHistory[^1] != input) _commandHistory.Add(input);
+            _historyIndex = _commandHistory.Count;
 
             // UX Enhancement: Clear input and refocus immediately for better flow
             if (commandInput != null)
@@ -148,7 +95,7 @@ namespace MilehighWorld.World.Terminal
                 commandInput.ActivateInputField();
             }
 
-            // 🛡️ Sentinel: Input validation and DoS protection (Resource Exhaustion)
+            // 🛡️ Sentinel: Input validation and DoS protection
             if (input.Length > MaxInputLength)
             {
                 WriteToTerminal("\n[SECURITY]: <color=#FF0000>Input exceeds maximum length (256 characters).</color>");
@@ -162,15 +109,6 @@ namespace MilehighWorld.World.Terminal
                 if (commandInput != null) StartCoroutine(ShakeInputField());
                 return;
             }
-
-            // 🛡️ Sentinel: Capping command history to 100 entries to prevent memory exhaustion (DoS).
-            // UX: History index is reset for every processed command to ensure navigation starts from the end.
-            if (_commandHistory.Count == 0 || _commandHistory[^1] != input)
-            {
-                _commandHistory.Add(input);
-                if (_commandHistory.Count > 100) _commandHistory.RemoveAt(0);
-            }
-            _historyIndex = _commandHistory.Count;
 
             string[] parts = input.Trim().Split(' ');
             string command = parts[0].ToLower();
@@ -186,7 +124,6 @@ namespace MilehighWorld.World.Terminal
                 WriteToTerminal("\n[SYSTEM]: <color=#FFFF00>Available Commands:</color>" +
                                 "\n - <color=#00FFFF>help</color>: Show this message." +
                                 "\n - <color=#00FFFF>clear</color>: Clear the terminal display (or Ctrl+L)." +
-                                "\n - <color=#00FFFF>help/clear</color>: Show help or clear display." +
                                 "\n - <color=#00FFFF>[cmd] [arg1] [arg2]</color>: Execute extended system commands." +
                                 "\n\n[SYSTEM]: <color=#FFFF00>Shortcuts:</color> Up/Down Arrow for History, Tab to Autocomplete, Ctrl+L to Clear.");
                 return;
@@ -204,9 +141,7 @@ namespace MilehighWorld.World.Terminal
             }
             else
             {
-                string? suggestion = GetClosestCommand(command);
-                string suggestionText = suggestion != null ? $" Did you mean '<color=#00FFFF>{suggestion}</color>'?" : "";
-                WriteToTerminal($"\n[SYSTEM]: <color=#FF0000>Unknown command: '{command}'.</color>{suggestionText}");
+                WriteToTerminal($"\n[SYSTEM]: <color=#FF0000>Unknown command or invalid argument count: '{parts[0]}'</color>");
                 if (commandInput != null) StartCoroutine(ShakeInputField());
             }
         }
@@ -251,12 +186,12 @@ namespace MilehighWorld.World.Terminal
                 {
                     char c = outputDisplay.textInfo.characterInfo[startVisibleCount + i - 1].character;
                     if (c == '.' || c == ':' || c == '!')
-                        yield return GetWait(0.15f);
+                        yield return new WaitForSeconds(0.15f);
                     else if (c == ',')
-                        yield return GetWait(0.08f);
+                        yield return new WaitForSeconds(0.08f);
                 }
 
-                yield return GetWait(0.02f);
+                yield return new WaitForSeconds(0.02f);
             }
 
             _typewriterCoroutine = null;

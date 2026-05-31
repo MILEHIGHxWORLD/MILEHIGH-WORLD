@@ -13,7 +13,7 @@ namespace Milehigh.World.CoreLogic
     /// </summary>
     public class TimelineSimulationEngine : MonoBehaviour
     {
-        public static event Action? OnTimelineStabilized;
+        public static event Action OnTimelineStabilized;
 
         [Header("System State Tracking")]
         [SerializeField] private int currentSynchronizedShards = 0;
@@ -21,7 +21,9 @@ namespace Milehigh.World.CoreLogic
         public bool IsLoopSevered { get; private set; } = false;
         public bool IsRealityFractured { get; private set; } = false;
 
-        /// <summary> Register a synchronized shard into the core chronos engine. </summary>
+        /// <summary>
+        /// Registers a synchronized shard into the core chronos engine.
+        /// </summary>
         public void RegisterSynchronizedShard()
         {
             if (IsLoopSevered) return;
@@ -31,14 +33,11 @@ namespace Milehigh.World.CoreLogic
         }
 
         /// <summary>
-        /// 🛡️ Sentinel: Evaluates current structural tension against baseline thresholds.
-        /// Fixed NaN-bypass vulnerability where double.NaN would fail comparison and bypass the fracture detection.
+        /// Evaluates current structural tension against baseline thresholds.
         /// </summary>
         public void EvaluateSystemTension(double calculatedTension)
         {
-            // SECURITY: Explicitly check for NaN to prevent threshold subversion.
-            // If tension is NaN or exceeds base, we must trigger stability failure.
-            if (double.IsNaN(calculatedTension) || calculatedTension > RealityConstants.AbsoluteTensionBase)
+            if (calculatedTension > RealityConstants.AbsoluteTensionBase)
             {
                 IsRealityFractured = true;
                 BreakGeometryStability();
@@ -62,7 +61,7 @@ namespace Milehigh.World.CoreLogic
 
         private void BreakGeometryStability()
         {
-            Debug.LogError("CRITICAL FAILURE: AbsoluteTensionBase exceeded or invalid tension detected. Structural fracture detected.");
+            Debug.LogError("CRITICAL FAILURE: AbsoluteTensionBase exceeded. Structural fracture detected.");
         }
     }
 }

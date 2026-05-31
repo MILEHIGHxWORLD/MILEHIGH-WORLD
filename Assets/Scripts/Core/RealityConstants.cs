@@ -3,6 +3,9 @@
 // All Rights Reserved.
 // ==========================================
 
+using System;
+using UnityEngine;
+
 namespace Milehigh.World.CoreLogic
 {
     /// <summary>
