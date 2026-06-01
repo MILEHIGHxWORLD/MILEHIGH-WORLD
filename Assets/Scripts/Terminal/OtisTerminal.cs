@@ -19,6 +19,21 @@ namespace MilehighWorld.World.Terminal
         private List<string> _commandHistory = new List<string>();
         private int _historyIndex = -1;
 
+        // ⚡ Bolt: Cache WaitForSeconds to prevent GC allocations in Coroutines.
+        private static readonly Dictionary<int, WaitForSeconds> _waitForSecondsCache = new Dictionary<int, WaitForSeconds>();
+
+        // ⚡ Bolt: Static helper to retrieve cached yields using millisecond keys to avoid float imprecision.
+        private static WaitForSeconds GetWaitForSeconds(float seconds)
+        {
+            int msKey = Mathf.RoundToInt(seconds * 1000f);
+            if (!_waitForSecondsCache.TryGetValue(msKey, out WaitForSeconds wfs))
+            {
+                wfs = new WaitForSeconds(seconds);
+                _waitForSecondsCache[msKey] = wfs;
+            }
+            return wfs;
+        }
+
         private void Start()
         {
             if (outputDisplay != null)
@@ -186,13 +201,16 @@ namespace MilehighWorld.World.Terminal
                 {
                     char c = outputDisplay.textInfo.characterInfo[startVisibleCount + i - 1].character;
                     if (c == '.' || c == ':' || c == '!')
-                        yield return new WaitForSeconds(0.15f);
+                        yield return GetWaitForSeconds(0.15f); // ⚡ Bolt: Use cached yield to eliminate allocation
                     else if (c == ',')
-                        yield return new WaitForSeconds(0.08f);
+                        yield return GetWaitForSeconds(0.08f); // ⚡ Bolt: Use cached yield to eliminate allocation
                 }
 
-                yield return new WaitForSeconds(0.02f);
+                yield return GetWaitForSeconds(0.02f); // ⚡ Bolt: Use cached yield to eliminate allocation
             }
+
+            // ⚡ Bolt: Explicitly reset maxVisibleCharacters to the full length to prevent truncation bugs during future reuse.
+            outputDisplay.maxVisibleCharacters = outputDisplay.textInfo.characterCount;
 
             _typewriterCoroutine = null;
         }
