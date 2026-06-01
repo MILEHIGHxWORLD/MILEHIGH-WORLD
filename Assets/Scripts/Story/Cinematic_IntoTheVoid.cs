@@ -155,25 +155,57 @@ namespace MilehighWorld.Cinematics
         /// </summary>
         private async Task StreamDialogueAsync(string speaker, string content, float charDelay)
         {
-            speakerNameText.text = $"<color=cyan>[{speaker}]</color>";
+            string color = GetSpeakerColor(speaker);
+            speakerNameText.text = $"<color={color}>[{speaker}]</color>";
 
-            // BOLT: Zero-allocation typewriter effect.
-            // Assign the full text once and use maxVisibleCharacters to reveal it.
-            // This prevents O(N^2) memory allocations and redundant UI mesh rebuilds.
-            dialogueText.text = content;
+            // Palette: Append a color-coded '▽' completion cue to the dialogue for better interaction clarity.
+            // By setting the full text (including the cue) at the start, we ensure layout stability.
+            dialogueText.text = $"{content} <color={color}>▽</color>";
             dialogueText.maxVisibleCharacters = 0;
+            dialogueText.ForceMeshUpdate();
 
-            for (int i = 0; i <= content.Length; i++)
+            int totalVisibleCharacters = dialogueText.textInfo.characterCount;
+
+            for (int i = 1; i <= totalVisibleCharacters; i++)
             {
                 dialogueText.maxVisibleCharacters = i;
 
-                // Base-9 Frame Parity Alignment: Yield heavily on 9th iterations if needed,
-                // but for lexical pacing, we use a scaled delay.
-                await Task.Delay(Mathf.RoundToInt(charDelay * 1000));
+                // Palette: Rhythmic pacing - apply multipliers for punctuation to mimic natural speech cadence.
+                float currentDelay = charDelay;
+                if (i < totalVisibleCharacters)
+                {
+                    char c = dialogueText.textInfo.characterInfo[i - 1].character;
+                    bool isEndOfSentence = (c == '.' || c == '!' || c == '?');
+                    bool isPause = (c == ',' || c == ':' || c == ';');
+
+                    if (isEndOfSentence)
+                    {
+                        // Look ahead: only long pause if followed by a space or it's the last character before the cue
+                        bool nextIsSpace = (i < totalVisibleCharacters && dialogueText.textInfo.characterInfo[i].character == ' ');
+                        if (nextIsSpace || i == totalVisibleCharacters - 1) currentDelay *= 12f;
+                    }
+                    else if (isPause)
+                    {
+                        currentDelay *= 6f;
+                    }
+                }
+
+                await Task.Delay(Mathf.RoundToInt(currentDelay * 1000));
             }
 
             // BOLT: Explicitly reset maxVisibleCharacters to the full length to ensure stability for future reuse.
-            dialogueText.maxVisibleCharacters = content.Length;
+            dialogueText.maxVisibleCharacters = totalVisibleCharacters;
+        }
+
+        private string GetSpeakerColor(string speaker)
+        {
+            switch (speaker)
+            {
+                case "Sky.ix": return "#00FFFF";
+                case "King Cyrus": return "#FFFF00";
+                case "Reverie": return "#FF00FF";
+                default: return "#FFFFFF";
+            }
         }
 
         [Conditional("ENABLE_NARRATIVE_LOGS")]
