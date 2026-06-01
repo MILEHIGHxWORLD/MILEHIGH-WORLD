@@ -29,8 +29,16 @@ namespace MilehighWorld.Cinematics
 
         [Header("UI & Lexical Systems")]
         [SerializeField] private TextMeshProUGUI speakerNameText = null!;
+        public TextMeshProUGUI SpeakerNameText { get => speakerNameText; set => speakerNameText = value; }
         [SerializeField] private TextMeshProUGUI dialogueText = null!;
+        public TextMeshProUGUI DialogueText { get => dialogueText; set => dialogueText = value; }
         [SerializeField] private GameObject dialogueCanvas = null!;
+        public GameObject DialogueBox { get => dialogueCanvas; set => dialogueCanvas = value; }
+
+        [Header("Lexical Tuning")]
+        public float baseTypingSpeed = 0.03f;
+        public float kaiSpeedMultiplier = 3.0f;
+        public float skyixSpeedMultiplier = 1.2f;
 
         [Header("Environmental Shaders")]
         [SerializeField] private Material hyperrealisticPlatformShader = null!;
@@ -155,12 +163,13 @@ namespace MilehighWorld.Cinematics
         /// </summary>
         private async Task StreamDialogueAsync(string speaker, string content, float charDelay)
         {
-            string color = GetSpeakerColor(speaker);
-            speakerNameText.text = $"<color={color}>[{speaker}]</color>";
+            Color speakerColor = GetSpeakerColor(speaker);
+            string hexColor = "#" + ColorUtility.ToHtmlStringRGB(speakerColor);
+            speakerNameText.text = $"<color={hexColor}>[{speaker}]</color>";
 
             // Palette: Append a color-coded '▽' completion cue to the dialogue for better interaction clarity.
             // By setting the full text (including the cue) at the start, we ensure layout stability.
-            dialogueText.text = $"{content} <color={color}>▽</color>";
+            dialogueText.text = $"{content} <color={hexColor}>▽</color>";
             dialogueText.maxVisibleCharacters = 0;
             dialogueText.ForceMeshUpdate();
 
@@ -197,16 +206,23 @@ namespace MilehighWorld.Cinematics
             dialogueText.maxVisibleCharacters = totalVisibleCharacters;
         }
 
-        private string GetSpeakerColor(string speaker)
+        public float GetSpeedMultiplier(string speaker)
+        {
+            if (speaker == "Kai") return kaiSpeedMultiplier;
+            if (speaker == "Sky.ix") return skyixSpeedMultiplier;
+            return 1.0f;
+        }
+
+        public Color GetSpeakerColor(string speaker)
         {
             switch (speaker)
             {
-                case "Sky.ix": return "#00FFFF"; // Cyan
-                case "King Cyrus": return "#FFFF00"; // Yellow
-                case "Reverie": return "#FF00FF"; // Magenta
-                case "Kai": return "#FFD700"; // Gold
-                case "Delilah": return "#991AE6"; // Void Purple
-                default: return "#FFFFFF";
+                case "Sky.ix": return Color.cyan;
+                case "King Cyrus": return Color.yellow;
+                case "Reverie": return Color.magenta;
+                case "Kai": return new Color(1f, 0.84f, 0f); // Gold
+                case "Delilah": return new Color(0.6f, 0.1f, 0.9f); // Void Purple
+                default: return Color.white;
             }
         }
 
