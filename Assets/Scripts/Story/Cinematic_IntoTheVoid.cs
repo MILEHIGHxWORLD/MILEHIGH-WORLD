@@ -201,9 +201,11 @@ namespace MilehighWorld.Cinematics
         {
             switch (speaker)
             {
-                case "Sky.ix": return "#00FFFF";
-                case "King Cyrus": return "#FFFF00";
-                case "Reverie": return "#FF00FF";
+                case "Sky.ix": return "#00FFFF"; // Cyan
+                case "King Cyrus": return "#FFFF00"; // Yellow
+                case "Reverie": return "#FF00FF"; // Magenta
+                case "Kai": return "#FFD700"; // Gold
+                case "Delilah": return "#991AE6"; // Void Purple
                 default: return "#FFFFFF";
             }
         }
