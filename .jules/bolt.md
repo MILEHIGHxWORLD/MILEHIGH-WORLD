@@ -408,3 +408,7 @@
 ## 2026-05-31 - Zero-Allocation Typewriter Effect in Cinematic Dialogue
 **Learning:** Standard string concatenation (`text += char`) in a typewriter loop causes O(N^2) memory allocations and forces the UI mesh to rebuild for every character, leading to performance degradation and GC pressure in long cinematic sequences.
 **Action:** Implement a zero-allocation typewriter effect by assigning the full string to the `text` property once and incrementing the `maxVisibleCharacters` property of TextMeshPro over time. Always reset `maxVisibleCharacters` to the content length upon completion to ensure stability.
+
+## 2026-06-03 - Typewriter Effect GC Allocations
+**Learning:** Using `new WaitForSeconds` inside a per-character typewriter loop instantiates an object for every single character rendered. This causes massive O(N) memory allocations per message, leading to severe garbage collection pressure and micro-stutters during terminal usage.
+**Action:** Always cache and reuse `WaitForSeconds` instances using an integer millisecond key (via a static dictionary and helper method) inside frequent UI loops to achieve zero-allocation yields.
