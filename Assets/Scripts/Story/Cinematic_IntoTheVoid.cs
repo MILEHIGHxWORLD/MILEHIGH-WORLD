@@ -51,6 +51,12 @@ namespace MilehighWorld.Cinematics
             // Lock timeScale for deterministic cinematic pacing
             Time.timeScale = 1.0f;
 
+            // Palette: Accessibility - Apply high-contrast black outlines to ensure readability.
+            speakerNameText.outlineWidth = 0.2f;
+            speakerNameText.outlineColor = Color.black;
+            dialogueText.outlineWidth = 0.2f;
+            dialogueText.outlineColor = Color.black;
+
             TimelineSimulationEngine.OnTimelineStabilized += () => {
                 _isStabilized = true;
                 LogNarrativeTelemetry("EVENT: Timeline Stabilized Signal Received.");
@@ -151,15 +157,16 @@ namespace MilehighWorld.Cinematics
         }
 
         /// <summary>
-        /// Zero-allocation rhythmic typewriter effect for dialogue rendering.
+        /// Zero-allocation rhythmic typewriter effect with themed completion cues.
         /// </summary>
         private async Task StreamDialogueAsync(string speaker, string content, float charDelay)
         {
-            speakerNameText.text = $"<color=cyan>[{speaker}]</color>";
+            string colorHex = GetSpeakerColor(speaker);
+            speakerNameText.text = $"<color={colorHex}>[{speaker}]</color>";
 
-            // Palette: Using maxVisibleCharacters prevents layout rebuilds.
-            // ForceMeshUpdate ensures characterCount is accurate for rich text.
-            dialogueText.text = content;
+            // Palette: Append themed completion cue (▽) to signify dialogue end.
+            // Pre-appending ensures layout stability throughout reveal.
+            dialogueText.text = content + $" <color={colorHex}>▽</color>";
             dialogueText.maxVisibleCharacters = 0;
             dialogueText.ForceMeshUpdate();
 
@@ -182,6 +189,17 @@ namespace MilehighWorld.Cinematics
             }
 
             dialogueText.maxVisibleCharacters = characterCount;
+        }
+
+        private string GetSpeakerColor(string speaker)
+        {
+            return speaker switch
+            {
+                "Sky.ix" => "#00FFFF",      // Cyan
+                "King Cyrus" => "#FFFF00",  // Yellow
+                "Reverie" => "#FF00FF",     // Magenta
+                _ => "#FFFFFF"              // Default White
+            };
         }
 
         [Conditional("ENABLE_NARRATIVE_LOGS")]
