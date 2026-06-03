@@ -151,29 +151,37 @@ namespace MilehighWorld.Cinematics
         }
 
         /// <summary>
-        /// Zero-allocation typewriter effect for dialogue rendering.
+        /// Zero-allocation rhythmic typewriter effect for dialogue rendering.
         /// </summary>
         private async Task StreamDialogueAsync(string speaker, string content, float charDelay)
         {
             speakerNameText.text = $"<color=cyan>[{speaker}]</color>";
 
-            // BOLT: Zero-allocation typewriter effect.
-            // Assign the full text once and use maxVisibleCharacters to reveal it.
-            // This prevents O(N^2) memory allocations and redundant UI mesh rebuilds.
+            // Palette: Using maxVisibleCharacters prevents layout rebuilds.
+            // ForceMeshUpdate ensures characterCount is accurate for rich text.
             dialogueText.text = content;
             dialogueText.maxVisibleCharacters = 0;
+            dialogueText.ForceMeshUpdate();
 
-            for (int i = 0; i <= content.Length; i++)
+            int characterCount = dialogueText.textInfo.characterCount;
+
+            for (int i = 0; i <= characterCount; i++)
             {
                 dialogueText.maxVisibleCharacters = i;
 
-                // Base-9 Frame Parity Alignment: Yield heavily on 9th iterations if needed,
-                // but for lexical pacing, we use a scaled delay.
-                await Task.Delay(Mathf.RoundToInt(charDelay * 1000));
+                float multiplier = 1f;
+                if (i > 0 && i <= characterCount)
+                {
+                    char c = dialogueText.textInfo.characterInfo[i - 1].character;
+                    // Palette: Rhythmic pacing - longer pauses for punctuation to mimic speech.
+                    if (c == '.' || c == '?' || c == '!') multiplier = 12f;
+                    else if (c == ',' || c == ':' || c == ';') multiplier = 6f;
+                }
+
+                await Task.Delay(Mathf.RoundToInt(charDelay * multiplier * 1000));
             }
 
-            // BOLT: Explicitly reset maxVisibleCharacters to the full length to ensure stability for future reuse.
-            dialogueText.maxVisibleCharacters = content.Length;
+            dialogueText.maxVisibleCharacters = characterCount;
         }
 
         [Conditional("ENABLE_NARRATIVE_LOGS")]
