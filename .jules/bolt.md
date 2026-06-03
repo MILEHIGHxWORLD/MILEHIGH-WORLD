@@ -408,3 +408,7 @@
 ## 2026-05-31 - Zero-Allocation Typewriter Effect in Cinematic Dialogue
 **Learning:** Standard string concatenation (`text += char`) in a typewriter loop causes O(N^2) memory allocations and forces the UI mesh to rebuild for every character, leading to performance degradation and GC pressure in long cinematic sequences.
 **Action:** Implement a zero-allocation typewriter effect by assigning the full string to the `text` property once and incrementing the `maxVisibleCharacters` property of TextMeshPro over time. Always reset `maxVisibleCharacters` to the content length upon completion to ensure stability.
+
+## 2024-05-31 - Unity Negative Caching and ReferenceEquals
+**Learning:** In Unity managers like `SceneDirector.cs` that both find and instantiate objects, caching the result of `GameObject.Find` or `GetComponent` is insufficient if the object is missing. Without storing the `null` result (Negative Caching), the system continues to perform O(N) scene traversals for every query of the missing object. Additionally, `ReferenceEquals(obj, null)` is the only reliable way to check if a cached reference is a 'Real Null' (never existed/negative cache hit) vs a 'Fake Null' (Unity object was destroyed).
+**Action:** Implement negative caching by explicitly caching `null` results. Use `ReferenceEquals(obj, null)` to distinguish cache hits for missing objects from invalidated references of destroyed objects.
