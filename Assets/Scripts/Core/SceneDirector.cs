@@ -171,7 +171,7 @@ namespace MilehighWorld.Core
 
             if (_objectCache.TryGetValue(objectName, out GameObject? obj))
             {
-                if (ReferenceEquals(obj, null) || obj != null) return obj;
+                if (obj != null) return obj;
             }
 
             obj = GameObject.Find(objectName);
@@ -185,11 +185,11 @@ namespace MilehighWorld.Core
 
             if (_prefabCache.TryGetValue(profileName, out GameObject? prefab))
             {
-                if (ReferenceEquals(prefab, null) || prefab != null) return prefab;
+                if (prefab != null) return prefab;
             }
 
             prefab = characterPrefabs?.Find(p => p != null && (p.name == profileName || p.name.Contains(profileName)));
-            _prefabCache[profileName] = prefab;
+            if (prefab != null) _prefabCache[profileName] = prefab;
             return prefab;
         }
 
@@ -198,11 +198,11 @@ namespace MilehighWorld.Core
             int id = characterObj.GetInstanceID();
             if (_controllerCache.TryGetValue(id, out CharacterControllerBase? controller))
             {
-                if (ReferenceEquals(controller, null) || controller != null) return controller;
+                if (controller != null) return controller;
             }
 
             controller = characterObj.GetComponent<CharacterControllerBase>();
-            _controllerCache[id] = controller;
+            if (controller != null) _controllerCache[id] = controller;
             return controller;
         }
     }
