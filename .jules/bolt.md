@@ -405,6 +405,13 @@
 **Learning:** Repeatedly calling `Input` properties/methods (like `Input.anyKeyDown` alongside specific keydown checks) inside `Update()` loops introduces unnecessary C#/C++ native boundary crossings. This overhead accumulates, leading to micro-stutters, especially in input-heavy or critical path systems like cinematic playback.
 **Action:** Eliminate duplicate or redundant input execution paths to reduce CPU overhead and prevent micro-stutters.
 
+## 2026-05-26 - Harmonic Terrain Engine Port
+**Learning:** Porting performance-critical C++ logic (like the Nine Core Frequencies terrain resonance) to Unity requires switching from manual thread management to Task-based asynchrony to maintain high-performance runtime without blocking the main thread. Interleaved spatial hashing must be preserved with 'unchecked' blocks in C# to match the wrapping behavior of C++ unsigned integers.
+**Action:** When porting low-level mathematical simulations to Unity, leverage System.Threading.Tasks for background processing and ensure parity in hash functions by explicitly handling overflow.
+
+## 2026-05-26 - Wave Function Collapse for Layered Generation
+**Learning:** Layering generation passes (e.g., WFC structural architecture over harmonic terrain heightmaps) requires careful state priming. Priming the WFC solver with terrain constraints (like height thresholds) ensures that generated structures respect the underlying topography. Asynchronous propagation in WFC must remain thread-safe if multiple sectors are collapsed concurrently.
+**Action:** Use WFC as a Phase 2 logical solver to refine macro-terrain data. Ensure deterministic selection in the collapse loop to maintain consistency across worker tasks.
 ## 2026-05-31 - Zero-Allocation Typewriter Effect in Cinematic Dialogue
 **Learning:** Standard string concatenation (`text += char`) in a typewriter loop causes O(N^2) memory allocations and forces the UI mesh to rebuild for every character, leading to performance degradation and GC pressure in long cinematic sequences.
 **Action:** Implement a zero-allocation typewriter effect by assigning the full string to the `text` property once and incrementing the `maxVisibleCharacters` property of TextMeshPro over time. Always reset `maxVisibleCharacters` to the content length upon completion to ensure stability.
