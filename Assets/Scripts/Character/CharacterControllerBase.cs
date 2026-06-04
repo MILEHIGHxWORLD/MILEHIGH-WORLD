@@ -8,9 +8,9 @@ namespace MilehighWorld.Characters
 {
     public abstract class CharacterControllerBase : MonoBehaviour
     {
-        public CharacterData characterData = null!;
+        public CharacterProfileData characterData = null!;
 
-        public virtual void Initialize(CharacterData data)
+        public virtual void Initialize(CharacterProfileData data)
         {
             characterData = data;
             UnityEngine.Debug.Log($"{gameObject.name} initialized with role: {data.role}");

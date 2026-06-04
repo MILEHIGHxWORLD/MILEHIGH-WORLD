@@ -29,18 +29,14 @@ namespace MilehighWorld.Editor
             {
                 string json = File.ReadAllText(path);
                 data = JsonUtility.FromJson<HorizonGameData>(json);
-
-                if (data == null || !data.IsValid())
-                {
-                    Debug.LogError("[Security] Character import aborted: Campaign data failed validation.");
-                    return;
-                }
             }
             catch (System.Exception ex)
             {
-                Debug.LogError($"[Security] Error loading campaign data for import: ({ex.GetType().Name})");
+                UnityEngine.Debug.LogError($"Failed to parse campaign data: {ex.Message}");
                 return;
             }
+
+            if (data == null) return;
 
             string folderPath = "Assets/Data/Characters";
             if (!AssetDatabase.IsValidFolder(folderPath))
@@ -58,7 +54,7 @@ namespace MilehighWorld.Editor
                 {
                     if (charProfile == null || !charProfile.IsValid()) continue;
 
-                    CharacterData asset = ScriptableObject.CreateInstance<CharacterData>();
+                    CharacterProfileData asset = ScriptableObject.CreateInstance<CharacterProfileData>();
                     asset.characterName = charProfile.name;
                     asset.role = charProfile.role;
                     asset.traits = charProfile.traits;
