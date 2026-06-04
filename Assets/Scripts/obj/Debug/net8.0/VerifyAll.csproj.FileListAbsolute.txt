@@ -3,3 +3,8 @@
 /app/Assets/Scripts/obj/Debug/net8.0/VerifyAll.AssemblyInfo.cs
 /app/Assets/Scripts/obj/Debug/net8.0/VerifyAll.csproj.CoreCompileInputs.cache
 /app/Assets/Scripts/obj/Debug/net8.0/VerifyAll.sourcelink.json
+C:\Users\evanw\OneDrive\Documents\GitHub\MILEHIGH-WORLD\Assets\Scripts\obj\Debug\net8.0\VerifyAll.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\evanw\OneDrive\Documents\GitHub\MILEHIGH-WORLD\Assets\Scripts\obj\Debug\net8.0\VerifyAll.AssemblyInfoInputs.cache
+C:\Users\evanw\OneDrive\Documents\GitHub\MILEHIGH-WORLD\Assets\Scripts\obj\Debug\net8.0\VerifyAll.AssemblyInfo.cs
+C:\Users\evanw\OneDrive\Documents\GitHub\MILEHIGH-WORLD\Assets\Scripts\obj\Debug\net8.0\VerifyAll.csproj.CoreCompileInputs.cache
+C:\Users\evanw\OneDrive\Documents\GitHub\MILEHIGH-WORLD\Assets\Scripts\obj\Debug\net8.0\VerifyAll.sourcelink.json
