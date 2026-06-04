@@ -170,6 +170,8 @@ namespace MilehighWorld.Cinematics
         }
 
         /// <summary>
+        /// Rhythmic typewriter effect for dialogue rendering with punctuation-aware pacing.
+        /// Layout-safe rhythmic typewriter effect for cinematic dialogue.
         /// Zero-allocation typewriter effect for dialogue rendering with rhythmic pacing and speaker transitions.
         /// </summary>
         private async Task StreamDialogueAsync(string speaker, string content, float charDelay)
@@ -192,6 +194,28 @@ namespace MilehighWorld.Cinematics
             dialogueText.maxVisibleCharacters = 0;
             dialogueText.ForceMeshUpdate();
 
+            int total = dialogueText.textInfo.characterCount;
+            for (int i = 0; i <= total; i++)
+            {
+                dialogueText.maxVisibleCharacters = i;
+                if (i > 0)
+                {
+                    char c = dialogueText.textInfo.characterInfo[i - 1].character;
+                    float m = 1f;
+
+                    // Palette: Context-aware rhythmic pauses (15x for sentence ends, 8x for clauses)
+                    if (c == '.' || c == '?' || c == '!')
+                    {
+                        // Look-ahead to avoid pausing on mid-word periods (e.g., Sky.ix)
+                        if (i < total && char.IsWhiteSpace(dialogueText.textInfo.characterInfo[i].character))
+                            m = 15f;
+                    }
+                    else if (c == ',' || c == ':' || c == ';') m = 8f;
+
+                    await Task.Delay(Mathf.RoundToInt(charDelay * m * 1000));
+                }
+                else await Task.Yield();
+            for (int i = 0; i <= dialogueText.textInfo.characterCount; i++)
             int totalCharacters = dialogueText.textInfo.characterCount;
 
             for (int i = 1; i <= totalCharacters; i++)
