@@ -29,8 +29,16 @@ namespace MilehighWorld.Cinematics
 
         [Header("UI & Lexical Systems")]
         [SerializeField] private TextMeshProUGUI speakerNameText = null!;
+        public TextMeshProUGUI SpeakerNameText { get => speakerNameText; set => speakerNameText = value; }
         [SerializeField] private TextMeshProUGUI dialogueText = null!;
+        public TextMeshProUGUI DialogueText { get => dialogueText; set => dialogueText = value; }
         [SerializeField] private GameObject dialogueCanvas = null!;
+        public GameObject DialogueBox { get => dialogueCanvas; set => dialogueCanvas = value; }
+
+        [Header("Lexical Tuning")]
+        public float baseTypingSpeed = 0.03f;
+        public float kaiSpeedMultiplier = 3.0f;
+        public float skyixSpeedMultiplier = 1.2f;
 
         [Header("Environmental Shaders")]
         [SerializeField] private Material hyperrealisticPlatformShader = null!;
@@ -56,6 +64,11 @@ namespace MilehighWorld.Cinematics
             {
                 _originalSpeakerScale = speakerNameText.transform.localScale;
             }
+            // Palette: Accessibility - Apply high-contrast black outlines to ensure readability.
+            speakerNameText.outlineWidth = 0.2f;
+            speakerNameText.outlineColor = Color.black;
+            dialogueText.outlineWidth = 0.2f;
+            dialogueText.outlineColor = Color.black;
 
             TimelineSimulationEngine.OnTimelineStabilized += () => {
                 _isStabilized = true;
@@ -221,6 +234,162 @@ namespace MilehighWorld.Cinematics
                 await Task.Yield();
             }
             target.localScale = _originalSpeakerScale;
+        /// Zero-allocation rhythmic typewriter effect with themed completion cues.
+        /// </summary>
+        private async Task StreamDialogueAsync(string speaker, string content, float charDelay)
+        {
+            string colorHex = GetSpeakerColor(speaker);
+            speakerNameText.text = $"<color={colorHex}>[{speaker}]</color>";
+
+            // PALETTE: Pre-append completion cue and use maxVisibleCharacters for stable layout.
+            dialogueText.text = $"{content} <color={colorHex}>▽</color>";
+            dialogueText.maxVisibleCharacters = 0;
+            dialogueText.ForceMeshUpdate();
+
+            int visibleCount = dialogueText.textInfo.characterCount;
+
+            for (int i = 0; i <= visibleCount; i++)
+            {
+                dialogueText.maxVisibleCharacters = i;
+
+                if (i > 0 && i < visibleCount)
+                {
+                    char c = content[i - 1];
+                    float multiplier = 1f;
+
+                    // PALETTE: Rhythmic punctuation pauses with look-ahead to handle mid-word periods (e.g., Sky.ix)
+                    bool isEndOfSentence = (c == '.' || c == '?' || c == '!');
+                    bool isClause = (c == ',' || c == ';' || c == ':');
+
+                    if (isEndOfSentence || isClause)
+                    {
+                        bool isLastChar = (i == content.Length);
+                        bool isFollowedBySpace = (!isLastChar && content[i] == ' ');
+
+                        if (isLastChar || isFollowedBySpace)
+                        {
+                            multiplier = isEndOfSentence ? 12f : 6f;
+                        }
+                    }
+
+                    await Task.Delay(Mathf.RoundToInt(charDelay * 1000 * multiplier));
+                }
+                else
+                {
+                    await Task.Delay(Mathf.RoundToInt(charDelay * 1000));
+                }
+            }
+
+            dialogueText.maxVisibleCharacters = visibleCount;
+        }
+
+        private string GetSpeakerColor(string speaker)
+        {
+            return speaker switch
+            {
+                "Sky.ix" => "#00FFFF",
+                "King Cyrus" => "#FFFF00",
+                "Reverie" => "#FF00FF",
+                _ => "#FFFFFF"
+            };
+
+            // Palette: Append themed completion cue (▽) to signify dialogue end.
+            // Pre-appending ensures layout stability throughout reveal.
+            dialogueText.text = content + $" <color={colorHex}>▽</color>";
+            dialogueText.maxVisibleCharacters = 0;
+            dialogueText.ForceMeshUpdate();
+
+            int characterCount = dialogueText.textInfo.characterCount;
+
+            for (int i = 0; i <= characterCount; i++)
+            {
+                dialogueText.maxVisibleCharacters = i;
+
+                float multiplier = 1f;
+                if (i > 0 && i <= characterCount)
+                {
+                    char c = dialogueText.textInfo.characterInfo[i - 1].character;
+                    // Palette: Rhythmic pacing - longer pauses for punctuation to mimic speech.
+                    if (c == '.' || c == '?' || c == '!') multiplier = 12f;
+                    else if (c == ',' || c == ':' || c == ';') multiplier = 6f;
+                }
+
+                await Task.Delay(Mathf.RoundToInt(charDelay * multiplier * 1000));
+            }
+
+            dialogueText.maxVisibleCharacters = characterCount;
+        }
+
+        private string GetSpeakerColor(string speaker)
+        {
+            return speaker switch
+            {
+                "Sky.ix" => "#00FFFF",      // Cyan
+                "King Cyrus" => "#FFFF00",  // Yellow
+                "Reverie" => "#FF00FF",     // Magenta
+                _ => "#FFFFFF"              // Default White
+            };
+            Color speakerColor = GetSpeakerColor(speaker);
+            string hexColor = "#" + ColorUtility.ToHtmlStringRGB(speakerColor);
+            speakerNameText.text = $"<color={hexColor}>[{speaker}]</color>";
+
+            // Palette: Append a color-coded '▽' completion cue to the dialogue for better interaction clarity.
+            // By setting the full text (including the cue) at the start, we ensure layout stability.
+            dialogueText.text = $"{content} <color={hexColor}>▽</color>";
+            dialogueText.maxVisibleCharacters = 0;
+            dialogueText.ForceMeshUpdate();
+
+            int totalVisibleCharacters = dialogueText.textInfo.characterCount;
+
+            for (int i = 1; i <= totalVisibleCharacters; i++)
+            {
+                dialogueText.maxVisibleCharacters = i;
+
+                // Palette: Rhythmic pacing - apply multipliers for punctuation to mimic natural speech cadence.
+                float currentDelay = charDelay;
+                if (i < totalVisibleCharacters)
+                {
+                    char c = dialogueText.textInfo.characterInfo[i - 1].character;
+                    bool isEndOfSentence = (c == '.' || c == '!' || c == '?');
+                    bool isPause = (c == ',' || c == ':' || c == ';');
+
+                    if (isEndOfSentence)
+                    {
+                        // Look ahead: only long pause if followed by a space or it's the last character before the cue
+                        bool nextIsSpace = (i < totalVisibleCharacters && dialogueText.textInfo.characterInfo[i].character == ' ');
+                        if (nextIsSpace || i == totalVisibleCharacters - 1) currentDelay *= 12f;
+                    }
+                    else if (isPause)
+                    {
+                        currentDelay *= 6f;
+                    }
+                }
+
+                await Task.Delay(Mathf.RoundToInt(currentDelay * 1000));
+            }
+
+            // BOLT: Explicitly reset maxVisibleCharacters to the full length to ensure stability for future reuse.
+            dialogueText.maxVisibleCharacters = totalVisibleCharacters;
+        }
+
+        public float GetSpeedMultiplier(string speaker)
+        {
+            if (speaker == "Kai") return kaiSpeedMultiplier;
+            if (speaker == "Sky.ix") return skyixSpeedMultiplier;
+            return 1.0f;
+        }
+
+        public Color GetSpeakerColor(string speaker)
+        {
+            switch (speaker)
+            {
+                case "Sky.ix": return Color.cyan;
+                case "King Cyrus": return Color.yellow;
+                case "Reverie": return Color.magenta;
+                case "Kai": return new Color(1f, 0.84f, 0f); // Gold
+                case "Delilah": return new Color(0.6f, 0.1f, 0.9f); // Void Purple
+                default: return Color.white;
+            }
         }
 
         [Conditional("ENABLE_NARRATIVE_LOGS")]
