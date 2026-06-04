@@ -408,6 +408,10 @@
 ## 2026-05-31 - Zero-Allocation Typewriter Effect in Cinematic Dialogue
 **Learning:** Standard string concatenation (`text += char`) in a typewriter loop causes O(N^2) memory allocations and forces the UI mesh to rebuild for every character, leading to performance degradation and GC pressure in long cinematic sequences.
 **Action:** Implement a zero-allocation typewriter effect by assigning the full string to the `text` property once and incrementing the `maxVisibleCharacters` property of TextMeshPro over time. Always reset `maxVisibleCharacters` to the content length upon completion to ensure stability.
+
+## 2026-05-18 - WaitForSeconds GC Allocations in Typewriter Loops
+**Learning:** Instantiating `new WaitForSeconds` inside tight loops (like a per-character typewriter effect) causes O(N) GC allocations per string, leading to significant garbage collection pressure.
+**Action:** Cache `WaitForSeconds` instances in a static dictionary using integer millisecond keys to eliminate redundant heap allocations during frequent looping coroutines.
 ## 2024-06-01 - Coroutine WaitForSeconds Allocation in Typewriter Effect
 **Learning:** Using `new WaitForSeconds(float)` inside a Coroutine loop (such as a per-character typewriter effect) causes redundant GC allocations because a new object is allocated on the managed heap each iteration. Floating-point keys are also unsuitable for a dictionary cache due to imprecision, leading to cache misses.
 **Action:** Always cache `WaitForSeconds` using a static Dictionary with integer millisecond keys (calculated via `Mathf.RoundToInt(seconds * 1000f)`) and retrieve them via a static helper method to ensure zero-allocation yields in high-frequency Coroutine loops.

@@ -34,6 +34,8 @@ namespace MilehighWorld.World.Terminal
         private List<string> _commandHistory = new List<string>();
         private int _historyIndex = -1;
 
+        // ⚡ Bolt: Cache for WaitForSeconds using millisecond keys to prevent floating-point precision issues
+        // and eliminate redundant GC allocations during per-character typewriter loop execution.
         // ⚡ Bolt: Cache WaitForSeconds to prevent GC allocations in Coroutines.
         private static readonly Dictionary<int, WaitForSeconds> _waitForSecondsCache = new Dictionary<int, WaitForSeconds>();
 
@@ -235,6 +237,12 @@ namespace MilehighWorld.World.Terminal
                 if (i > 0 && i <= charactersToReveal)
                 {
                     char c = outputDisplay.textInfo.characterInfo[startVisibleCount + i - 1].character;
+                    if (c == '.' || c == ':' || c == '!')
+                        yield return GetWait(0.15f);
+                    else if (c == ',')
+                        yield return GetWait(0.08f);
+                }
+
                     if (c == '.' || c == ':' || c == '!')                        yield return GetWaitForSeconds(0.15f); // ⚡ Bolt: Use cached yield to eliminate allocation
                     else if (c == ',')
                         yield return GetWaitForSeconds(0.08f); // ⚡ Bolt: Use cached yield to eliminate allocation
