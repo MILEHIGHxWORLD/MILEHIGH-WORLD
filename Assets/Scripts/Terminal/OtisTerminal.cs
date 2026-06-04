@@ -34,6 +34,13 @@ namespace MilehighWorld.World.Terminal
         private List<string> _commandHistory = new List<string>();
         private int _historyIndex = -1;
 
+        private static WaitForSeconds GetWait(float seconds)
+        {
+            int ms = Mathf.RoundToInt(seconds * 1000f);
+            if (!_waitCache.TryGetValue(ms, out var wait))
+            {
+                wait = new WaitForSeconds(seconds);
+                _waitCache[ms] = wait;
         // ⚡ Bolt: Zero-Allocation Yield Cache. Caches WaitForSeconds using integer millisecond keys. This prevents cache misses caused by floating-point imprecision and eliminates O(N) GC allocations in the typewriter effect loop, reducing GC pressure and micro-stutters.
         private static readonly Dictionary<int, WaitForSeconds> _waitCache = new Dictionary<int, WaitForSeconds>();
 
