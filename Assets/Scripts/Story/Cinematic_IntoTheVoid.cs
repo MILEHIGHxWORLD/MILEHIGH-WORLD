@@ -178,6 +178,13 @@ namespace MilehighWorld.Cinematics
         {
             speakerNameText.text = $"<color=cyan>[{speaker}]</color>";
 
+            // ⚡ Bolt: Zero-allocation typewriter effect.
+            // What: Assign the full string once and increment maxVisibleCharacters.
+            // Why: Avoids O(N^2) memory allocations from string concatenation inside the loop, preventing UI mesh rebuilds per character.
+            // Impact: Reduces GC pressure and micro-stutters during cinematic dialogue.
+            dialogueText.text = content;
+            dialogueText.maxVisibleCharacters = 0;
+
             // ⚡ BOLT: Assign the full text once to prevent O(N^2) string allocations and mesh rebuilds.
             dialogueText.text = content;
             dialogueText.maxVisibleCharacters = 0;
@@ -373,6 +380,7 @@ namespace MilehighWorld.Cinematics
 
             for (int i = 1; i <= totalVisibleCharacters; i++)
             {
+                dialogueText.maxVisibleCharacters = i + 1;
                 dialogueText.maxVisibleCharacters = i;
 
                 // Palette: Rhythmic pacing - apply multipliers for punctuation to mimic natural speech cadence.
@@ -398,6 +406,8 @@ namespace MilehighWorld.Cinematics
                 await Task.Delay(Mathf.RoundToInt(currentDelay * 1000));
             }
 
+            // Reset to prevent potential truncation in future assignments
+            dialogueText.maxVisibleCharacters = int.MaxValue;
             // BOLT: Explicitly reset maxVisibleCharacters to the full length to ensure stability for future reuse.
             dialogueText.maxVisibleCharacters = totalVisibleCharacters;
         }
