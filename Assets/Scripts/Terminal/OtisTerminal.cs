@@ -15,9 +15,60 @@ namespace MilehighWorld.World.Terminal
         private const int MaxInputLength = 256;
         private static readonly Regex SafeCommandRegex = new Regex(@"^[a-zA-Z0-9\s._\-]+$", RegexOptions.Compiled);
 
+        // ⚡ Bolt: Cache for WaitForSeconds using millisecond keys to prevent floating-point precision issues
+        // and eliminate redundant GC allocations during coroutine execution.
+        private static readonly Dictionary<int, WaitForSeconds> _waitCache = new Dictionary<int, WaitForSeconds>();
+
         private Coroutine? _typewriterCoroutine;
+
+        private static WaitForSeconds GetWait(float seconds)
+        {
+            int ms = Mathf.RoundToInt(seconds * 1000f);
+            if (!_waitCache.TryGetValue(ms, out var wait))
+            {
+                wait = new WaitForSeconds(seconds);
+                _waitCache[ms] = wait;
+            }
+            return wait;
+        }
         private List<string> _commandHistory = new List<string>();
         private int _historyIndex = -1;
+
+        // ⚡ Bolt: Cache for WaitForSeconds using millisecond keys to prevent floating-point precision issues
+        // and eliminate redundant GC allocations during per-character typewriter loop execution.
+        // ⚡ Bolt: Cache WaitForSeconds to prevent GC allocations in Coroutines.
+        private static readonly Dictionary<int, WaitForSeconds> _waitForSecondsCache = new Dictionary<int, WaitForSeconds>();
+
+        // ⚡ Bolt: Static helper to retrieve cached yields using millisecond keys to avoid float imprecision.
+        private static WaitForSeconds GetWaitForSeconds(float seconds)
+        {
+            int msKey = Mathf.RoundToInt(seconds * 1000f);
+            if (!_waitForSecondsCache.TryGetValue(msKey, out WaitForSeconds wfs))
+            {
+                wfs = new WaitForSeconds(seconds);
+                _waitForSecondsCache[msKey] = wfs;
+            }
+            return wfs;
+        private static WaitForSeconds GetWait(float seconds)
+        {
+            int ms = Mathf.RoundToInt(seconds * 1000f);
+            if (!_waitCache.TryGetValue(ms, out var wait))
+            {
+                wait = new WaitForSeconds(seconds);
+                _waitCache[ms] = wait;
+        // ⚡ Bolt: Zero-Allocation Yield Cache. Caches WaitForSeconds using integer millisecond keys. This prevents cache misses caused by floating-point imprecision and eliminates O(N) GC allocations in the typewriter effect loop, reducing GC pressure and micro-stutters.
+        private static readonly Dictionary<int, WaitForSeconds> _waitCache = new Dictionary<int, WaitForSeconds>();
+
+        private static WaitForSeconds GetWait(float seconds)
+        {
+            int msKey = Mathf.RoundToInt(seconds * 1000f);
+            if (!_waitCache.TryGetValue(msKey, out var wait))
+            {
+                wait = new WaitForSeconds(seconds);
+                _waitCache[msKey] = wait;
+            }
+            return wait;
+        }
 
         private void Start()
         {
@@ -124,6 +175,7 @@ namespace MilehighWorld.World.Terminal
                 WriteToTerminal("\n[SYSTEM]: <color=#FFFF00>Available Commands:</color>" +
                                 "\n - <color=#00FFFF>help</color>: Show this message." +
                                 "\n - <color=#00FFFF>clear</color>: Clear the terminal display (or Ctrl+L)." +
+                                "\n - <color=#00FFFF>help/clear</color>: Show help or clear display." +
                                 "\n - <color=#00FFFF>[cmd] [arg1] [arg2]</color>: Execute extended system commands." +
                                 "\n\n[SYSTEM]: <color=#FFFF00>Shortcuts:</color> Up/Down Arrow for History, Tab to Autocomplete, Ctrl+L to Clear.");
                 return;
@@ -186,13 +238,29 @@ namespace MilehighWorld.World.Terminal
                 {
                     char c = outputDisplay.textInfo.characterInfo[startVisibleCount + i - 1].character;
                     if (c == '.' || c == ':' || c == '!')
-                        yield return new WaitForSeconds(0.15f);
+                        yield return GetWait(0.15f);
                     else if (c == ',')
-                        yield return new WaitForSeconds(0.08f);
+                        yield return GetWait(0.08f);
                 }
 
-                yield return new WaitForSeconds(0.02f);
+                    if (c == '.' || c == ':' || c == '!')                        yield return GetWaitForSeconds(0.15f); // ⚡ Bolt: Use cached yield to eliminate allocation
+                    else if (c == ',')
+                        yield return GetWaitForSeconds(0.08f); // ⚡ Bolt: Use cached yield to eliminate allocation
+                }
+
+                yield return GetWaitForSeconds(0.02f); // ⚡ Bolt: Use cached yield to eliminate allocation
+                        yield return GetWait(0.15f);
+                    else if (c == ',')
+                        yield return GetWait(0.08f);
+                }
+
+                yield return GetWait(0.02f);
             }
+
+            // ⚡ Bolt: Reset maxVisibleCharacters after typewriter completes to avoid text truncation on subsequent uses.
+            outputDisplay.maxVisibleCharacters = outputDisplay.textInfo.characterCount;
+            // ⚡ Bolt: Explicitly reset maxVisibleCharacters to the full length to prevent truncation bugs during future reuse.
+            outputDisplay.maxVisibleCharacters = outputDisplay.textInfo.characterCount;
 
             _typewriterCoroutine = null;
         }
