@@ -53,12 +53,17 @@ namespace MilehighWorld.Cinematics
         private const float IteratedSanctuary = 0.0777777777f;
 
         private bool _isStabilized = false;
+        private Vector3 _originalSpeakerScale;
 
         private void Start()
         {
             // Lock timeScale for deterministic cinematic pacing
             Time.timeScale = 1.0f;
 
+            if (speakerNameText != null)
+            {
+                _originalSpeakerScale = speakerNameText.transform.localScale;
+            }
             // Palette: Accessibility - Apply high-contrast black outlines to ensure readability.
             speakerNameText.outlineWidth = 0.2f;
             speakerNameText.outlineColor = Color.black;
@@ -165,6 +170,70 @@ namespace MilehighWorld.Cinematics
         }
 
         /// <summary>
+        /// Zero-allocation typewriter effect for dialogue rendering with rhythmic pacing and speaker transitions.
+        /// </summary>
+        private async Task StreamDialogueAsync(string speaker, string content, float charDelay)
+        {
+            string formattedSpeaker = $"<color=cyan>[{speaker}]</color>";
+
+            // Palette: Trigger a subtle scale pulse if the speaker changes
+            if (speakerNameText.text != formattedSpeaker)
+            {
+                speakerNameText.text = formattedSpeaker;
+                if (speakerNameText.transform != null)
+                {
+                    _ = PopScaleAsync(speakerNameText.transform, 0.2f, 1.1f);
+                }
+            }
+
+            // BOLT: Zero-allocation typewriter effect.
+            // Assign the full text once and use maxVisibleCharacters to reveal it.
+            dialogueText.text = content;
+            dialogueText.maxVisibleCharacters = 0;
+            dialogueText.ForceMeshUpdate();
+
+            int totalCharacters = dialogueText.textInfo.characterCount;
+
+            for (int i = 1; i <= totalCharacters; i++)
+            {
+                dialogueText.maxVisibleCharacters = i;
+
+                // Palette: Rhythmic Pacing - delays based on character context for a more natural feel.
+                char c = dialogueText.textInfo.characterInfo[i - 1].character;
+                int delayMs = Mathf.RoundToInt(charDelay * 1000);
+
+                if (c == '.' || c == '?' || c == '!')
+                {
+                    // Look-ahead to avoid pausing on abbreviations or mid-sentence periods.
+                    bool isEndOfSentence = (i == totalCharacters) ||
+                        (i < totalCharacters && char.IsWhiteSpace(dialogueText.text[dialogueText.textInfo.characterInfo[i].index]));
+
+                    if (isEndOfSentence) delayMs *= 12; // 12x delay for sentence ends.
+                }
+                else if (c == ',' || c == ':' || c == ';')
+                {
+                    delayMs *= 6; // 6x delay for clauses.
+                }
+
+                await Task.Delay(delayMs);
+            }
+
+            // BOLT: Explicitly reset maxVisibleCharacters to the full length to ensure stability for future reuse.
+            dialogueText.maxVisibleCharacters = totalCharacters;
+        }
+
+        private async Task PopScaleAsync(Transform target, float duration, float scaleFactor)
+        {
+            float elapsed = 0f;
+            while (elapsed < duration)
+            {
+                elapsed += Time.deltaTime;
+                float t = elapsed / duration;
+                float sin = Mathf.Sin(t * Mathf.PI);
+                target.localScale = _originalSpeakerScale * (1f + (sin * (scaleFactor - 1f)));
+                await Task.Yield();
+            }
+            target.localScale = _originalSpeakerScale;
         /// Zero-allocation rhythmic typewriter effect with themed completion cues.
         /// </summary>
         private async Task StreamDialogueAsync(string speaker, string content, float charDelay)
