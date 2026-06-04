@@ -172,6 +172,58 @@ namespace MilehighWorld.Cinematics
             string colorHex = GetSpeakerColor(speaker);
             speakerNameText.text = $"<color={colorHex}>[{speaker}]</color>";
 
+            // PALETTE: Pre-append completion cue and use maxVisibleCharacters for stable layout.
+            dialogueText.text = $"{content} <color={colorHex}>▽</color>";
+            dialogueText.maxVisibleCharacters = 0;
+            dialogueText.ForceMeshUpdate();
+
+            int visibleCount = dialogueText.textInfo.characterCount;
+
+            for (int i = 0; i <= visibleCount; i++)
+            {
+                dialogueText.maxVisibleCharacters = i;
+
+                if (i > 0 && i < visibleCount)
+                {
+                    char c = content[i - 1];
+                    float multiplier = 1f;
+
+                    // PALETTE: Rhythmic punctuation pauses with look-ahead to handle mid-word periods (e.g., Sky.ix)
+                    bool isEndOfSentence = (c == '.' || c == '?' || c == '!');
+                    bool isClause = (c == ',' || c == ';' || c == ':');
+
+                    if (isEndOfSentence || isClause)
+                    {
+                        bool isLastChar = (i == content.Length);
+                        bool isFollowedBySpace = (!isLastChar && content[i] == ' ');
+
+                        if (isLastChar || isFollowedBySpace)
+                        {
+                            multiplier = isEndOfSentence ? 12f : 6f;
+                        }
+                    }
+
+                    await Task.Delay(Mathf.RoundToInt(charDelay * 1000 * multiplier));
+                }
+                else
+                {
+                    await Task.Delay(Mathf.RoundToInt(charDelay * 1000));
+                }
+            }
+
+            dialogueText.maxVisibleCharacters = visibleCount;
+        }
+
+        private string GetSpeakerColor(string speaker)
+        {
+            return speaker switch
+            {
+                "Sky.ix" => "#00FFFF",
+                "King Cyrus" => "#FFFF00",
+                "Reverie" => "#FF00FF",
+                _ => "#FFFFFF"
+            };
+
             // Palette: Append themed completion cue (▽) to signify dialogue end.
             // Pre-appending ensures layout stability throughout reveal.
             dialogueText.text = content + $" <color={colorHex}>▽</color>";
