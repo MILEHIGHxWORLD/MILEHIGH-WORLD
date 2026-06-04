@@ -404,6 +404,9 @@
 ## 2024-06-01 - Redundant Input Checks in Update Loop
 **Learning:** Repeatedly calling `Input` properties/methods (like `Input.anyKeyDown` alongside specific keydown checks) inside `Update()` loops introduces unnecessary C#/C++ native boundary crossings. This overhead accumulates, leading to micro-stutters, especially in input-heavy or critical path systems like cinematic playback.
 **Action:** Eliminate duplicate or redundant input execution paths to reduce CPU overhead and prevent micro-stutters.
+## 2024-05-25 - Cached WaitForSeconds in Typewriter Effects
+**Learning:** The OtisTerminal uses a typewriter effect that was instantiating 'new WaitForSeconds' for every single character revealed. This is a common anti-pattern in Unity that causes rapid heap allocations and GC spikes.
+**Action:** Implement a static dictionary cache keyed by integer milliseconds to reuse WaitForSeconds instances, reducing per-character GC allocations to zero.
 ## 2026-05-26 - TextMeshPro Zero-Allocation Typewriter
 **Learning:** To achieve a zero-allocation typewriter effect in Unity with TextMeshPro, avoid string concatenation (`text += char`) inside loops, which causes O(N^2) memory allocations and forces UI mesh rebuilds per character.
 **Action:** Instead, assign the full string to the `text` property once and increment the `maxVisibleCharacters` property over time.
