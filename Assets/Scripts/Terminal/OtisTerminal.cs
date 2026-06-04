@@ -257,6 +257,8 @@ namespace MilehighWorld.World.Terminal
                 yield return GetWait(0.02f);
             }
 
+            // ⚡ Bolt: Reset maxVisibleCharacters after typewriter completes to avoid text truncation on subsequent uses.
+            outputDisplay.maxVisibleCharacters = outputDisplay.textInfo.characterCount;
             // ⚡ Bolt: Explicitly reset maxVisibleCharacters to the full length to prevent truncation bugs during future reuse.
             outputDisplay.maxVisibleCharacters = outputDisplay.textInfo.characterCount;
 
