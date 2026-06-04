@@ -59,6 +59,12 @@ namespace MilehighWorld.Cinematics
             // Lock timeScale for deterministic cinematic pacing
             Time.timeScale = 1.0f;
 
+            // Palette: Accessibility - Apply high-contrast black outlines to ensure readability.
+            speakerNameText.outlineWidth = 0.2f;
+            speakerNameText.outlineColor = Color.black;
+            dialogueText.outlineWidth = 0.2f;
+            dialogueText.outlineColor = Color.black;
+
             TimelineSimulationEngine.OnTimelineStabilized += () => {
                 _isStabilized = true;
                 LogNarrativeTelemetry("EVENT: Timeline Stabilized Signal Received.");
@@ -159,10 +165,49 @@ namespace MilehighWorld.Cinematics
         }
 
         /// <summary>
-        /// Zero-allocation typewriter effect for dialogue rendering.
+        /// Zero-allocation rhythmic typewriter effect with themed completion cues.
         /// </summary>
         private async Task StreamDialogueAsync(string speaker, string content, float charDelay)
         {
+            string colorHex = GetSpeakerColor(speaker);
+            speakerNameText.text = $"<color={colorHex}>[{speaker}]</color>";
+
+            // Palette: Append themed completion cue (▽) to signify dialogue end.
+            // Pre-appending ensures layout stability throughout reveal.
+            dialogueText.text = content + $" <color={colorHex}>▽</color>";
+            dialogueText.maxVisibleCharacters = 0;
+            dialogueText.ForceMeshUpdate();
+
+            int characterCount = dialogueText.textInfo.characterCount;
+
+            for (int i = 0; i <= characterCount; i++)
+            {
+                dialogueText.maxVisibleCharacters = i;
+
+                float multiplier = 1f;
+                if (i > 0 && i <= characterCount)
+                {
+                    char c = dialogueText.textInfo.characterInfo[i - 1].character;
+                    // Palette: Rhythmic pacing - longer pauses for punctuation to mimic speech.
+                    if (c == '.' || c == '?' || c == '!') multiplier = 12f;
+                    else if (c == ',' || c == ':' || c == ';') multiplier = 6f;
+                }
+
+                await Task.Delay(Mathf.RoundToInt(charDelay * multiplier * 1000));
+            }
+
+            dialogueText.maxVisibleCharacters = characterCount;
+        }
+
+        private string GetSpeakerColor(string speaker)
+        {
+            return speaker switch
+            {
+                "Sky.ix" => "#00FFFF",      // Cyan
+                "King Cyrus" => "#FFFF00",  // Yellow
+                "Reverie" => "#FF00FF",     // Magenta
+                _ => "#FFFFFF"              // Default White
+            };
             Color speakerColor = GetSpeakerColor(speaker);
             string hexColor = "#" + ColorUtility.ToHtmlStringRGB(speakerColor);
             speakerNameText.text = $"<color={hexColor}>[{speaker}]</color>";
