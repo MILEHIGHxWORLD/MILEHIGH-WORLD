@@ -405,6 +405,9 @@
 **Learning:** Repeatedly calling `Input` properties/methods (like `Input.anyKeyDown` alongside specific keydown checks) inside `Update()` loops introduces unnecessary C#/C++ native boundary crossings. This overhead accumulates, leading to micro-stutters, especially in input-heavy or critical path systems like cinematic playback.
 **Action:** Eliminate duplicate or redundant input execution paths to reduce CPU overhead and prevent micro-stutters.
 
+## 2024-05-26 - Zero-Allocation TextMeshPro Typewriter Anti-pattern
+**Learning:** Using string concatenation (`text += char`) inside a loop for a typewriter effect with TextMeshPro causes O(N^2) memory allocations and forces continuous, expensive UI mesh rebuilds. Despite being named a "zero-allocation" effect, this pattern generates significant GC pressure.
+**Action:** Assign the complete string to `text` once and incrementally increase the `maxVisibleCharacters` property over time. Always reset `maxVisibleCharacters` to the full length when the loop completes to prevent unexpected text truncation upon reuse.
 ## 2026-05-26 - Harmonic Terrain Engine Port
 **Learning:** Porting performance-critical C++ logic (like the Nine Core Frequencies terrain resonance) to Unity requires switching from manual thread management to Task-based asynchrony to maintain high-performance runtime without blocking the main thread. Interleaved spatial hashing must be preserved with 'unchecked' blocks in C# to match the wrapping behavior of C++ unsigned integers.
 **Action:** When porting low-level mathematical simulations to Unity, leverage System.Threading.Tasks for background processing and ensure parity in hash functions by explicitly handling overflow.

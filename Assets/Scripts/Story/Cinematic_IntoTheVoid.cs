@@ -176,6 +176,11 @@ namespace MilehighWorld.Cinematics
         /// </summary>
         private async Task StreamDialogueAsync(string speaker, string content, float charDelay)
         {
+            speakerNameText.text = $"<color=cyan>[{speaker}]</color>";
+
+            // ⚡ BOLT: Assign the full text once to prevent O(N^2) string allocations and mesh rebuilds.
+            dialogueText.text = content;
+            dialogueText.maxVisibleCharacters = 0;
             string formattedSpeaker = $"<color=cyan>[{speaker}]</color>";
 
             // Palette: Trigger a subtle scale pulse if the speaker changes
@@ -327,6 +332,7 @@ namespace MilehighWorld.Cinematics
 
             for (int i = 0; i <= characterCount; i++)
             {
+                dialogueText.maxVisibleCharacters = i + 1;
                 dialogueText.maxVisibleCharacters = i;
 
                 float multiplier = 1f;
@@ -414,6 +420,9 @@ namespace MilehighWorld.Cinematics
                 case "Delilah": return new Color(0.6f, 0.1f, 0.9f); // Void Purple
                 default: return Color.white;
             }
+
+            // ⚡ BOLT: Ensure visibility is fully restored for future use to prevent truncation
+            dialogueText.maxVisibleCharacters = content.Length;
         }
 
         [Conditional("ENABLE_NARRATIVE_LOGS")]
