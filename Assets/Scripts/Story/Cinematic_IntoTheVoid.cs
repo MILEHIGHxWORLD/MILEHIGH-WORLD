@@ -92,12 +92,24 @@ namespace MilehighWorld.Cinematics
             await TweenShaderEntropyAsync(LinearOmenHexState, 2.0f);
 
             // 2. Transfinite Data Load: Initialize entities from object pools
-            if (skyixPrefab != null) skyixPrefab.SetActive(true);
-            if (reveriePrefab != null) reveriePrefab.SetActive(true);
-            if (kingCyrusPrefab != null) kingCyrusPrefab.SetActive(true);
+            if (skyixPrefab != null)
+            {
+                skyixPrefab.SetActive(true);
+            }
+            if (reveriePrefab != null)
+            {
+                reveriePrefab.SetActive(true);
+            }
+            if (kingCyrusPrefab != null)
+            {
+                kingCyrusPrefab.SetActive(true);
+            }
 
             // 3. Asynchronous Lexical Pacing
-            if (dialogueCanvas != null) dialogueCanvas.SetActive(true);
+            if (dialogueCanvas != null)
+            {
+                dialogueCanvas.SetActive(true);
+            }
 
             await StreamDialogueAsync("King Cyrus", "Tremble, mortals, as the Age of Millenia crumbles before the might of the Void!", 0.04f);
             await Task.Delay(500);
@@ -125,7 +137,10 @@ namespace MilehighWorld.Cinematics
                 await StreamDialogueAsync("King Cyrus", "Your reality is too brittle for this power!", 0.04f);
             }
 
-            if (dialogueCanvas != null) dialogueCanvas.SetActive(false);
+            if (dialogueCanvas != null)
+            {
+                dialogueCanvas.SetActive(false);
+            }
         }
 
         private async Task TweenShaderEntropyAsync(float targetIntensity, float duration)
@@ -223,7 +238,10 @@ namespace MilehighWorld.Cinematics
                     if (isEndOfSentence)
                     {
                         bool nextIsSpace = (i < totalVisibleCharacters && dialogueText.textInfo.characterInfo[i].character == ' ');
-                        if (nextIsSpace || i == totalVisibleCharacters - 1) currentDelay *= 12f;
+                        if (nextIsSpace || i == totalVisibleCharacters - 1)
+                        {
+                            currentDelay *= 12f;
+                        }
                     }
                     else if (isPause)
                     {
@@ -265,7 +283,10 @@ namespace MilehighWorld.Cinematics
                     {
                         // Look ahead: only long pause if followed by a space or it's the last character before the cue
                         bool nextIsSpace = (i < totalVisibleCharacters && char.IsWhiteSpace(dialogueText.textInfo.characterInfo[i].character));
-                        if (nextIsSpace || i == totalVisibleCharacters - 1) currentDelay *= 12f;
+                        if (nextIsSpace || i == totalVisibleCharacters - 1)
+                        {
+                            currentDelay *= 12f;
+                        }
                     }
                     else if (isPause)
                     {

@@ -120,7 +120,10 @@ namespace MilehighWorld.World.Terminal
 
         private void NavigateHistory(int direction)
         {
-            if (_commandHistory.Count == 0) return;
+            if (_commandHistory.Count == 0)
+            {
+                return;
+            }
             _historyIndex = Mathf.Clamp(_historyIndex + direction, 0, _commandHistory.Count);
             commandInput.text = _historyIndex < _commandHistory.Count ? _commandHistory[_historyIndex] : "";
             commandInput.caretPosition = commandInput.text.Length;
@@ -128,8 +131,14 @@ namespace MilehighWorld.World.Terminal
 
         public void ProcessCommand(string input)
         {
-            if (string.IsNullOrWhiteSpace(input)) return;
-            if (_commandHistory.Count == 0 || _commandHistory[^1] != input) _commandHistory.Add(input);
+            if (string.IsNullOrWhiteSpace(input))
+            {
+                return;
+            }
+            if (_commandHistory.Count == 0 || _commandHistory[^1] != input)
+            {
+                _commandHistory.Add(input);
+            }
             _historyIndex = _commandHistory.Count;
 
             // UX Enhancement: Clear input and refocus immediately for better flow
@@ -310,14 +319,20 @@ namespace MilehighWorld.World.Terminal
 
         private void ClearTerminalDisplay()
         {
-            if (outputDisplay == null) return;
+            if (outputDisplay == null)
+            {
+                return;
+            }
             outputDisplay.text = "";
             outputDisplay.maxVisibleCharacters = 0;
         }
 
         private void WriteToTerminal(string message)
         {
-            if (outputDisplay == null) return;
+            if (outputDisplay == null)
+            {
+                return;
+            }
 
             if (_typewriterCoroutine != null)
             {

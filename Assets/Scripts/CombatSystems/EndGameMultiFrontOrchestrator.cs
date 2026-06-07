@@ -49,8 +49,14 @@ namespace MilehighWorld.CombatSystems
 
                 // Process the 1000 Fox Parade / Arcane Symphony visual degradation tracking
                 var reverie = director.GetAlly("Reverie");
-                if (reverie != null) reverie.UseAbility("Arcane Symphony");
-                if (skyIxVanguard != null) skyIxVanguard.UseAbility("Void Step");
+                if (reverie != null)
+                {
+                    reverie.UseAbility("Arcane Symphony");
+                }
+                if (skyIxVanguard != null)
+                {
+                    skyIxVanguard.UseAbility("Void Step");
+                }
 
                 // Decrement global variance based on local structural shard completion
                 voidVarianceDelta -= 0.11f;
@@ -76,7 +82,10 @@ namespace MilehighWorld.CombatSystems
                 synchronizer.SynchronizeShard(TARGET_PARITY_NODE, combinedTraumaModifier);
 
                 // Toggle active rendering state on the Onalym gateway to seal the sector
-                if (onalymNexusGateway != null) onalymNexusGateway.SetActive(false);
+                if (onalymNexusGateway != null)
+                {
+                    onalymNexusGateway.SetActive(false);
+                }
                 Time.timeScale = 1.0f; // Restore baseline standard simulation time execution
 
                 Debug.Log("<color=#00FF00>[SYSTEM]: Save Everyone Protocol success. Parity resonance locked at True Monad (1.0). Millenia online.</color>");

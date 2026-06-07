@@ -27,8 +27,14 @@ namespace MilehighWorld.Core
             var go = new GameObject(name);
             go.transform.SetParent(this.transform);
             var combatant = go.AddComponent<CombatantPlaceholder>();
-            if (isAlly) _allies[name] = combatant;
-            else _enemies[name] = combatant;
+            if (isAlly)
+            {
+                _allies[name] = combatant;
+            }
+            else
+            {
+                _enemies[name] = combatant;
+            }
         }
 
         public CombatantPlaceholder GetAlly(string name) => _allies.TryGetValue(name, out var c) ? c : null;
