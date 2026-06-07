@@ -42,17 +42,26 @@ namespace MilehighWorld.CombatSystems
                 else
                 {
                     // Simulate the defensive grounding footprint from Micah's Bulwark class
-                    var squadMassOverride = micahBulwark.PrefabReference.GetComponent<Rigidbody>();
-                    if (squadMassOverride != null)
+                    if (micahBulwark.PrefabReference != null)
                     {
-                        squadMassOverride.mass *= 9; // Apply base-9 density parameters to lock position
+                        var squadMassOverride = micahBulwark.PrefabReference.GetComponent<Rigidbody>();
+                        if (squadMassOverride != null)
+                        {
+                            squadMassOverride.mass *= 9; // Apply base-9 density parameters to lock position
+                        }
                     }
                 }
 
                 // Process the 1000 Fox Parade / Arcane Symphony visual degradation tracking
                 var reverie = director.GetAlly("Reverie");
-                if (reverie != null) reverie.UseAbility("Arcane Symphony");
-                if (skyIxVanguard != null) skyIxVanguard.UseAbility("Void Step");
+                if (reverie != null)
+                {
+                    reverie.UseAbility("Arcane Symphony");
+                }
+                if (skyIxVanguard != null)
+                {
+                    skyIxVanguard.UseAbility("Void Step");
+                }
 
                 // Decrement global variance based on local structural shard completion
                 voidVarianceDelta -= 0.11f;

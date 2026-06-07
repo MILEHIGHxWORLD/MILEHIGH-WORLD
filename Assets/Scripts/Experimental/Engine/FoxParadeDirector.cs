@@ -30,7 +30,10 @@ namespace MilehighWorld.CombatSystems
             }
 
             // Final resonance: Activate 'Save Everyone' protocol
-            LatticeSynchronizer.Instance.TriggerParityLock(9);
+            if (LatticeSynchronizer.Instance != null)
+            {
+                LatticeSynchronizer.Instance.TriggerParityLock(9);
+            }
             TriggerSpectralDissipation();
         }
 
