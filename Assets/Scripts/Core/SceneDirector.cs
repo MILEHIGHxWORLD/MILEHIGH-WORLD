@@ -172,11 +172,14 @@ namespace MilehighWorld.Core
 
             if (_objectCache.TryGetValue(objectName, out GameObject? obj))
             {
+                // ⚡ Bolt: Check for valid object. Re-fetch if the object was destroyed.
                 if (obj != null) return obj;
             }
 
             obj = GameObject.Find(objectName);
-            _objectCache[objectName] = obj;
+            // ⚡ Bolt Optimization: Only cache actual objects for GetCachedObject because scene objects are dynamic
+            // Caching null here breaks late-instantiated objects.
+            if (obj != null) _objectCache[objectName] = obj;
             return obj;
         }
 
@@ -186,11 +189,14 @@ namespace MilehighWorld.Core
 
             if (_prefabCache.TryGetValue(profileName, out GameObject? prefab))
             {
+                // ⚡ Bolt: Robust negative caching for static prefabs
+                if (System.Object.ReferenceEquals(prefab, null)) return null;
                 if (prefab != null) return prefab;
             }
 
+            // ⚡ Bolt: Cache missing static prefabs as null to prevent repeated O(P) list searches
             prefab = characterPrefabs?.Find(p => p != null && (p.name == profileName || p.name.Contains(profileName)));
-            if (prefab != null) _prefabCache[profileName] = prefab;
+            _prefabCache[profileName] = prefab;
             return prefab;
         }
 
@@ -199,11 +205,14 @@ namespace MilehighWorld.Core
             int id = characterObj.GetInstanceID();
             if (_controllerCache.TryGetValue(id, out CharacterControllerBase? controller))
             {
+                // ⚡ Bolt: Robust negative caching for components
+                if (System.Object.ReferenceEquals(controller, null)) return null;
                 if (controller != null) return controller;
             }
 
+            // ⚡ Bolt: Cache missing components as null to prevent repeated GetComponent overhead
             controller = characterObj.GetComponent<CharacterControllerBase>();
-            if (controller != null) _controllerCache[id] = controller;
+            _controllerCache[id] = controller;
             return controller;
         }
     }
