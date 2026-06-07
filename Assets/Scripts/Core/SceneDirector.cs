@@ -24,6 +24,7 @@ namespace MilehighWorld.Core
         private static readonly HashSet<string> _protectedManagers = new HashSet<string>
         {
             "CampaignManager", "SceneDirector", "CameraManager", "AlliancePowerManager", "GlobalResonanceManager", "CombatManager", "EncounterDirector", "NarrativeActionResolver", "GameManager", "BackendSyncService", "RealitySyncEngine"
+            "CampaignManager", "SceneDirector", "CameraManager", "AlliancePowerManager", "GlobalResonanceManager", "CombatManager", "EncounterDirector", "NarrativeActionResolver", "GameManager", "BackendSyncService", "RealitySyncEngine", "FoxParadeDirector", "TimelineSimulationEngine", "VitisAIBridge", "IXNodeController"
         };
 
         private static readonly Regex _nameValidator = new Regex(@"^[a-zA-Z0-9_\s\(\)\-$\.\/\[\]]+$", RegexOptions.Compiled);
