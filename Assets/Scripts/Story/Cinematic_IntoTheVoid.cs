@@ -29,11 +29,9 @@ namespace MilehighWorld.Cinematics
 
         [Header("UI & Lexical Systems")]
         [SerializeField] private TextMeshProUGUI speakerNameText = null!;
-        public TextMeshProUGUI SpeakerNameText { get => speakerNameText; set => speakerNameText = value; }
         [SerializeField] private TextMeshProUGUI dialogueText = null!;
-        public TextMeshProUGUI DialogueText { get => dialogueText; set => dialogueText = value; }
         [SerializeField] private GameObject dialogueCanvas = null!;
-        public GameObject DialogueBox { get => dialogueCanvas; set => dialogueCanvas = value; }
+        [SerializeField] private GameObject skipHint = null!;
 
         [Header("Lexical Tuning")]
         public float baseTypingSpeed = 0.03f;
@@ -54,6 +52,10 @@ namespace MilehighWorld.Cinematics
         private bool _isStabilized = false;
         private Vector3 _originalSpeakerScale;
 
+        // Palette: UX State for skipping and idle-hint discoverability.
+        private bool _skipRequested = false;
+        private float _idleTimer = 0f;
+
         private void Start()
         {
             // Lock timeScale for deterministic cinematic pacing
@@ -62,19 +64,18 @@ namespace MilehighWorld.Cinematics
             if (speakerNameText != null)
             {
                 _originalSpeakerScale = speakerNameText.transform.localScale;
-            }
-
-            // Palette: Accessibility - Apply high-contrast black outlines to ensure readability.
-            if (speakerNameText != null)
-            {
+                // Palette: Accessibility - Apply high-contrast black outlines to ensure readability.
                 speakerNameText.outlineWidth = 0.2f;
                 speakerNameText.outlineColor = Color.black;
             }
+
             if (dialogueText != null)
             {
                 dialogueText.outlineWidth = 0.2f;
                 dialogueText.outlineColor = Color.black;
             }
+
+            if (skipHint != null) skipHint.SetActive(false);
 
             TimelineSimulationEngine.OnTimelineStabilized += () => {
                 _isStabilized = true;
@@ -82,6 +83,26 @@ namespace MilehighWorld.Cinematics
             };
 
             _ = ExecuteConvergenceSequenceAsync();
+        }
+
+        private void Update()
+        {
+            // Palette: Capture any user interaction to trigger a skip or reset the idle timer.
+            if (Input.anyKeyDown)
+            {
+                _skipRequested = true;
+                _idleTimer = 0f;
+                if (skipHint != null) skipHint.SetActive(false);
+            }
+            else
+            {
+                _idleTimer += Time.deltaTime;
+                // Palette: Show the skip hint only after 2 seconds of inactivity to maintain immersion.
+                if (_idleTimer >= 2f && skipHint != null && !skipHint.activeSelf)
+                {
+                    skipHint.SetActive(true);
+                }
+            }
         }
 
         private async Task ExecuteConvergenceSequenceAsync()
@@ -100,8 +121,6 @@ namespace MilehighWorld.Cinematics
             if (dialogueCanvas != null) dialogueCanvas.SetActive(true);
 
             await StreamDialogueAsync("King Cyrus", "Tremble, mortals, as the Age of Millenia crumbles before the might of the Void!", 0.04f);
-            await Task.Delay(500);
-
             await StreamDialogueAsync("Sky.ix", "Negative. The resonance is peaking. Engaging Void Conduit via Vitis AI Bridge.", 0.03f);
 
             // 4. Parity Verification via Vitis AI and Timeline Engine
@@ -176,24 +195,18 @@ namespace MilehighWorld.Cinematics
             }
         }
 
-        private async Task StreamDialogueAsync(string speaker, string content, float charDelay)
-        {
-            if (speakerNameText == null || dialogueText == null) return;
-
-            Color speakerColor = GetSpeakerColor(speaker);
-            string colorHex = "#" + ColorUtility.ToHtmlStringRGB(speakerColor);
-            string formattedSpeaker = $"<color={colorHex}>[{speaker}]</color>";
         /// <summary>
-        /// Zero-allocation rhythmic typewriter effect with themed completion cues and speaker pop animations.
-        /// </summary>
-        private async Task StreamDialogueAsync(string speaker, string content, float charDelay)
-        {
-            string colorHex = GetSpeakerColorHex(speaker);
-            string formattedSpeaker = $"<color={colorHex}>[{speaker}]</color>";
         /// Zero-allocation rhythmic typewriter effect for dialogue rendering with rhythmic pacing and speaker transitions.
         /// </summary>
         private async Task StreamDialogueAsync(string speaker, string content, float charDelay)
         {
+            if (speakerNameText == null || dialogueText == null) return;
+
+            // Palette: Reset skip state and idle timer for the new dialogue segment.
+            _skipRequested = false;
+            _idleTimer = 0f;
+            if (skipHint != null) skipHint.SetActive(false);
+
             string hexColor = GetSpeakerColorHex(speaker);
             string formattedSpeaker = $"<color={hexColor}>[{speaker}]</color>";
 
@@ -203,47 +216,9 @@ namespace MilehighWorld.Cinematics
                 _ = PopScaleAsync(speakerNameText.transform, 0.2f, 1.1f);
             }
 
-            dialogueText.text = $"{content} <color={colorHex}>▽</color>";
-            dialogueText.maxVisibleCharacters = 0;
-            dialogueText.ForceMeshUpdate();
-
-            int totalVisibleCharacters = dialogueText.textInfo.characterCount;
-
-            for (int i = 1; i <= totalVisibleCharacters; i++)
-            {
-                dialogueText.maxVisibleCharacters = i;
-
-                float currentDelay = charDelay;
-                if (i < totalVisibleCharacters)
-                {
-                    char c = dialogueText.textInfo.characterInfo[i - 1].character;
-                    bool isEndOfSentence = (c == '.' || c == '!' || c == '?');
-                    bool isPause = (c == ',' || c == ':' || c == ';');
-
-                    if (isEndOfSentence)
-                    {
-                        bool nextIsSpace = (i < totalVisibleCharacters && dialogueText.textInfo.characterInfo[i].character == ' ');
-                        if (nextIsSpace || i == totalVisibleCharacters - 1) currentDelay *= 12f;
-                    }
-                    else if (isPause)
-                    {
-                        currentDelay *= 6f;
-                    }
-                }
-
-                await Task.Delay(Mathf.RoundToInt(currentDelay * 1000));
-            }
-
-            dialogueText.maxVisibleCharacters = totalVisibleCharacters;
-                if (speakerNameText.transform != null)
-                {
-                    _ = PopScaleAsync(speakerNameText.transform, 0.2f, 1.1f);
-                }
-            }
-
             // Palette: Append a color-coded '▽' completion cue to the dialogue for better interaction clarity.
             // By setting the full text (including the cue) at the start, we ensure layout stability.
-            dialogueText.text = $"{content} <color={colorHex}>▽</color>";
+            dialogueText.text = $"{content} <color={hexColor}>▽</color>";
             dialogueText.maxVisibleCharacters = 0;
             dialogueText.ForceMeshUpdate();
 
@@ -251,6 +226,8 @@ namespace MilehighWorld.Cinematics
 
             for (int i = 1; i <= totalVisibleCharacters; i++)
             {
+                if (_skipRequested) break;
+
                 dialogueText.maxVisibleCharacters = i;
 
                 // Palette: Rhythmic pacing - apply multipliers for punctuation to mimic natural speech cadence.
@@ -263,9 +240,18 @@ namespace MilehighWorld.Cinematics
 
                     if (isEndOfSentence)
                     {
-                        // Look ahead: only long pause if followed by a space or it's the last character before the cue
-                        bool nextIsSpace = (i < totalVisibleCharacters && char.IsWhiteSpace(dialogueText.textInfo.characterInfo[i].character));
-                        if (nextIsSpace || i == totalVisibleCharacters - 1) currentDelay *= 12f;
+                        // Palette: Advanced pacing - detect ellipses (...) and apply a shorter pause (5x).
+                        bool isEllipsis = (i < totalVisibleCharacters && dialogueText.textInfo.characterInfo[i].character == '.');
+                        if (isEllipsis)
+                        {
+                            currentDelay *= 5f;
+                        }
+                        else
+                        {
+                            // Look ahead: only long pause if followed by a space or it's the last character before the cue
+                            bool nextIsSpace = (i < totalVisibleCharacters && char.IsWhiteSpace(dialogueText.textInfo.characterInfo[i].character));
+                            if (nextIsSpace || i == totalVisibleCharacters - 1) currentDelay *= 12f;
+                        }
                     }
                     else if (isPause)
                     {
@@ -278,96 +264,28 @@ namespace MilehighWorld.Cinematics
 
             // BOLT: Explicitly reset maxVisibleCharacters to the full length to ensure stability for future reuse.
             dialogueText.maxVisibleCharacters = totalVisibleCharacters;
+
+            // Palette: Carry skip intent to the inter-line pause for better responsiveness.
+            if (!_skipRequested)
+            {
+                await WaitForSecondsOrSkip(1.0f);
+            }
         }
 
-        private async Task PopScaleAsync(Transform target, float duration, float scaleFactor)
+        private async Task WaitForSecondsOrSkip(float seconds)
         {
             float elapsed = 0f;
-            while (elapsed < duration)
+            while (elapsed < seconds && !_skipRequested)
             {
                 elapsed += Time.deltaTime;
-                float t = elapsed / duration;
-                float sin = Mathf.Sin(t * Mathf.PI);
-                target.localScale = _originalSpeakerScale * (1f + (sin * (scaleFactor - 1f)));
                 await Task.Yield();
             }
-            target.localScale = _originalSpeakerScale;
-        }
-
-        private string GetSpeakerColorHex(string speaker)
-        {
-            return speaker switch
-            {
-                "Sky.ix" => "#00FFFF",
-                "King Cyrus" => "#FFFF00",
-                "Reverie" => "#FF00FF",
-                "Kai" => "#FFD700",
-                "Delilah" => "#9932CC",
-                _ => "#FFFFFF"
-            };
-        }
-
-        public Color GetSpeakerColor(string speaker)
-        {
-            return speaker switch
-            {
-                "Sky.ix" => Color.cyan,
-                "King Cyrus" => Color.yellow,
-                "Reverie" => Color.magenta,
-                "Kai" => new Color(1f, 0.84f, 0f), // Gold
-                "Delilah" => new Color(0.6f, 0.1f, 0.9f), // Void Purple
-                _ => Color.white
-            };
-        }
-
-            // BOLT: Zero-allocation typewriter effect.
-            // Assign the full text once (including completion cue) and use maxVisibleCharacters to reveal it.
-            dialogueText.text = $"{content} <color={hexColor}>▽</color>";
-            dialogueText.maxVisibleCharacters = 0;
-            dialogueText.ForceMeshUpdate();
-
-            int characterCount = dialogueText.textInfo.characterCount;
-
-            for (int i = 0; i <= characterCount; i++)
-            {
-                dialogueText.maxVisibleCharacters = i;
-
-                if (i > 0 && i < characterCount)
-                {
-                    // Palette: Correctly use textInfo for punctuation detection to handle rich text tags properly.
-                    char c = dialogueText.textInfo.characterInfo[i - 1].character;
-                    float multiplier = 1f;
-
-                    // Palette: Rhythmic punctuation pauses with look-ahead to handle mid-word periods (e.g., Sky.ix)
-                    bool isEndOfSentence = (c == '.' || c == '?' || c == '!');
-                    bool isClause = (c == ',' || c == ';' || c == ':');
-
-                    if (isEndOfSentence || isClause)
-                    {
-                        // Look-ahead using characterInfo to handle potential trailing whitespace.
-                        bool isLastVisibleChar = (i == characterCount - 1); // Last character before the cue '▽'
-                        bool isFollowedBySpace = (!isLastVisibleChar && char.IsWhiteSpace(dialogueText.textInfo.characterInfo[i].character));
-
-                        if (isLastVisibleChar || isFollowedBySpace)
-                        {
-                            multiplier = isEndOfSentence ? 12f : 6f;
-                        }
-                    }
-
-                    await Task.Delay(Mathf.RoundToInt(charDelay * multiplier * 1000));
-                }
-                else
-                {
-                    await Task.Delay(Mathf.RoundToInt(charDelay * 1000));
-                }
-            }
-
-            // BOLT: Explicitly reset maxVisibleCharacters to the full length to ensure stability for future reuse.
-            dialogueText.maxVisibleCharacters = characterCount;
         }
 
         private async Task PopScaleAsync(Transform target, float duration, float scaleFactor)
         {
+            if (target == null) return;
+
             float elapsed = 0f;
             while (elapsed < duration)
             {
@@ -391,42 +309,6 @@ namespace MilehighWorld.Cinematics
                 "Delilah" => "#9933FF",     // Void Purple
                 _ => "#FFFFFF"              // Default White
             };
-        }
-
-        private async Task PopScaleAsync(Transform target, float duration, float scaleFactor)
-        {
-            if (target == null) return;
-
-            float elapsed = 0f;
-            while (elapsed < duration)
-            {
-                elapsed += Time.deltaTime;
-                float t = elapsed / duration;
-                float sin = Mathf.Sin(t * Mathf.PI);
-                target.localScale = _originalSpeakerScale * (1f + (sin * (scaleFactor - 1f)));
-                await Task.Yield();
-            }
-            target.localScale = _originalSpeakerScale;
-        }
-
-        public float GetSpeedMultiplier(string speaker)
-        {
-            if (speaker == "Kai") return kaiSpeedMultiplier;
-            if (speaker == "Sky.ix") return skyixSpeedMultiplier;
-            return 1.0f;
-        }
-
-        public Color GetSpeakerColor(string speaker)
-        {
-            switch (speaker)
-            {
-                case "Sky.ix": return Color.cyan;
-                case "King Cyrus": return Color.yellow;
-                case "Reverie": return Color.magenta;
-                case "Kai": return new Color(1f, 0.84f, 0f); // Gold
-                case "Delilah": return new Color(0.6f, 0.1f, 0.9f); // Void Purple
-                default: return Color.white;
-            }
         }
 
         [Conditional("ENABLE_NARRATIVE_LOGS")]
