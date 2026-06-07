@@ -74,6 +74,32 @@ namespace MilehighWorld.World.Terminal
             if (Input.GetKeyDown(KeyCode.Tab)) HandleAutocomplete();
         }
 
+        /// <summary>
+        /// Calculates the Levenshtein distance between two strings to support "Did You Mean?" suggestions.
+        /// </summary>
+        private int ComputeLevenshteinDistance(string s, string t)
+        {
+            int n = s.Length;
+            int m = t.Length;
+            int[,] d = new int[n + 1, m + 1];
+
+            if (n == 0) return m;
+            if (m == 0) return n;
+
+            for (int i = 0; i <= n; d[i, 0] = i++) ;
+            for (int j = 0; j <= m; d[0, j] = j++) ;
+
+            for (int i = 1; i <= n; i++)
+            {
+                for (int j = 1; j <= m; j++)
+                {
+                    int cost = (t[j - 1] == s[i - 1]) ? 0 : 1;
+                    d[i, j] = Mathf.Min(Mathf.Min(d[i - 1, j] + 1, d[i, j - 1] + 1), d[i - 1, j - 1] + cost);
+                }
+            }
+            return d[n, m];
+        }
+
         private void HandleAutocomplete()
         {
             if (commandInput == null || string.IsNullOrWhiteSpace(commandInput.text)) return;
@@ -169,6 +195,28 @@ namespace MilehighWorld.World.Terminal
 
             foreach (string validCmd in validCommands)
             {
+                string unknownCmd = parts[0].ToLower();
+                string suggestion = "";
+                int minDistance = 3; // Suggest if distance is 2 or less
+                string[] validCommands = { "help", "clear" };
+
+                foreach (string validCmd in validCommands)
+                {
+                    int distance = ComputeLevenshteinDistance(unknownCmd, validCmd);
+                    if (distance < minDistance)
+                    {
+                        minDistance = distance;
+                        suggestion = validCmd;
+                    }
+                }
+
+                string errorMessage = $"\n[SYSTEM]: <color=#FF0000>Unknown command: '{unknownCmd}'</color>";
+                if (!string.IsNullOrEmpty(suggestion))
+                {
+                    errorMessage += $"\n[SYSTEM]: Did you mean <color=#00FFFF>'{suggestion}'</color>?";
+                }
+
+                WriteToTerminal(errorMessage);
                 string suggestion = GetCommandSuggestion(command);
                 string errorMsg = $"\n[SYSTEM]: <color=#FF0000>Unknown command: '{parts[0]}'</color>";
                 if (!string.IsNullOrEmpty(suggestion))
@@ -308,6 +356,7 @@ namespace MilehighWorld.World.Terminal
                 yield return GetWait(0.02f);
             }
 
+            outputDisplay.maxVisibleCharacters = outputDisplay.textInfo.characterCount;
             // ⚡ Bolt: Reset maxVisibleCharacters after typewriter completes to avoid text truncation on subsequent uses.
             outputDisplay.maxVisibleCharacters = outputDisplay.textInfo.characterCount;
 

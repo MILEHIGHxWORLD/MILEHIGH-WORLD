@@ -50,7 +50,6 @@ namespace MilehighWorld.Cinematics
         // Mathematical Constants
         private const float TrueMonadBaseline = 1.0f;
         private const float LinearOmenHexState = 6.0f;
-        private const float IteratedSanctuary = 0.0777777777f;
 
         private bool _isStabilized = false;
         private Vector3 _originalSpeakerScale;
@@ -64,11 +63,18 @@ namespace MilehighWorld.Cinematics
             {
                 _originalSpeakerScale = speakerNameText.transform.localScale;
             }
+
             // Palette: Accessibility - Apply high-contrast black outlines to ensure readability.
-            speakerNameText.outlineWidth = 0.2f;
-            speakerNameText.outlineColor = Color.black;
-            dialogueText.outlineWidth = 0.2f;
-            dialogueText.outlineColor = Color.black;
+            if (speakerNameText != null)
+            {
+                speakerNameText.outlineWidth = 0.2f;
+                speakerNameText.outlineColor = Color.black;
+            }
+            if (dialogueText != null)
+            {
+                dialogueText.outlineWidth = 0.2f;
+                dialogueText.outlineColor = Color.black;
+            }
 
             TimelineSimulationEngine.OnTimelineStabilized += () => {
                 _isStabilized = true;
@@ -85,13 +91,14 @@ namespace MilehighWorld.Cinematics
             // 1. Force the local coordinate space into a Linear Omen (6.0) Hex-State
             await TweenShaderEntropyAsync(LinearOmenHexState, 2.0f);
 
-            // 2. Transfinite Data Load: Initialize entities from object pools (Disable vs Destroy SOP)
-            skyixPrefab.SetActive(true);
-            reveriePrefab.SetActive(true);
-            kingCyrusPrefab.SetActive(true);
+            // 2. Transfinite Data Load: Initialize entities from object pools
+            if (skyixPrefab != null) skyixPrefab.SetActive(true);
+            if (reveriePrefab != null) reveriePrefab.SetActive(true);
+            if (kingCyrusPrefab != null) kingCyrusPrefab.SetActive(true);
 
             // 3. Asynchronous Lexical Pacing
-            dialogueCanvas.SetActive(true);
+            if (dialogueCanvas != null) dialogueCanvas.SetActive(true);
+
             await StreamDialogueAsync("King Cyrus", "Tremble, mortals, as the Age of Millenia crumbles before the might of the Void!", 0.04f);
             await Task.Delay(500);
 
@@ -118,14 +125,13 @@ namespace MilehighWorld.Cinematics
                 await StreamDialogueAsync("King Cyrus", "Your reality is too brittle for this power!", 0.04f);
             }
 
-            dialogueCanvas.SetActive(false);
+            if (dialogueCanvas != null) dialogueCanvas.SetActive(false);
         }
 
-        /// <summary>
-        /// Mathematically tweens the HDRP shader's emissive intensity to simulate Void corruption.
-        /// </summary>
         private async Task TweenShaderEntropyAsync(float targetIntensity, float duration)
         {
+            if (hyperrealisticPlatformShader == null) return;
+
             float startIntensity = hyperrealisticPlatformShader.GetFloat(emissiveIntensityId);
             float elapsed = 0f;
 
@@ -134,31 +140,32 @@ namespace MilehighWorld.Cinematics
                 elapsed += Time.deltaTime;
                 float currentIntensity = Mathf.Lerp(startIntensity, targetIntensity, elapsed / duration);
                 hyperrealisticPlatformShader.SetFloat(emissiveIntensityId, currentIntensity);
-
-                // Processor Choking Prevention: Yield execution
                 await Task.Yield();
             }
         }
 
-        /// <summary>
-        /// Executes the final visual and logical reset to the True Monad (1.0).
-        /// </summary>
         private async Task ExecuteSaveEveryoneProtocolAsync()
         {
             LogNarrativeTelemetry("PROTOCOL_SAVE_EVERYONE Initiated. Physics re-aligning.");
 
-            // Fade out Cyrus using Object Pooling SOP (Alpha Decay)
-            await TweenAlphaDecayAsync(kingCyrusPrefab.GetComponentInChildren<Renderer>().material, 1.5f);
-            kingCyrusPrefab.SetActive(false); // Return to pool
+            if (kingCyrusPrefab != null)
+            {
+                var renderer = kingCyrusPrefab.GetComponentInChildren<Renderer>();
+                if (renderer != null)
+                {
+                    await TweenAlphaDecayAsync(renderer.material, 1.5f);
+                }
+                kingCyrusPrefab.SetActive(false);
+            }
 
-            // Clamp environmental delta changes instantly upon loop completion
             await TweenShaderEntropyAsync(TrueMonadBaseline, 1.0f);
-
             LogNarrativeTelemetry("Omen Singularity Severed. Verse Stabilized.");
         }
 
         private async Task TweenAlphaDecayAsync(Material mat, float duration)
         {
+            if (mat == null) return;
+
             float elapsed = 0f;
             while (elapsed < duration)
             {
@@ -169,6 +176,13 @@ namespace MilehighWorld.Cinematics
             }
         }
 
+        private async Task StreamDialogueAsync(string speaker, string content, float charDelay)
+        {
+            if (speakerNameText == null || dialogueText == null) return;
+
+            Color speakerColor = GetSpeakerColor(speaker);
+            string colorHex = "#" + ColorUtility.ToHtmlStringRGB(speakerColor);
+            string formattedSpeaker = $"<color={colorHex}>[{speaker}]</color>";
         /// <summary>
         /// Zero-allocation rhythmic typewriter effect with themed completion cues and speaker pop animations.
         /// </summary>
@@ -183,10 +197,44 @@ namespace MilehighWorld.Cinematics
             string hexColor = GetSpeakerColorHex(speaker);
             string formattedSpeaker = $"<color={hexColor}>[{speaker}]</color>";
 
-            // Palette: Trigger a subtle scale pulse if the speaker changes
             if (speakerNameText.text != formattedSpeaker)
             {
                 speakerNameText.text = formattedSpeaker;
+                _ = PopScaleAsync(speakerNameText.transform, 0.2f, 1.1f);
+            }
+
+            dialogueText.text = $"{content} <color={colorHex}>▽</color>";
+            dialogueText.maxVisibleCharacters = 0;
+            dialogueText.ForceMeshUpdate();
+
+            int totalVisibleCharacters = dialogueText.textInfo.characterCount;
+
+            for (int i = 1; i <= totalVisibleCharacters; i++)
+            {
+                dialogueText.maxVisibleCharacters = i;
+
+                float currentDelay = charDelay;
+                if (i < totalVisibleCharacters)
+                {
+                    char c = dialogueText.textInfo.characterInfo[i - 1].character;
+                    bool isEndOfSentence = (c == '.' || c == '!' || c == '?');
+                    bool isPause = (c == ',' || c == ':' || c == ';');
+
+                    if (isEndOfSentence)
+                    {
+                        bool nextIsSpace = (i < totalVisibleCharacters && dialogueText.textInfo.characterInfo[i].character == ' ');
+                        if (nextIsSpace || i == totalVisibleCharacters - 1) currentDelay *= 12f;
+                    }
+                    else if (isPause)
+                    {
+                        currentDelay *= 6f;
+                    }
+                }
+
+                await Task.Delay(Mathf.RoundToInt(currentDelay * 1000));
+            }
+
+            dialogueText.maxVisibleCharacters = totalVisibleCharacters;
                 if (speakerNameText.transform != null)
                 {
                     _ = PopScaleAsync(speakerNameText.transform, 0.2f, 1.1f);
@@ -345,11 +393,40 @@ namespace MilehighWorld.Cinematics
             };
         }
 
+        private async Task PopScaleAsync(Transform target, float duration, float scaleFactor)
+        {
+            if (target == null) return;
+
+            float elapsed = 0f;
+            while (elapsed < duration)
+            {
+                elapsed += Time.deltaTime;
+                float t = elapsed / duration;
+                float sin = Mathf.Sin(t * Mathf.PI);
+                target.localScale = _originalSpeakerScale * (1f + (sin * (scaleFactor - 1f)));
+                await Task.Yield();
+            }
+            target.localScale = _originalSpeakerScale;
+        }
+
         public float GetSpeedMultiplier(string speaker)
         {
             if (speaker == "Kai") return kaiSpeedMultiplier;
             if (speaker == "Sky.ix") return skyixSpeedMultiplier;
             return 1.0f;
+        }
+
+        public Color GetSpeakerColor(string speaker)
+        {
+            switch (speaker)
+            {
+                case "Sky.ix": return Color.cyan;
+                case "King Cyrus": return Color.yellow;
+                case "Reverie": return Color.magenta;
+                case "Kai": return new Color(1f, 0.84f, 0f); // Gold
+                case "Delilah": return new Color(0.6f, 0.1f, 0.9f); // Void Purple
+                default: return Color.white;
+            }
         }
 
         [Conditional("ENABLE_NARRATIVE_LOGS")]
