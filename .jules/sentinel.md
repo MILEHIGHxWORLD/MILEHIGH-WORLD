@@ -254,6 +254,10 @@
 **Vulnerability:** Several critical core managers (GameManager, BackendSyncService) were missing from the `_protectedManagers` blocklist in `SceneDirector.cs`, exposing them to unauthorized interaction and potential IDOR vulnerabilities.
 **Learning:** Hardcoded blocklists for dynamic core systems are prone to omitting newly added or less prominent singleton managers, leaving gaps in IDOR protection.
 **Prevention:** Ensure all critical singletons and core managers are explicitly included in the `_protectedManagers` HashSet blocklist within `SceneDirector.cs` to block unauthorized external access via `GameObject.Find`.
+## 2024-05-21 - Missing IDOR Protection for RealitySyncEngine
+**Vulnerability:** The `RealitySyncEngine` core manager was missing from the `_protectedManagers` blocklist in `SceneDirector.cs`, allowing unauthorized external modification via object interactions (Insecure Direct Object Reference).
+**Learning:** Core singleton managers that govern critical game state (like RealitySyncEngine) must be explicitly protected against arbitrary `GameObject.Find` resolution in interaction handlers.
+**Prevention:** Whenever a new critical singleton or manager is added, it must also be added to the `_protectedManagers` HashSet in `SceneDirector` to block malicious path traversal or direct object references.
 ## 2024-05-24 - Prevent IDOR on RealitySyncEngine
 **Vulnerability:** Insecure Direct Object Reference (IDOR) vulnerability where `RealitySyncEngine` was missing from the `_protectedManagers` blocklist in `SceneDirector.cs`, allowing unauthorized external modification.
 **Learning:** Critical singletons handling deterministic reality states must be explicitly protected against arbitrary `GameObject.Find` access via `SceneDirector` interactions.
