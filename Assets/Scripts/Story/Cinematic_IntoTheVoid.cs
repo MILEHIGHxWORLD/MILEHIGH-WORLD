@@ -29,11 +29,9 @@ namespace MilehighWorld.Cinematics
 
         [Header("UI & Lexical Systems")]
         [SerializeField] private TextMeshProUGUI speakerNameText = null!;
-        public TextMeshProUGUI SpeakerNameText { get => speakerNameText; set => speakerNameText = value; }
         [SerializeField] private TextMeshProUGUI dialogueText = null!;
-        public TextMeshProUGUI DialogueText { get => dialogueText; set => dialogueText = value; }
         [SerializeField] private GameObject dialogueCanvas = null!;
-        public GameObject DialogueBox { get => dialogueCanvas; set => dialogueCanvas = value; }
+        [SerializeField] private GameObject skipHint = null!;
 
         [Header("Lexical Tuning")]
         public float baseTypingSpeed = 0.03f;
@@ -57,7 +55,6 @@ namespace MilehighWorld.Cinematics
         // Palette: UX State for skipping and idle-hint discoverability.
         private bool _skipRequested = false;
         private float _idleTimer = 0f;
-        [SerializeField] private GameObject skipHint = null!;
 
         private void Start()
         {
@@ -67,19 +64,18 @@ namespace MilehighWorld.Cinematics
             if (speakerNameText != null)
             {
                 _originalSpeakerScale = speakerNameText.transform.localScale;
-            }
-
-            // Palette: Accessibility - Apply high-contrast black outlines to ensure readability.
-            if (speakerNameText != null)
-            {
+                // Palette: Accessibility - Apply high-contrast black outlines to ensure readability.
                 speakerNameText.outlineWidth = 0.2f;
                 speakerNameText.outlineColor = Color.black;
             }
+
             if (dialogueText != null)
             {
                 dialogueText.outlineWidth = 0.2f;
                 dialogueText.outlineColor = Color.black;
             }
+
+            if (skipHint != null) skipHint.SetActive(false);
 
             TimelineSimulationEngine.OnTimelineStabilized += () => {
                 _isStabilized = true;
@@ -313,26 +309,6 @@ namespace MilehighWorld.Cinematics
                 "Delilah" => "#9933FF",     // Void Purple
                 _ => "#FFFFFF"              // Default White
             };
-        }
-
-        public Color GetSpeakerColor(string speaker)
-        {
-            return speaker switch
-            {
-                "Sky.ix" => Color.cyan,
-                "King Cyrus" => Color.yellow,
-                "Reverie" => Color.magenta,
-                "Kai" => new Color(1f, 0.84f, 0f), // Gold
-                "Delilah" => new Color(0.6f, 0.1f, 0.9f), // Void Purple
-                _ => Color.white
-            };
-        }
-
-        public float GetSpeedMultiplier(string speaker)
-        {
-            if (speaker == "Kai") return kaiSpeedMultiplier;
-            if (speaker == "Sky.ix") return skyixSpeedMultiplier;
-            return 1.0f;
         }
 
         [Conditional("ENABLE_NARRATIVE_LOGS")]
