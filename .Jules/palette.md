@@ -82,6 +82,10 @@
 **Learning:** Pacing in dialogue-heavy cinematics is significantly improved by distinguishing between sentence endings (long pause), ellipses (medium pause), and mid-word periods (no pause, e.g., 'Sky.ix'). Furthermore, color-coding progress indicators (like the '▽' cue) to match the speaker's theme strengthens the visual association between the narrative content and the character, reducing cognitive load for the player.
 **Action:** Implement look-ahead/look-behind logic for punctuation to refine pacing, and use speaker-specific colors for interactive UI cues via TMP rich text tags.
 
+## 2026-06-16 - [Fuzzy Command Matching for Terminal Usability]
+**Learning:** In terminal-style interfaces, users often make typos. Implementing a "Did you mean?" feature using Levenshtein distance (with a threshold of 2) significantly reduces frustration by guiding users toward valid commands without being overly intrusive.
+**Action:** Always include fuzzy matching/suggestions for command-line inputs to improve error recovery and discoverability.
+
 ## 2026-06-15 - [Terminal Command History for User Flow]
 **Learning:** In terminal-style interfaces, command history navigation (Up/Down arrows) is a critical "quality of life" feature that reduces repetitive typing and significantly improves user flow. For Unity InputFields, manually managing the caret position after updating the text is essential to ensure a seamless "command-line" feel.
 **Action:** Always implement command history and inclusive shortcut hints for terminal components to enhance accessibility and intuitiveness.
@@ -156,3 +160,7 @@
 ## 2026-06-15 - [Familiar Terminal Shortcuts for Power Users]
 **Learning:** In-game terminal UIs (e.g., `OtisTerminal.cs`) feel significantly more "authentic" and efficient when they support standard CLI shortcuts like `Ctrl+L` for clearing the output. Power users often attempt these shortcuts instinctively, and meeting that expectation provides a subtle touch of delight while improving workspace management.
 **Action:** Implement standard command-line shortcuts (e.g., `Ctrl+L`) in all terminal-style micro-interactions to enhance user productivity and immersion.
+
+## 2026-06-25 - [Forgiving Command Interfaces with Suggestions]
+**Learning:** In terminal-style interfaces, providing a "Did You Mean?" suggestion for unrecognized commands using Levenshtein distance (threshold <= 2) significantly reduces user friction and frustration caused by minor typos. This is especially helpful for accessibility, as it provides clear paths forward for users who may have difficulty with precise typing.
+**Action:** Implement fuzzy-match command suggestions in all CLI-driven micro-interactions to enhance user agency and accessibility.
