@@ -34,6 +34,9 @@ namespace MilehighWorld.World.Terminal
             return wait;
         }
 
+        private List<string> _commandHistory = new List<string>();
+        private int _historyIndex = -1;
+
         private void Start()
         {
             if (outputDisplay != null)
@@ -166,6 +169,14 @@ namespace MilehighWorld.World.Terminal
 
             foreach (string validCmd in validCommands)
             {
+                string suggestion = GetCommandSuggestion(command);
+                string errorMsg = $"\n[SYSTEM]: <color=#FF0000>Unknown command: '{parts[0]}'</color>";
+                if (!string.IsNullOrEmpty(suggestion))
+                {
+                    errorMsg += $"\n[SYSTEM]: Did you mean: <color=#00FFFF>{suggestion}</color>?";
+                }
+                WriteToTerminal(errorMsg);
+                if (commandInput != null) StartCoroutine(ShakeInputField());
                 int distance = GetLevenshteinDistance(command, validCmd);
                 if (distance < minDistance)
                 {
@@ -200,6 +211,50 @@ namespace MilehighWorld.World.Terminal
                 {
                     int cost = (t[j - 1] == s[i - 1]) ? 0 : 1;
                     d[i, j] = Math.Min(Math.Min(d[i - 1, j] + 1, d[i, j - 1] + 1), d[i - 1, j - 1] + cost);
+                }
+            }
+            return d[n, m];
+        }
+
+        private string GetCommandSuggestion(string input)
+        {
+            string[] availableCommands = { "help", "clear" };
+            string bestMatch = "";
+            int minDistance = int.MaxValue;
+
+            foreach (string cmd in availableCommands)
+            {
+                int distance = ComputeLevenshteinDistance(input, cmd);
+                if (distance < minDistance)
+                {
+                    minDistance = distance;
+                    bestMatch = cmd;
+                }
+            }
+
+            return minDistance <= 2 ? bestMatch : "";
+        }
+
+        private int ComputeLevenshteinDistance(string s, string t)
+        {
+            int n = s.Length;
+            int m = t.Length;
+            int[,] d = new int[n + 1, m + 1];
+
+            if (n == 0) return m;
+            if (m == 0) return n;
+
+            for (int i = 0; i <= n; d[i, 0] = i++) ;
+            for (int j = 0; j <= m; d[0, j] = j++) ;
+
+            for (int i = 1; i <= n; i++)
+            {
+                for (int j = 1; j <= m; j++)
+                {
+                    int cost = (t[j - 1] == s[i - 1]) ? 0 : 1;
+                    d[i, j] = Mathf.Min(
+                        Mathf.Min(d[i - 1, j] + 1, d[i, j - 1] + 1),
+                        d[i - 1, j - 1] + cost);
                 }
             }
             return d[n, m];
