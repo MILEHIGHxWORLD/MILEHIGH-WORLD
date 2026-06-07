@@ -19,44 +19,8 @@ namespace MilehighWorld.World.Terminal
         private static readonly Dictionary<int, WaitForSeconds> _waitCache = new Dictionary<int, WaitForSeconds>();
 
         private Coroutine? _typewriterCoroutine;
-
-        private static WaitForSeconds GetWait(float seconds)
-        {
-            int ms = Mathf.RoundToInt(seconds * 1000f);
-            if (!_waitCache.TryGetValue(ms, out var wait))
-            {
-                wait = new WaitForSeconds(seconds);
-                _waitCache[ms] = wait;
-            }
-            return wait;
-        }
         private List<string> _commandHistory = new List<string>();
         private int _historyIndex = -1;
-
-        // ⚡ Bolt: Cache for WaitForSeconds using millisecond keys to prevent floating-point precision issues
-        // and eliminate redundant GC allocations during per-character typewriter loop execution.
-        // ⚡ Bolt: Cache WaitForSeconds to prevent GC allocations in Coroutines.
-        private static readonly Dictionary<int, WaitForSeconds> _waitForSecondsCache = new Dictionary<int, WaitForSeconds>();
-
-        // ⚡ Bolt: Static helper to retrieve cached yields using millisecond keys to avoid float imprecision.
-        private static WaitForSeconds GetWaitForSeconds(float seconds)
-        {
-            int msKey = Mathf.RoundToInt(seconds * 1000f);
-            if (!_waitForSecondsCache.TryGetValue(msKey, out WaitForSeconds wfs))
-            {
-                wfs = new WaitForSeconds(seconds);
-                _waitForSecondsCache[msKey] = wfs;
-            }
-            return wfs;
-        private static WaitForSeconds GetWait(float seconds)
-        {
-            int ms = Mathf.RoundToInt(seconds * 1000f);
-            if (!_waitCache.TryGetValue(ms, out var wait))
-            {
-                wait = new WaitForSeconds(seconds);
-                _waitCache[ms] = wait;
-        // ⚡ Bolt: Zero-Allocation Yield Cache. Caches WaitForSeconds using integer millisecond keys. This prevents cache misses caused by floating-point imprecision and eliminates O(N) GC allocations in the typewriter effect loop, reducing GC pressure and micro-stutters.
-        private static readonly Dictionary<int, WaitForSeconds> _waitCache = new Dictionary<int, WaitForSeconds>();
 
         private static WaitForSeconds GetWait(float seconds)
         {
@@ -104,6 +68,32 @@ namespace MilehighWorld.World.Terminal
 
             // Palette: Productivity - Tab-to-Autocomplete for common commands.
             if (Input.GetKeyDown(KeyCode.Tab)) HandleAutocomplete();
+        }
+
+        /// <summary>
+        /// Calculates the Levenshtein distance between two strings to support "Did You Mean?" suggestions.
+        /// </summary>
+        private int ComputeLevenshteinDistance(string s, string t)
+        {
+            int n = s.Length;
+            int m = t.Length;
+            int[,] d = new int[n + 1, m + 1];
+
+            if (n == 0) return m;
+            if (m == 0) return n;
+
+            for (int i = 0; i <= n; d[i, 0] = i++) ;
+            for (int j = 0; j <= m; d[0, j] = j++) ;
+
+            for (int i = 1; i <= n; i++)
+            {
+                for (int j = 1; j <= m; j++)
+                {
+                    int cost = (t[j - 1] == s[i - 1]) ? 0 : 1;
+                    d[i, j] = Mathf.Min(Mathf.Min(d[i - 1, j] + 1, d[i, j - 1] + 1), d[i - 1, j - 1] + cost);
+                }
+            }
+            return d[n, m];
         }
 
         private void HandleAutocomplete()
@@ -192,7 +182,28 @@ namespace MilehighWorld.World.Terminal
             }
             else
             {
-                WriteToTerminal($"\n[SYSTEM]: <color=#FF0000>Unknown command or invalid argument count: '{parts[0]}'</color>");
+                string unknownCmd = parts[0].ToLower();
+                string suggestion = "";
+                int minDistance = 3; // Suggest if distance is 2 or less
+                string[] validCommands = { "help", "clear" };
+
+                foreach (string validCmd in validCommands)
+                {
+                    int distance = ComputeLevenshteinDistance(unknownCmd, validCmd);
+                    if (distance < minDistance)
+                    {
+                        minDistance = distance;
+                        suggestion = validCmd;
+                    }
+                }
+
+                string errorMessage = $"\n[SYSTEM]: <color=#FF0000>Unknown command: '{unknownCmd}'</color>";
+                if (!string.IsNullOrEmpty(suggestion))
+                {
+                    errorMessage += $"\n[SYSTEM]: Did you mean <color=#00FFFF>'{suggestion}'</color>?";
+                }
+
+                WriteToTerminal(errorMessage);
                 if (commandInput != null) StartCoroutine(ShakeInputField());
             }
         }
@@ -217,17 +228,6 @@ namespace MilehighWorld.World.Terminal
             _typewriterCoroutine = StartCoroutine(TypewriterEffect(message));
         }
 
-        private static WaitForSeconds GetWait(float seconds)
-        {
-            int msKey = Mathf.RoundToInt(seconds * 1000f);
-            if (!_waitCache.TryGetValue(msKey, out var wait))
-            {
-                wait = new WaitForSeconds(seconds);
-                _waitCache[msKey] = wait;
-            }
-            return wait;
-        }
-
         private IEnumerator TypewriterEffect(string message)
         {
             outputDisplay.ForceMeshUpdate();
@@ -243,7 +243,6 @@ namespace MilehighWorld.World.Terminal
             {
                 outputDisplay.maxVisibleCharacters = startVisibleCount + i;
 
-                // UX Learning: Punctuation delays trigger after character is visible
                 if (i > 0 && i <= charactersToReveal)
                 {
                     char c = outputDisplay.textInfo.characterInfo[startVisibleCount + i - 1].character;
@@ -253,25 +252,10 @@ namespace MilehighWorld.World.Terminal
                         yield return GetWait(0.08f);
                 }
 
-                    if (c == '.' || c == ':' || c == '!')                        yield return GetWaitForSeconds(0.15f); // ⚡ Bolt: Use cached yield to eliminate allocation
-                    else if (c == ',')
-                        yield return GetWaitForSeconds(0.08f); // ⚡ Bolt: Use cached yield to eliminate allocation
-                }
-
-                yield return GetWaitForSeconds(0.02f); // ⚡ Bolt: Use cached yield to eliminate allocation
-                        yield return GetWait(0.15f);
-                    else if (c == ',')
-                        yield return GetWait(0.08f);
-                }
-
                 yield return GetWait(0.02f);
             }
 
-            // ⚡ Bolt: Reset maxVisibleCharacters after typewriter completes to avoid text truncation on subsequent uses.
             outputDisplay.maxVisibleCharacters = outputDisplay.textInfo.characterCount;
-            // ⚡ Bolt: Explicitly reset maxVisibleCharacters to the full length to prevent truncation bugs during future reuse.
-            outputDisplay.maxVisibleCharacters = outputDisplay.textInfo.characterCount;
-
             _typewriterCoroutine = null;
         }
 

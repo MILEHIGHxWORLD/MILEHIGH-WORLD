@@ -156,3 +156,7 @@
 ## 2026-06-15 - [Familiar Terminal Shortcuts for Power Users]
 **Learning:** In-game terminal UIs (e.g., `OtisTerminal.cs`) feel significantly more "authentic" and efficient when they support standard CLI shortcuts like `Ctrl+L` for clearing the output. Power users often attempt these shortcuts instinctively, and meeting that expectation provides a subtle touch of delight while improving workspace management.
 **Action:** Implement standard command-line shortcuts (e.g., `Ctrl+L`) in all terminal-style micro-interactions to enhance user productivity and immersion.
+
+## 2026-06-25 - [Forgiving Command Interfaces with Suggestions]
+**Learning:** In terminal-style interfaces, providing a "Did You Mean?" suggestion for unrecognized commands using Levenshtein distance (threshold <= 2) significantly reduces user friction and frustration caused by minor typos. This is especially helpful for accessibility, as it provides clear paths forward for users who may have difficulty with precise typing.
+**Action:** Implement fuzzy-match command suggestions in all CLI-driven micro-interactions to enhance user agency and accessibility.
