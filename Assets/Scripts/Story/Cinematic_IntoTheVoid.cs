@@ -153,7 +153,7 @@ namespace MilehighWorld.Cinematics
                 var renderer = kingCyrusPrefab.GetComponentInChildren<Renderer>();
                 if (renderer != null)
                 {
-                    await TweenAlphaDecayAsync(renderer.material, 1.5f);
+                    await TweenAlphaDecayAsync(renderer, 1.5f);
                 }
                 kingCyrusPrefab.SetActive(false);
             }
@@ -162,16 +162,26 @@ namespace MilehighWorld.Cinematics
             LogNarrativeTelemetry("Omen Singularity Severed. Verse Stabilized.");
         }
 
-        private async Task TweenAlphaDecayAsync(Material mat, float duration)
+        private async Task TweenAlphaDecayAsync(Renderer targetRenderer, float duration)
         {
-            if (mat == null) return;
+            if (targetRenderer == null) return;
+
+            // ⚡ Bolt Optimization
+            // 💡 What: Replaced direct Material.SetFloat with MaterialPropertyBlock usage.
+            // 🎯 Why: Accessing targetRenderer.material instantiates a clone of the material on the heap, breaking GPU instancing and causing GC allocations.
+            // 📊 Impact: Eliminates O(1) Material allocation per character decay sequence, preserving draw call batching and reducing GC pressure.
+            var propBlock = new MaterialPropertyBlock();
 
             float elapsed = 0f;
             while (elapsed < duration)
             {
                 elapsed += Time.deltaTime;
                 float alpha = Mathf.Lerp(1f, 0f, elapsed / duration);
-                mat.SetFloat(baseColorAlphaId, alpha);
+
+                targetRenderer.GetPropertyBlock(propBlock);
+                propBlock.SetFloat(baseColorAlphaId, alpha);
+                targetRenderer.SetPropertyBlock(propBlock);
+
                 await Task.Yield();
             }
         }
