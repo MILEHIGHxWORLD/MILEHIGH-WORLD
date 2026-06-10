@@ -61,6 +61,7 @@ namespace MilehighWorld.World.Terminal
             {
                 ClearTerminalDisplay();
                 commandInput.text = "";
+                commandInput.ActivateInputField();
             }
 
             // Palette: Refined history navigation - ensure responsiveness by polling in Update.
@@ -146,11 +147,10 @@ namespace MilehighWorld.World.Terminal
 
             if (parts.Length >= 3)
             {
-                int index = input.IndexOf(parts[2]);
+                int index = input.IndexOf(parts[1]);
                 if (index != -1)
                 {
-                    string argument = input.Substring(index);
-                    ExecuteExtendedCommand(parts[0], argument);
+                    ExecuteExtendedCommand(parts[0], input.Substring(index));
                     WriteToTerminal($"\n[SYSTEM]: <color=#00FF00>Command '{parts[0]}' executed.</color>");
                     return;
                 }
@@ -225,7 +225,7 @@ namespace MilehighWorld.World.Terminal
             if (_typewriterCoroutine != null)
             {
                 StopCoroutine(_typewriterCoroutine);
-                outputDisplay.maxVisibleCharacters = int.MaxValue; // Reveal all current text
+                outputDisplay.maxVisibleCharacters = int.MaxValue;
             }
 
             _typewriterCoroutine = StartCoroutine(TypewriterEffect(message));
@@ -260,7 +260,6 @@ namespace MilehighWorld.World.Terminal
             }
 
             outputDisplay.maxVisibleCharacters = outputDisplay.textInfo.characterCount;
-            // ⚡ Bolt: Reset maxVisibleCharacters after typewriter completes to avoid text truncation on subsequent uses.
             outputDisplay.maxVisibleCharacters = outputDisplay.textInfo.characterCount;
 
             _typewriterCoroutine = null;
@@ -277,7 +276,7 @@ namespace MilehighWorld.World.Terminal
             while (elapsed < duration)
             {
                 float x = UnityEngine.Random.Range(-1f, 1f) * magnitude;
-                commandInput.transform.localPosition = originalPos + new UnityEngine.Vector3(x, 0, 0);
+                commandInput.transform.localPosition = originalPos + new Vector3(x, 0, 0);
                 elapsed += Time.deltaTime;
                 yield return null;
             }
