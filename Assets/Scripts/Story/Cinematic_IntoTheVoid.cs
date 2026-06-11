@@ -153,7 +153,8 @@ namespace MilehighWorld.Cinematics
                 var renderer = kingCyrusPrefab.GetComponentInChildren<Renderer>();
                 if (renderer != null)
                 {
-                    await TweenAlphaDecayAsync(renderer.material, 1.5f);
+                    // ⚡ Bolt: Pass Renderer instead of Material to use MaterialPropertyBlock
+                    await TweenAlphaDecayAsync(renderer, 1.5f);
                 }
                 kingCyrusPrefab.SetActive(false);
             }
@@ -162,16 +163,21 @@ namespace MilehighWorld.Cinematics
             LogNarrativeTelemetry("Omen Singularity Severed. Verse Stabilized.");
         }
 
-        private async Task TweenAlphaDecayAsync(Material mat, float duration)
+        // ⚡ Bolt: Use MaterialPropertyBlock to avoid instantiating material clones,
+        // saving GC allocations and preserving draw call batching (SRP/GPU instancing).
+        private async Task TweenAlphaDecayAsync(Renderer targetRenderer, float duration)
         {
-            if (mat == null) return;
+            if (targetRenderer == null) return;
 
+            MaterialPropertyBlock propBlock = new MaterialPropertyBlock();
             float elapsed = 0f;
             while (elapsed < duration)
             {
                 elapsed += Time.deltaTime;
                 float alpha = Mathf.Lerp(1f, 0f, elapsed / duration);
-                mat.SetFloat(baseColorAlphaId, alpha);
+                targetRenderer.GetPropertyBlock(propBlock);
+                propBlock.SetFloat(baseColorAlphaId, alpha);
+                targetRenderer.SetPropertyBlock(propBlock);
                 await Task.Yield();
             }
         }
