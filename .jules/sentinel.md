@@ -267,3 +267,7 @@
 **Vulnerability:** The introduction of new core systems like `TimelineSimulationEngine` and `VitisAIBridge` creates new targets for IDOR attacks if not explicitly protected in the scene-wide lookup blocklist.
 **Learning:** Every architectural addition that acts as a singleton or core manager must be immediately registered with the security boundary layer (`SceneDirector.cs`) to maintain the integrity of the simulation.
 **Prevention:** Strictly enforce the inclusion of all new core managers in the `_protectedManagers` HashSet to block unauthorized external access via `GameObject.Find`.
+## 2026-06-11 - IDOR Protection Failure due to C# Syntax Error
+**Vulnerability:** A malformed HashSet missing commas in the SceneDirector blocklist failed to compile, leaving critical singletons unprotected from Insecure Direct Object Reference (IDOR) attacks via GameObject.Find.
+**Learning:** Security blocklists implemented as static C# collections can fail completely if they contain syntax errors (like missing commas when merging lists), neutralizing the defense.
+**Prevention:** Always verify C# syntax correctness manually or via strict build pipelines, as simple compilation errors can silently break security features if not caught.
