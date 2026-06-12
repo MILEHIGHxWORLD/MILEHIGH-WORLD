@@ -164,3 +164,7 @@
 ## 2026-06-25 - [Forgiving Command Interfaces with Suggestions]
 **Learning:** In terminal-style interfaces, providing a "Did You Mean?" suggestion for unrecognized commands using Levenshtein distance (threshold <= 2) significantly reduces user friction and frustration caused by minor typos. This is especially helpful for accessibility, as it provides clear paths forward for users who may have difficulty with precise typing.
 **Action:** Implement fuzzy-match command suggestions in all CLI-driven micro-interactions to enhance user agency and accessibility.
+
+## 2024-05-24 - [Dialogue Skip and Discoverable Hints]
+**Learning:** In narrative-heavy sequences, providing a skip mechanic that handles both the typewriter reveal and the subsequent reading pause significantly improves user agency. Additionally, an idle-timer-based hint (appearing after 2s of inactivity) balances minimal UI with discoverability for new players.
+**Action:** Implement 'anyKeyDown' skip logic that short-circuits both animation and pauses, and use 'Transform.Find' to programmatically link discoverable skip hints.
