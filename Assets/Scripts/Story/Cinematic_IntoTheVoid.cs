@@ -153,7 +153,7 @@ namespace MilehighWorld.Cinematics
                 var renderer = kingCyrusPrefab.GetComponentInChildren<Renderer>();
                 if (renderer != null)
                 {
-                    await TweenAlphaDecayAsync(renderer.material, 1.5f);
+                    await TweenAlphaDecayAsync(renderer, 1.5f);
                 }
                 kingCyrusPrefab.SetActive(false);
             }
@@ -162,16 +162,23 @@ namespace MilehighWorld.Cinematics
             LogNarrativeTelemetry("Omen Singularity Severed. Verse Stabilized.");
         }
 
-        private async Task TweenAlphaDecayAsync(Material mat, float duration)
+        private async Task TweenAlphaDecayAsync(Renderer targetRenderer, float duration)
         {
-            if (mat == null) return;
+            if (targetRenderer == null) return;
+
+            // ⚡ Bolt: Replaced Renderer.material with MaterialPropertyBlock to prevent GC allocations and preserve GPU instancing.
+            MaterialPropertyBlock propBlock = new MaterialPropertyBlock();
 
             float elapsed = 0f;
             while (elapsed < duration)
             {
                 elapsed += Time.deltaTime;
                 float alpha = Mathf.Lerp(1f, 0f, elapsed / duration);
-                mat.SetFloat(baseColorAlphaId, alpha);
+
+                targetRenderer.GetPropertyBlock(propBlock);
+                propBlock.SetFloat(baseColorAlphaId, alpha);
+                targetRenderer.SetPropertyBlock(propBlock);
+
                 await Task.Yield();
             }
         }
