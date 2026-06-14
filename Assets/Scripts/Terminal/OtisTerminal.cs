@@ -34,9 +34,6 @@ namespace MilehighWorld.World.Terminal
             return wait;
         }
 
-        private List<string> _commandHistory = new List<string>();
-        private int _historyIndex = -1;
-
         private void Start()
         {
             if (outputDisplay != null)
@@ -185,83 +182,17 @@ namespace MilehighWorld.World.Terminal
                 }
             }
 
-            // Unknown command or invalid argument count
-            WriteToTerminal($"\n[SYSTEM]: <color=#FF0000>Error: Unknown command or invalid argument count for '{parts[0]}'.</color>");
+            // Palette: Unknown command handling with "Did You Mean?" suggestion.
+            string suggestion = GetCommandSuggestion(command);
+            string errorMsg = $"\n[SYSTEM]: <color=#FF0000>Unknown command: '{parts[0]}'</color>";
 
-            // Palette: Did You Mean? feature.
-            string[] validCommands = { "help", "clear" };
-            string suggestion = "";
-            int minDistance = int.MaxValue;
-
-            foreach (string validCmd in validCommands)
+            if (!string.IsNullOrEmpty(suggestion))
             {
-                string unknownCmd = parts[0].ToLower();
-                string suggestion = "";
-                int minDistance = 3; // Suggest if distance is 2 or less
-                string[] validCommands = { "help", "clear" };
-
-                foreach (string validCmd in validCommands)
-                {
-                    int distance = ComputeLevenshteinDistance(unknownCmd, validCmd);
-                    if (distance < minDistance)
-                    {
-                        minDistance = distance;
-                        suggestion = validCmd;
-                    }
-                }
-
-                string errorMessage = $"\n[SYSTEM]: <color=#FF0000>Unknown command: '{unknownCmd}'</color>";
-                if (!string.IsNullOrEmpty(suggestion))
-                {
-                    errorMessage += $"\n[SYSTEM]: Did you mean <color=#00FFFF>'{suggestion}'</color>?";
-                }
-
-                WriteToTerminal(errorMessage);
-                string suggestion = GetCommandSuggestion(command);
-                string errorMsg = $"\n[SYSTEM]: <color=#FF0000>Unknown command: '{parts[0]}'</color>";
-                if (!string.IsNullOrEmpty(suggestion))
-                {
-                    errorMsg += $"\n[SYSTEM]: Did you mean: <color=#00FFFF>{suggestion}</color>?";
-                }
-                WriteToTerminal(errorMsg);
-                if (commandInput != null) StartCoroutine(ShakeInputField());
-                int distance = GetLevenshteinDistance(command, validCmd);
-                if (distance < minDistance)
-                {
-                    minDistance = distance;
-                    suggestion = validCmd;
-                }
+                errorMsg += $"\n[SYSTEM]: Did you mean: <color=#00FFFF>{suggestion}</color>?";
             }
 
-            if (minDistance > 0 && minDistance <= 2)
-            {
-                WriteToTerminal($"[SYSTEM]: Did you mean: <color=#00FFFF>'{suggestion}'</color>?");
-            }
-
+            WriteToTerminal(errorMsg);
             if (commandInput != null) StartCoroutine(ShakeInputField());
-        }
-
-        private int GetLevenshteinDistance(string s, string t)
-        {
-            if (string.IsNullOrEmpty(s)) return string.IsNullOrEmpty(t) ? 0 : t.Length;
-            if (string.IsNullOrEmpty(t)) return s.Length;
-
-            int n = s.Length;
-            int m = t.Length;
-            int[,] d = new int[n + 1, m + 1];
-
-            for (int i = 0; i <= n; d[i, 0] = i++) ;
-            for (int j = 0; j <= m; d[0, j] = j++) ;
-
-            for (int i = 1; i <= n; i++)
-            {
-                for (int j = 1; j <= m; j++)
-                {
-                    int cost = (t[j - 1] == s[i - 1]) ? 0 : 1;
-                    d[i, j] = Math.Min(Math.Min(d[i - 1, j] + 1, d[i, j - 1] + 1), d[i - 1, j - 1] + cost);
-                }
-            }
-            return d[n, m];
         }
 
         private string GetCommandSuggestion(string input)
@@ -283,30 +214,6 @@ namespace MilehighWorld.World.Terminal
             return minDistance <= 2 ? bestMatch : "";
         }
 
-        private int ComputeLevenshteinDistance(string s, string t)
-        {
-            int n = s.Length;
-            int m = t.Length;
-            int[,] d = new int[n + 1, m + 1];
-
-            if (n == 0) return m;
-            if (m == 0) return n;
-
-            for (int i = 0; i <= n; d[i, 0] = i++) ;
-            for (int j = 0; j <= m; d[0, j] = j++) ;
-
-            for (int i = 1; i <= n; i++)
-            {
-                for (int j = 1; j <= m; j++)
-                {
-                    int cost = (t[j - 1] == s[i - 1]) ? 0 : 1;
-                    d[i, j] = Mathf.Min(
-                        Mathf.Min(d[i - 1, j] + 1, d[i, j - 1] + 1),
-                        d[i - 1, j - 1] + cost);
-                }
-            }
-            return d[n, m];
-        }
 
         private void ClearTerminalDisplay()
         {
