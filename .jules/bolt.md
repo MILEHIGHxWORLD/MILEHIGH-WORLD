@@ -435,3 +435,7 @@
 ## 2026-06-02 - Eliminate Per-Character Wait Allocations in UI
 **Learning:** In UI routines like the `TypewriterEffect`, instantiating a `new WaitForSeconds` on every single character creates significant per-frame GC allocation overhead (O(N) allocations where N is text length).
 **Action:** Always utilize a centralized `WaitForSeconds` cache with integer millisecond keys for recurring loop delays to achieve a zero-allocation coroutine.
+
+## 2024-06-16 - Consolidate duplicate Levenshtein Distance functions
+**Learning:** In `OtisTerminal.cs`, code rot led to three duplicate methods computing the Levenshtein distance (`GetLevenshteinDistance`, `ComputeLevenshteinDistance` duplicated), and a redundant loop duplicating `GetCommandSuggestion` inside `ProcessCommand`. This redundancy increases code size and executes duplicate loops calculating distance during error handling.
+**Action:** When working on codebase with poor merges or duplicated error handling routines, consolidate repeated implementations to improve maintainability and avoid unnecessary allocations/loops.
