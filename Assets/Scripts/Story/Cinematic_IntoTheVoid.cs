@@ -144,6 +144,8 @@ namespace MilehighWorld.Cinematics
             }
         }
 
+        private static MaterialPropertyBlock _propertyBlock = new MaterialPropertyBlock();
+
         private async Task ExecuteSaveEveryoneProtocolAsync()
         {
             LogNarrativeTelemetry("PROTOCOL_SAVE_EVERYONE Initiated. Physics re-aligning.");
@@ -153,7 +155,7 @@ namespace MilehighWorld.Cinematics
                 var renderer = kingCyrusPrefab.GetComponentInChildren<Renderer>();
                 if (renderer != null)
                 {
-                    await TweenAlphaDecayAsync(renderer.material, 1.5f);
+                    await TweenAlphaDecayAsync(renderer, 1.5f);
                 }
                 kingCyrusPrefab.SetActive(false);
             }
@@ -162,16 +164,22 @@ namespace MilehighWorld.Cinematics
             LogNarrativeTelemetry("Omen Singularity Severed. Verse Stabilized.");
         }
 
-        private async Task TweenAlphaDecayAsync(Material mat, float duration)
+        private async Task TweenAlphaDecayAsync(Renderer renderer, float duration)
         {
-            if (mat == null) return;
+            if (renderer == null) return;
 
             float elapsed = 0f;
             while (elapsed < duration)
             {
                 elapsed += Time.deltaTime;
                 float alpha = Mathf.Lerp(1f, 0f, elapsed / duration);
-                mat.SetFloat(baseColorAlphaId, alpha);
+
+                // ⚡ Bolt: Use MaterialPropertyBlock instead of Renderer.material to prevent material instantiation on the heap and preserve draw call batching (SRP/GPU instancing).
+                if (_propertyBlock == null) _propertyBlock = new MaterialPropertyBlock();
+                renderer.GetPropertyBlock(_propertyBlock);
+                _propertyBlock.SetFloat(baseColorAlphaId, alpha);
+                renderer.SetPropertyBlock(_propertyBlock);
+
                 await Task.Yield();
             }
         }
