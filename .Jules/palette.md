@@ -164,3 +164,7 @@
 ## 2026-06-25 - [Forgiving Command Interfaces with Suggestions]
 **Learning:** In terminal-style interfaces, providing a "Did You Mean?" suggestion for unrecognized commands using Levenshtein distance (threshold <= 2) significantly reduces user friction and frustration caused by minor typos. This is especially helpful for accessibility, as it provides clear paths forward for users who may have difficulty with precise typing.
 **Action:** Implement fuzzy-match command suggestions in all CLI-driven micro-interactions to enhance user agency and accessibility.
+
+## 2026-06-17 - [Tab-to-Accept for Forgiving CLI Interfaces]
+**Learning:** Providing fuzzy-match command suggestions is only half the battle; allowing users to immediately accept those suggestions with a familiar key (like Tab) completes the loop of a forgiving interface. This "Tab-to-Accept" pattern drastically reduces the cognitive load of correcting minor typos and makes terminal-style micro-interactions feel remarkably fluid and responsive.
+**Action:** Always pair "Did You Mean?" suggestions with a quick-acceptance mechanic (like Tab) to minimize user friction in command-line interfaces.
