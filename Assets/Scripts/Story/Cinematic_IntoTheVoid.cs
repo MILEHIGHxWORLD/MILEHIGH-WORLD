@@ -46,6 +46,8 @@ namespace MilehighWorld.Cinematics
         // Cached Shader Property IDs for zero-allocation performance
         private readonly int emissiveIntensityId = Shader.PropertyToID("_EmissiveIntensity");
         private readonly int baseColorAlphaId = Shader.PropertyToID("_BaseColor_Alpha");
+        private static MaterialPropertyBlock _propertyBlock;
+        private MaterialPropertyBlock _propertyBlock;
 
         // Mathematical Constants
         private const float TrueMonadBaseline = 1.0f;
@@ -56,6 +58,11 @@ namespace MilehighWorld.Cinematics
         private bool _skipRequested = false;
         private float _lastInteractionTime;
         private GameObject? _skipHint;
+
+        // Palette: UX state for skip mechanics and idle hints
+        private bool _skipRequested = false;
+        private float _idleTimer = 0f;
+        [SerializeField] private GameObject? skipHintObject;
 
         private void Start()
         {
@@ -109,6 +116,26 @@ namespace MilehighWorld.Cinematics
             if (_skipHint != null && !_skipHint.activeSelf && Time.time - _lastInteractionTime > 2f)
             {
                 _skipHint.SetActive(true);
+            // Palette: Detect any interaction to trigger skip or reset idle hint timer.
+            if (Input.anyKeyDown)
+            {
+                _skipRequested = true;
+                _idleTimer = 0f;
+
+                if (skipHintObject != null && skipHintObject.activeSelf)
+                {
+                    skipHintObject.SetActive(false);
+                }
+            }
+            else
+            {
+                _idleTimer += Time.deltaTime;
+
+                // Palette: Show skip hint after 2 seconds of inactivity to improve discoverability.
+                if (_idleTimer >= 2.0f && skipHintObject != null && !skipHintObject.activeSelf)
+                {
+                    skipHintObject.SetActive(true);
+                }
             }
         }
 
@@ -128,7 +155,7 @@ namespace MilehighWorld.Cinematics
             if (dialogueCanvas != null) dialogueCanvas.SetActive(true);
 
             await StreamDialogueAsync("King Cyrus", "Tremble, mortals, as the Age of Millenia crumbles before the might of the Void!", 0.04f);
-            await Task.Delay(500);
+            await WaitForSecondsOrSkipAsync(0.5f);
 
             await StreamDialogueAsync("Sky.ix", "Negative. The resonance is peaking. Engaging Void Conduit via Vitis AI Bridge.", 0.03f);
 
@@ -172,6 +199,8 @@ namespace MilehighWorld.Cinematics
             }
         }
 
+        private static MaterialPropertyBlock _propertyBlock = new MaterialPropertyBlock();
+
         private async Task ExecuteSaveEveryoneProtocolAsync()
         {
             LogNarrativeTelemetry("PROTOCOL_SAVE_EVERYONE Initiated. Physics re-aligning.");
@@ -181,7 +210,10 @@ namespace MilehighWorld.Cinematics
                 var renderer = kingCyrusPrefab.GetComponentInChildren<Renderer>();
                 if (renderer != null)
                 {
-                    await TweenAlphaDecayAsync(renderer.material, 1.5f);
+                    // ⚡ Bolt: Use MaterialPropertyBlock instead of renderer.material to prevent GC allocations from material cloning and maintain SRP/GPU instancing batching.
+                    // ⚡ Bolt: Use MaterialPropertyBlock to update alpha without instantiating a new material.
+                    // This preserves draw call batching (SRP/GPU instancing) and eliminates GC allocations.
+                    await TweenAlphaDecayAsync(renderer, 1.5f);
                 }
                 kingCyrusPrefab.SetActive(false);
             }
@@ -190,9 +222,9 @@ namespace MilehighWorld.Cinematics
             LogNarrativeTelemetry("Omen Singularity Severed. Verse Stabilized.");
         }
 
-        private async Task TweenAlphaDecayAsync(Material mat, float duration)
+        private async Task TweenAlphaDecayAsync(Renderer targetRenderer, float duration)
         {
-            if (mat == null) return;
+            if (targetRenderer == null) return;
 
             float elapsed = 0f;
             while (elapsed < duration)
@@ -225,15 +257,126 @@ namespace MilehighWorld.Cinematics
             }
 
             // Palette: Append a color-coded '▽' completion cue to the dialogue for better interaction clarity.
+            // BOLT: Replaced .material with MaterialPropertyBlock to prevent runtime material instantiation and preserve draw call batching.
+            MaterialPropertyBlock propBlock = new MaterialPropertyBlock();
+        private async Task TweenAlphaDecayAsync(Renderer renderer, float duration)
+        {
+            if (renderer == null) return;
+
+            MaterialPropertyBlock propertyBlock = new MaterialPropertyBlock();
+            renderer.GetPropertyBlock(propertyBlock);
+        // BOLT: Use MaterialPropertyBlock to prevent material cloning on the heap, eliminating GC allocations and preserving draw call batching.
+        private async Task TweenAlphaDecayAsync(Renderer renderer, float duration)
+        {
+            if (renderer == null) return;
+        private async Task TweenAlphaDecayAsync(Renderer targetRenderer, float duration)
+        {
+            if (targetRenderer == null) return;
+
+            // ⚡ Bolt: Replaced Renderer.material with MaterialPropertyBlock to prevent GC allocations and preserve GPU instancing.
+            MaterialPropertyBlock propBlock = new MaterialPropertyBlock();
+        private async Task TweenAlphaDecayAsync(Renderer renderer, float duration)
+        {
+            if (renderer == null) return;
+
+            if (_propertyBlock == null)
+            {
+                _propertyBlock = new MaterialPropertyBlock();
+            }
+        {
+            if (renderer == null) return;
+        private MaterialPropertyBlock _alphaPropBlock;
+
+        private async Task TweenAlphaDecayAsync(Renderer renderer, float duration)
+        {
+            if (renderer == null) return;
+
+            // ⚡ Bolt: Cached MaterialPropertyBlock to prevent GC allocations and preserve GPU instancing.
+            if (_alphaPropBlock == null)
+            {
+                _alphaPropBlock = new MaterialPropertyBlock();
+            }
+
+            renderer.GetPropertyBlock(_alphaPropBlock);
+            // ⚡ Bolt: Use MaterialPropertyBlock to prevent material instantiation and preserve draw call batching.
+            var propertyBlock = new MaterialPropertyBlock();
+            renderer.GetPropertyBlock(propertyBlock);
+            MaterialPropertyBlock propBlock = new MaterialPropertyBlock();
+            renderer.GetPropertyBlock(propBlock);
+            _propertyBlock ??= new MaterialPropertyBlock();
+
+            MaterialPropertyBlock propBlock = new MaterialPropertyBlock();
+            float elapsed = 0f;
+            while (elapsed < duration)
+            {
+                elapsed += Time.deltaTime;
+                float alpha = Mathf.Lerp(1f, 0f, elapsed / duration);
+                propertyBlock.SetFloat(baseColorAlphaId, alpha);
+                renderer.SetPropertyBlock(propertyBlock);
+
+                renderer.GetPropertyBlock(propBlock);
+                propBlock.SetFloat(baseColorAlphaId, alpha);
+                renderer.SetPropertyBlock(propBlock);
+
+                targetRenderer.GetPropertyBlock(propBlock);
+                propBlock.SetFloat(baseColorAlphaId, alpha);
+                targetRenderer.SetPropertyBlock(propBlock);
+                // ⚡ Bolt: Use MaterialPropertyBlock instead of Renderer.material to prevent material instantiation on the heap and preserve draw call batching (SRP/GPU instancing).
+                if (_propertyBlock == null) _propertyBlock = new MaterialPropertyBlock();
+                _alphaPropBlock.SetFloat(baseColorAlphaId, alpha);
+                renderer.SetPropertyBlock(_alphaPropBlock);
+                propertyBlock.SetFloat(baseColorAlphaId, alpha);
+                renderer.SetPropertyBlock(propertyBlock);
+                propBlock.SetFloat(baseColorAlphaId, alpha);
+                renderer.SetPropertyBlock(propBlock);
+
+                // ⚡ Bolt: Use MaterialPropertyBlock instead of Renderer.material.
+                // What: Replaced direct material access with PropertyBlock.
+                // Why: Accessing Renderer.material instantiates a material clone on the heap.
+                // Impact: Prevents GC allocations per frame during the tween and preserves draw call batching (SRP/GPU instancing).
+                renderer.GetPropertyBlock(_propertyBlock);
+                _propertyBlock.SetFloat(baseColorAlphaId, alpha);
+                renderer.SetPropertyBlock(_propertyBlock);
+
+                await Task.Yield();
+            }
+        }
+
+        /// <summary>
+        /// Zero-allocation rhythmic typewriter effect for dialogue rendering with rhythmic pacing and speaker transitions.
+        /// </summary>
+        private async Task StreamDialogueAsync(string speaker, string content, float charDelay)
+        {
+            if (speakerNameText == null || dialogueText == null) return;
+
+            // Palette: Reset skip request and idle timer at the start of each dialogue segment.
+            _skipRequested = false;
+            _idleTimer = 0f;
+
+            string hexColor = GetSpeakerColorHex(speaker);
+            string formattedSpeaker = $"<color={hexColor}>[{speaker}]</color>";
+
+            if (speakerNameText.text != formattedSpeaker)
+            {
+                speakerNameText.text = formattedSpeaker;
+                if (speakerNameText.transform != null)
+                {
+                    _ = PopScaleAsync(speakerNameText.transform, 0.2f, 1.1f);
+                }
+            }
+
+            // BOLT: Zero-allocation typewriter effect.
+            // Assign the full text once (including completion cue) and use maxVisibleCharacters to reveal it.
             dialogueText.text = $"{content} <color={hexColor}>▽</color>";
             dialogueText.maxVisibleCharacters = 0;
             dialogueText.ForceMeshUpdate();
 
             int characterCount = dialogueText.textInfo.characterCount;
 
-            for (int i = 0; i <= characterCount; i++)
+            for (int i = 1; i <= characterCount; i++)
             {
                 // Palette: Immediate reveal if skip is requested
+                // Palette: Support instant skip to the end of the reveal.
                 if (_skipRequested)
                 {
                     dialogueText.maxVisibleCharacters = characterCount;
@@ -282,12 +425,9 @@ namespace MilehighWorld.Cinematics
             _skipRequested = false; // Reset for next line
         }
 
-        private async Task PopScaleAsync(Transform target, float duration, float scaleFactor)
+        public Color GetSpeakerColor(string speaker)
         {
-            if (target == null) return;
-
-            float elapsed = 0f;
-            while (elapsed < duration)
+            return speaker switch
             {
                 elapsed += Time.deltaTime;
                 float t = elapsed / duration;
@@ -308,10 +448,19 @@ namespace MilehighWorld.Cinematics
                 "Kai" => "#FFD700",
                 "Delilah" => "#9933FF",
                 _ => "#FFFFFF"
+                "Sky.ix" => Color.cyan,
+                "King Cyrus" => Color.yellow,
+                "Reverie" => Color.magenta,
+                "Kai" => new Color(1f, 0.84f, 0f), // Gold
+                "Delilah" => new Color(0.6f, 0.1f, 0.9f), // Void Purple
+                _ => Color.white
             };
         }
 
-        public Color GetSpeakerColor(string speaker)
+        /// <summary>
+        /// Waits for the specified duration or until a skip is requested.
+        /// </summary>
+        private async Task WaitForSecondsOrSkipAsync(float seconds)
         {
             return speaker switch
             {
@@ -322,6 +471,13 @@ namespace MilehighWorld.Cinematics
                 "Delilah" => new Color(0.6f, 0.1f, 0.9f), // Void Purple
                 _ => Color.white
             };
+            float elapsed = 0f;
+            while (elapsed < seconds && !_skipRequested)
+            {
+                elapsed += Time.deltaTime;
+                await Task.Yield();
+            }
+            _skipRequested = false;
         }
 
         [Conditional("ENABLE_NARRATIVE_LOGS")]

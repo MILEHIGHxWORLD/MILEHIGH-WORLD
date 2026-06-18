@@ -168,3 +168,13 @@
 ## 2024-05-24 - [Dialogue Skip and Discoverable Hints]
 **Learning:** In narrative-heavy sequences, providing a skip mechanic that handles both the typewriter reveal and the subsequent reading pause significantly improves user agency. Additionally, an idle-timer-based hint (appearing after 2s of inactivity) balances minimal UI with discoverability for new players.
 **Action:** Implement 'anyKeyDown' skip logic that short-circuits both animation and pauses, and use 'Transform.Find' to programmatically link discoverable skip hints.
+## 2025-05-22 - [Tab-to-Accept Suggestion UX Pattern]
+**Learning:** Enhancing terminal "Did You Mean?" suggestions with a 'Tab-to-Accept' mechanic significantly improves the interaction loop for keyboard-heavy users. By allowing a single keypress (Tab) to instantly correct a typo based on the provided suggestion, we reduce the friction of re-typing and provide a "magical" feel to error recovery.
+**Action:** Always link fuzzy suggestion state to the autocomplete (Tab) handler to enable rapid typo correction in CLI-style interfaces.
+
+## 2026-07-10 - [Forgiving Command Interfaces with Tab-to-Fix]
+**Learning:** In terminal-style UIs, providing "Did You Mean?" suggestions is a great first step, but requiring users to manually re-type the suggested command remains a friction point. Implementing a "Tab to Fix" pattern—where the Tab key immediately populates the input with the last suggested command—creates a significantly more fluid error-recovery loop and enhances user agency.
+**Action:** Always store fuzzy-match suggestions in a transient state and prioritize them in autocomplete logic to enable rapid, one-key error correction.
+## 2026-06-17 - [Tab-to-Accept for Forgiving CLI Interfaces]
+**Learning:** Providing fuzzy-match command suggestions is only half the battle; allowing users to immediately accept those suggestions with a familiar key (like Tab) completes the loop of a forgiving interface. This "Tab-to-Accept" pattern drastically reduces the cognitive load of correcting minor typos and makes terminal-style micro-interactions feel remarkably fluid and responsive.
+**Action:** Always pair "Did You Mean?" suggestions with a quick-acceptance mechanic (like Tab) to minimize user friction in command-line interfaces.
