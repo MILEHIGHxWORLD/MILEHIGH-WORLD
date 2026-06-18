@@ -435,3 +435,6 @@
 ## 2026-06-02 - Eliminate Per-Character Wait Allocations in UI
 **Learning:** In UI routines like the `TypewriterEffect`, instantiating a `new WaitForSeconds` on every single character creates significant per-frame GC allocation overhead (O(N) allocations where N is text length).
 **Action:** Always utilize a centralized `WaitForSeconds` cache with integer millisecond keys for recurring loop delays to achieve a zero-allocation coroutine.
+## 2025-02-14 - MaterialPropertyBlock Zero-Allocation Tweening
+**Learning:** Accessing `Renderer.material` during animations (like alpha decay tweens) silently instantiates a material clone on the heap, causing recurring GC allocations and permanently breaking draw call batching (SRP/GPU instancing) for that renderer.
+**Action:** Always use `MaterialPropertyBlock` with `renderer.GetPropertyBlock()` and `renderer.SetPropertyBlock()` when modifying per-instance shader values at runtime, caching property IDs (`Shader.PropertyToID`) for maximum efficiency.
