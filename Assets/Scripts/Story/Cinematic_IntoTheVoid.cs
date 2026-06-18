@@ -46,6 +46,7 @@ namespace MilehighWorld.Cinematics
         // Cached Shader Property IDs for zero-allocation performance
         private readonly int emissiveIntensityId = Shader.PropertyToID("_EmissiveIntensity");
         private readonly int baseColorAlphaId = Shader.PropertyToID("_BaseColor_Alpha");
+        private MaterialPropertyBlock _propertyBlock;
 
         // Mathematical Constants
         private const float TrueMonadBaseline = 1.0f;
@@ -153,6 +154,8 @@ namespace MilehighWorld.Cinematics
                 var renderer = kingCyrusPrefab.GetComponentInChildren<Renderer>();
                 if (renderer != null)
                 {
+                    // ⚡ Bolt: Use MaterialPropertyBlock to update alpha without instantiating a new material.
+                    // This preserves draw call batching (SRP/GPU instancing) and eliminates GC allocations.
                     await TweenAlphaDecayAsync(renderer, 1.5f);
                 }
                 kingCyrusPrefab.SetActive(false);
@@ -169,6 +172,9 @@ namespace MilehighWorld.Cinematics
             // ⚡ Bolt: Use MaterialPropertyBlock to prevent material instantiation and preserve draw call batching.
             var propertyBlock = new MaterialPropertyBlock();
             renderer.GetPropertyBlock(propertyBlock);
+            MaterialPropertyBlock propBlock = new MaterialPropertyBlock();
+            renderer.GetPropertyBlock(propBlock);
+            _propertyBlock ??= new MaterialPropertyBlock();
 
             float elapsed = 0f;
             while (elapsed < duration)
@@ -177,6 +183,17 @@ namespace MilehighWorld.Cinematics
                 float alpha = Mathf.Lerp(1f, 0f, elapsed / duration);
                 propertyBlock.SetFloat(baseColorAlphaId, alpha);
                 renderer.SetPropertyBlock(propertyBlock);
+                propBlock.SetFloat(baseColorAlphaId, alpha);
+                renderer.SetPropertyBlock(propBlock);
+
+                // ⚡ Bolt: Use MaterialPropertyBlock instead of Renderer.material.
+                // What: Replaced direct material access with PropertyBlock.
+                // Why: Accessing Renderer.material instantiates a material clone on the heap.
+                // Impact: Prevents GC allocations per frame during the tween and preserves draw call batching (SRP/GPU instancing).
+                renderer.GetPropertyBlock(_propertyBlock);
+                _propertyBlock.SetFloat(baseColorAlphaId, alpha);
+                renderer.SetPropertyBlock(_propertyBlock);
+
                 await Task.Yield();
             }
         }
