@@ -20,7 +20,7 @@ namespace MilehighWorld.World.Terminal
         private static readonly Dictionary<int, WaitForSeconds> _waitCache = new Dictionary<int, WaitForSeconds>();
 
         private Coroutine? _typewriterCoroutine;
-        private List<string> _commandHistory = new List<string>();
+        private readonly List<string> _commandHistory = new List<string>();
         private int _historyIndex = -1;
         private string? _lastSuggestion; // Palette: Track fuzzy-match suggestions for "Tab to Fix" recovery.
         private string _lastSuggestion = "";
@@ -63,6 +63,7 @@ namespace MilehighWorld.World.Terminal
             {
                 ClearTerminalDisplay();
                 commandInput.text = "";
+                commandInput.ActivateInputField();
             }
 
             // Palette: Refined history navigation - ensure responsiveness by polling in Update.
@@ -75,6 +76,7 @@ namespace MilehighWorld.World.Terminal
 
         private void HandleAutocomplete()
         {
+            if (commandInput == null || string.IsNullOrWhiteSpace(commandInput.text)) return;
             if (commandInput == null) return;
 
             // Palette: Prioritize "Tab to Fix" if a suggestion is available from a previous typo.
@@ -186,9 +188,10 @@ namespace MilehighWorld.World.Terminal
 
             if (parts.Length >= 3)
             {
-                int index = input.IndexOf(parts[2]);
+                int index = input.IndexOf(parts[1]);
                 if (index != -1)
                 {
+                    ExecuteExtendedCommand(parts[0], input.Substring(index));
                     _lastSuggestion = null;
                     string argument = input.Substring(index);
                     ExecuteExtendedCommand(parts[0], argument);
@@ -204,6 +207,12 @@ namespace MilehighWorld.World.Terminal
             {
                 errorMsg += $"\n[SYSTEM]: Did you mean: <color=#00FFFF>{suggestion}</color>?";
             // Unknown command or invalid argument count
+            string suggestion = GetCommandSuggestion(command);
+            string errorMsg = $"\n[SYSTEM]: <color=#FF0000>Unknown command: '{parts[0]}'</color>";
+            if (!string.IsNullOrEmpty(suggestion))
+            {
+                errorMsg += $"\n[SYSTEM]: Did you mean: <color=#00FFFF>'{suggestion}'</color>?";
+            }
             string errorMsg = $"\n[SYSTEM]: <color=#FF0000>Unknown command or invalid argument count for '{parts[0]}'.</color>";
             string suggestion = GetCommandSuggestion(command);
             if (!string.IsNullOrEmpty(suggestion))
@@ -279,7 +288,7 @@ namespace MilehighWorld.World.Terminal
             if (_typewriterCoroutine != null)
             {
                 StopCoroutine(_typewriterCoroutine);
-                outputDisplay.maxVisibleCharacters = int.MaxValue; // Reveal all current text
+                outputDisplay.maxVisibleCharacters = int.MaxValue;
             }
 
             _typewriterCoroutine = StartCoroutine(TypewriterEffect(message));
@@ -315,6 +324,8 @@ namespace MilehighWorld.World.Terminal
 
             // ⚡ Bolt: Ensure all characters are visible after typewriter completes to avoid text truncation on subsequent uses.
             outputDisplay.maxVisibleCharacters = outputDisplay.textInfo.characterCount;
+            outputDisplay.maxVisibleCharacters = outputDisplay.textInfo.characterCount;
+
             _typewriterCoroutine = null;
         }
 
@@ -329,7 +340,7 @@ namespace MilehighWorld.World.Terminal
             while (elapsed < duration)
             {
                 float x = UnityEngine.Random.Range(-1f, 1f) * magnitude;
-                commandInput.transform.localPosition = originalPos + new UnityEngine.Vector3(x, 0, 0);
+                commandInput.transform.localPosition = originalPos + new Vector3(x, 0, 0);
                 elapsed += Time.deltaTime;
                 yield return null;
             }
