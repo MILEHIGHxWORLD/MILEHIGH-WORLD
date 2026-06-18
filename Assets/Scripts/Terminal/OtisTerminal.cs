@@ -197,6 +197,12 @@ namespace MilehighWorld.World.Terminal
                 }
             }
 
+            // Unknown command logic with "Did You Mean?" fuzzy matching
+            string suggestion = GetCommandSuggestion(command);
+            string errorMsg = $"\n[SYSTEM]: <color=#FF0000>Unknown command: '{command}'</color>";
+            if (!string.IsNullOrEmpty(suggestion))
+            {
+                errorMsg += $"\n[SYSTEM]: Did you mean: <color=#00FFFF>{suggestion}</color>?";
             // Unknown command or invalid argument count
             WriteToTerminal($"\n[SYSTEM]: <color=#FF0000>Error: Unknown command or invalid argument count for '{parts[0]}'.</color>");
 
@@ -254,6 +260,12 @@ namespace MilehighWorld.World.Terminal
             if (outputDisplay == null) return;
             outputDisplay.text = "";
             outputDisplay.maxVisibleCharacters = 0;
+
+            // Palette: Productivity - Automatically refocus the input field after clearing the display.
+            if (commandInput != null)
+            {
+                commandInput.ActivateInputField();
+            }
         }
 
         private void WriteToTerminal(string message)
@@ -297,10 +309,8 @@ namespace MilehighWorld.World.Terminal
                 yield return GetWait(0.02f);
             }
 
+            // ⚡ Bolt: Ensure all characters are visible after typewriter completes to avoid text truncation on subsequent uses.
             outputDisplay.maxVisibleCharacters = outputDisplay.textInfo.characterCount;
-            // ⚡ Bolt: Reset maxVisibleCharacters after typewriter completes to avoid text truncation on subsequent uses.
-            outputDisplay.maxVisibleCharacters = outputDisplay.textInfo.characterCount;
-
             _typewriterCoroutine = null;
         }
 
