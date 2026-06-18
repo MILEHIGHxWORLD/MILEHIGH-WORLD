@@ -198,6 +198,15 @@ namespace MilehighWorld.World.Terminal
             }
 
             // Unknown command or invalid argument count
+            WriteToTerminal($"\n[SYSTEM]: <color=#FF0000>Error: Unknown command or invalid argument count for '{parts[0]}'.</color>");
+
+            // Palette: Did You Mean? feature.
+            string suggestion = GetCommandSuggestion(command);
+            string errorMsg = $"\n[SYSTEM]: <color=#FF0000>Unknown command: '{parts[0]}'</color>";
+
+            if (!string.IsNullOrEmpty(suggestion))
+            {
+                errorMsg += $"\n[SYSTEM]: Did you mean <color=#00FFFF>'{suggestion}'</color>?";
             _lastSuggestion = GetCommandSuggestion(command);
             string errorMsg = $"\n[SYSTEM]: <color=#FF0000>Error: Unknown command or invalid argument count for '{parts[0]}'.</color>";
             if (!string.IsNullOrEmpty(_lastSuggestion))
@@ -210,6 +219,7 @@ namespace MilehighWorld.World.Terminal
             _lastSuggestion = GetCommandSuggestion(command);
             string errorMsg = $"\n[SYSTEM]: <color=#FF0000>Unknown command: '{parts[0]}'</color>";
 
+            WriteToTerminal(errorMsg);
             if (!string.IsNullOrEmpty(_lastSuggestion))
             {
                 errorMsg += $"\n[SYSTEM]: Did you mean: <color=#00FFFF>{_lastSuggestion}</color>?";
