@@ -168,3 +168,6 @@
 ## 2026-07-10 - [Forgiving Command Interfaces with Tab-to-Fix]
 **Learning:** In terminal-style UIs, providing "Did You Mean?" suggestions is a great first step, but requiring users to manually re-type the suggested command remains a friction point. Implementing a "Tab to Fix" pattern—where the Tab key immediately populates the input with the last suggested command—creates a significantly more fluid error-recovery loop and enhances user agency.
 **Action:** Always store fuzzy-match suggestions in a transient state and prioritize them in autocomplete logic to enable rapid, one-key error correction.
+## 2026-06-17 - [Tab-to-Accept for Forgiving CLI Interfaces]
+**Learning:** Providing fuzzy-match command suggestions is only half the battle; allowing users to immediately accept those suggestions with a familiar key (like Tab) completes the loop of a forgiving interface. This "Tab-to-Accept" pattern drastically reduces the cognitive load of correcting minor typos and makes terminal-style micro-interactions feel remarkably fluid and responsive.
+**Action:** Always pair "Did You Mean?" suggestions with a quick-acceptance mechanic (like Tab) to minimize user friction in command-line interfaces.
