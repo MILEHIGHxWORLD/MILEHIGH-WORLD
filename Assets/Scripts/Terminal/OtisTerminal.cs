@@ -22,6 +22,7 @@ namespace MilehighWorld.World.Terminal
         private Coroutine? _typewriterCoroutine;
         private List<string> _commandHistory = new List<string>();
         private int _historyIndex = -1;
+        private string? _lastSuggestion; // Palette: Track fuzzy-match suggestions for "Tab to Fix" recovery.
         private string _lastSuggestion = "";
 
         private static WaitForSeconds GetWait(float seconds)
@@ -100,7 +101,18 @@ namespace MilehighWorld.World.Terminal
 
         private void HandleAutocomplete()
         {
-            if (commandInput == null || string.IsNullOrWhiteSpace(commandInput.text)) return;
+            if (commandInput == null) return;
+
+            // Palette: Prioritize "Tab to Fix" if a suggestion is available from a previous typo.
+            if (!string.IsNullOrEmpty(_lastSuggestion))
+            {
+                commandInput.text = _lastSuggestion;
+                commandInput.caretPosition = _lastSuggestion.Length;
+                _lastSuggestion = null;
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(commandInput.text)) return;
 
             string input = commandInput.text.ToLower();
             string[] commands = { "help", "clear" };
@@ -128,6 +140,7 @@ namespace MilehighWorld.World.Terminal
         private void NavigateHistory(int direction)
         {
             if (_commandHistory.Count == 0) return;
+            _lastSuggestion = null; // Palette: Clear suggestion when navigating history for a fresh interaction state.
             _lastSuggestion = ""; // Palette: Clear suggestion when navigating history for a fresh state.
             _historyIndex = Mathf.Clamp(_historyIndex + direction, 0, _commandHistory.Count);
             commandInput.text = _historyIndex < _commandHistory.Count ? _commandHistory[_historyIndex] : "";
@@ -168,16 +181,19 @@ namespace MilehighWorld.World.Terminal
 
             if (command == "clear")
             {
+                _lastSuggestion = null;
                 ClearTerminalDisplay();
                 return;
             }
 
             if (command == "help")
             {
+                _lastSuggestion = null;
                 WriteToTerminal("\n[SYSTEM]: <color=#FFFF00>Available Commands:</color>" +
                                 "\n - <color=#00FFFF>help</color>: Show this message." +
                                 "\n - <color=#00FFFF>clear</color>: Clear the terminal display (or Ctrl+L)." +
                                 "\n - <color=#00FFFF>[cmd] [arg1] [arg2]</color>: Execute extended system commands." +
+                                "\n\n[SYSTEM]: <color=#FFFF00>Shortcuts:</color> Up/Down Arrow for History, Tab to Autocomplete/Fix, Ctrl+L to Clear.");
                                 "\n\n[SYSTEM]: <color=#FFFF00>Shortcuts:</color> Up/Down Arrow for History, Tab to Autocomplete/Accept, Ctrl+L to Clear.");
                 return;
             }
@@ -187,6 +203,7 @@ namespace MilehighWorld.World.Terminal
                 int index = input.IndexOf(parts[2]);
                 if (index != -1)
                 {
+                    _lastSuggestion = null;
                     string argument = input.Substring(index);
                     ExecuteExtendedCommand(parts[0], argument);
                     WriteToTerminal($"\n[SYSTEM]: <color=#00FF00>Command '{parts[0]}' executed.</color>");
@@ -195,6 +212,8 @@ namespace MilehighWorld.World.Terminal
             }
 
             // Palette: Unknown command handling with "Did You Mean?" suggestion.
+            string suggestion = GetCommandSuggestion(command);
+            _lastSuggestion = suggestion; // Palette: Store for Tab-to-Fix recovery.
             _lastSuggestion = GetCommandSuggestion(command);
             string errorMsg = $"\n[SYSTEM]: <color=#FF0000>Unknown command: '{parts[0]}'</color>";
 
