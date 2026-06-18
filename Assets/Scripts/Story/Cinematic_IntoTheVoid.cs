@@ -46,6 +46,7 @@ namespace MilehighWorld.Cinematics
         // Cached Shader Property IDs for zero-allocation performance
         private readonly int emissiveIntensityId = Shader.PropertyToID("_EmissiveIntensity");
         private readonly int baseColorAlphaId = Shader.PropertyToID("_BaseColor_Alpha");
+        private static MaterialPropertyBlock _propertyBlock;
         private MaterialPropertyBlock _propertyBlock;
 
         // Mathematical Constants
@@ -168,6 +169,13 @@ namespace MilehighWorld.Cinematics
         }
 
         private async Task TweenAlphaDecayAsync(Renderer renderer, float duration)
+        {
+            if (renderer == null) return;
+
+            if (_propertyBlock == null)
+            {
+                _propertyBlock = new MaterialPropertyBlock();
+            }
         {
             if (renderer == null) return;
         private MaterialPropertyBlock _alphaPropBlock;

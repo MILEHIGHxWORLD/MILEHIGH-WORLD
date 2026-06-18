@@ -435,6 +435,9 @@
 ## 2026-06-02 - Eliminate Per-Character Wait Allocations in UI
 **Learning:** In UI routines like the `TypewriterEffect`, instantiating a `new WaitForSeconds` on every single character creates significant per-frame GC allocation overhead (O(N) allocations where N is text length).
 **Action:** Always utilize a centralized `WaitForSeconds` cache with integer millisecond keys for recurring loop delays to achieve a zero-allocation coroutine.
+## 2026-06-15 - [MaterialPropertyBlock for Shader Properties]
+**Learning:** Accessing `Renderer.material` at runtime instantiates a material clone on the heap, generating GC allocations and breaking draw call batching (SRP/GPU instancing).
+**Action:** Always use a `MaterialPropertyBlock` with cached property IDs (`Shader.PropertyToID`) for per-renderer modifications. Call `renderer.GetPropertyBlock()` prior to modifying values to ensure previously applied property block data is preserved.
 
 ## 2024-06-16 - Consolidate duplicate Levenshtein Distance functions
 **Learning:** In `OtisTerminal.cs`, code rot led to three duplicate methods computing the Levenshtein distance (`GetLevenshteinDistance`, `ComputeLevenshteinDistance` duplicated), and a redundant loop duplicating `GetCommandSuggestion` inside `ProcessCommand`. This redundancy increases code size and executes duplicate loops calculating distance during error handling.
