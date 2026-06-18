@@ -73,32 +73,6 @@ namespace MilehighWorld.World.Terminal
             if (Input.GetKeyDown(KeyCode.Tab)) HandleAutocomplete();
         }
 
-        /// <summary>
-        /// Calculates the Levenshtein distance between two strings to support "Did You Mean?" suggestions.
-        /// </summary>
-        private int ComputeLevenshteinDistance(string s, string t)
-        {
-            int n = s.Length;
-            int m = t.Length;
-            int[,] d = new int[n + 1, m + 1];
-
-            if (n == 0) return m;
-            if (m == 0) return n;
-
-            for (int i = 0; i <= n; d[i, 0] = i++) ;
-            for (int j = 0; j <= m; d[0, j] = j++) ;
-
-            for (int i = 1; i <= n; i++)
-            {
-                for (int j = 1; j <= m; j++)
-                {
-                    int cost = (t[j - 1] == s[i - 1]) ? 0 : 1;
-                    d[i, j] = Mathf.Min(Mathf.Min(d[i - 1, j] + 1, d[i, j - 1] + 1), d[i - 1, j - 1] + cost);
-                }
-            }
-            return d[n, m];
-        }
-
         private void HandleAutocomplete()
         {
             if (commandInput == null) return;
@@ -117,6 +91,7 @@ namespace MilehighWorld.World.Terminal
             string input = commandInput.text.ToLower();
             string[] commands = { "help", "clear" };
 
+            bool prefixMatched = false;
             // Palette: Prioritize standard prefix matching.
             foreach (string cmd in commands)
             {
@@ -124,6 +99,16 @@ namespace MilehighWorld.World.Terminal
                 {
                     commandInput.text = cmd;
                     commandInput.caretPosition = cmd.Length;
+                    prefixMatched = true;
+                    break;
+                }
+            }
+
+            // Palette: Tab-to-Accept Suggestion - if no prefix match, try accepting the last fuzzy suggestion.
+            if (!prefixMatched && !string.IsNullOrEmpty(_lastSuggestion))
+            {
+                commandInput.text = _lastSuggestion;
+                commandInput.caretPosition = _lastSuggestion.Length;
                     return;
                 }
             }
@@ -153,6 +138,7 @@ namespace MilehighWorld.World.Terminal
             _lastSuggestion = ""; // Palette: Clear previous suggestion on new command attempt.
             if (_commandHistory.Count == 0 || _commandHistory[^1] != input) _commandHistory.Add(input);
             _historyIndex = _commandHistory.Count;
+            _lastSuggestion = ""; // Reset suggestion on new command attempt
 
             // UX Enhancement: Clear input and refocus immediately for better flow
             if (commandInput != null)
@@ -211,6 +197,13 @@ namespace MilehighWorld.World.Terminal
                 }
             }
 
+            // Unknown command or invalid argument count
+            _lastSuggestion = GetCommandSuggestion(command);
+            string errorMsg = $"\n[SYSTEM]: <color=#FF0000>Error: Unknown command or invalid argument count for '{parts[0]}'.</color>";
+            if (!string.IsNullOrEmpty(_lastSuggestion))
+            {
+                errorMsg += $"\n[SYSTEM]: Did you mean: <color=#00FFFF>'{_lastSuggestion}'</color>?";
+            }
             // Palette: Unknown command handling with "Did You Mean?" suggestion.
             string suggestion = GetCommandSuggestion(command);
             _lastSuggestion = suggestion; // Palette: Store for Tab-to-Fix recovery.
