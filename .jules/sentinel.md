@@ -271,3 +271,15 @@
 **Vulnerability:** A malformed HashSet missing commas in the SceneDirector blocklist failed to compile, leaving critical singletons unprotected from Insecure Direct Object Reference (IDOR) attacks via GameObject.Find.
 **Learning:** Security blocklists implemented as static C# collections can fail completely if they contain syntax errors (like missing commas when merging lists), neutralizing the defense.
 **Prevention:** Always verify C# syntax correctness manually or via strict build pipelines, as simple compilation errors can silently break security features if not caught.
+## 2026-06-15 - IDOR Blocklist Syntax Error Fixed
+**Vulnerability:** A malformed _protectedManagers HashSet in SceneDirector.cs contained missing commas and duplicate entries, which would break the IDOR blocklist and potentially expose core managers (like GameManager, RealitySyncEngine, and CombatManager) to unauthorized external access via GameObject.Find.
+**Learning:** Hardcoded security blocklists are prone to human error during manual merges or updates, leading to invalid C# syntax that breaks the security mechanism entirely.
+**Prevention:** Implement unit tests that validate the syntactic correctness and completeness of security blocklists to ensure all required managers are present.
+## 2024-05-14 - Malformed IDOR Blocklist Exposing Core Managers
+**Vulnerability:** A missing comma and duplicate entries in the C# `_protectedManagers` HashSet blocklist within `SceneDirector.cs` caused a syntax error, effectively breaking compilation and the IDOR protection mechanism that blocks unauthorized access to core singletons (e.g., `CombatManager`, `GameManager`) via `GameObject.Find`.
+**Learning:** C# syntax errors in data structures (like malformed HashSets) can silently fail if there's no active compilation check or test runner, leading to critical security mechanisms being completely bypassed or deployed broken.
+**Prevention:** Always manually ensure C# syntax correctness for security-critical blocklists, and utilize a proper C# compiler step in CI/CD rather than relying solely on file-existence validation scripts.
+## 2024-06-17 - Malformed HashSet Breaking IDOR Protection
+**Vulnerability:** A C# syntax error (missing comma and duplicated list) in the `_protectedManagers` blocklist inside `SceneDirector.cs` compromised the IDOR protection mechanism, potentially allowing unauthorized access to core managers via `GameObject.Find`.
+**Learning:** Hardcoded security blocklists are susceptible to copy-paste errors and syntax mistakes that might go unnoticed if compilation checks aren't rigorously enforced in CI/CD alongside data validation scripts.
+**Prevention:** Ensure C# compilation checks are included in the verification pipeline and format security arrays properly with commas and comments for each entry to avoid merge/copy-paste conflicts.

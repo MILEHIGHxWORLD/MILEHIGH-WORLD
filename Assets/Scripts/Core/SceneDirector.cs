@@ -22,6 +22,7 @@ namespace MilehighWorld.Core
         private readonly Dictionary<int, CharacterControllerBase?> _controllerCache = new Dictionary<int, CharacterControllerBase?>();
 
         // 🛡️ Sentinel: Prevent IDOR (Insecure Direct Object Reference) by blocking GameObject.Find access to core singletons.
+        // 🛡️ Sentinel: Protected core singletons from Insecure Direct Object Reference (IDOR) access via GameObject.Find.
         private static readonly HashSet<string> _protectedManagers = new HashSet<string>
         {
             "CampaignManager", "SceneDirector", "CameraManager", "AlliancePowerManager", "GlobalResonanceManager", "CombatManager", "EncounterDirector", "NarrativeActionResolver", "GameManager", "BackendSyncService", "RealitySyncEngine", "FoxParadeDirector", "TimelineSimulationEngine", "VitisAIBridge", "IXNodeController"
@@ -172,7 +173,8 @@ namespace MilehighWorld.Core
 
             if (_objectCache.TryGetValue(objectName, out GameObject? obj))
             {
-                if (obj != null) return obj;
+                // ⚡ Bolt: Use ReferenceEquals for robust negative caching, skipping O(N) GameObject.Find for truly missing objects.
+                if (System.Object.ReferenceEquals(obj, null) || obj != null) return obj;
             }
 
             obj = GameObject.Find(objectName);
