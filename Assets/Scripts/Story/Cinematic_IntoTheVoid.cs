@@ -227,6 +227,9 @@ namespace MilehighWorld.Cinematics
         {
             if (renderer == null) return;
 
+            // ⚡ Bolt: Use MaterialPropertyBlock to prevent material instancing and GC allocations during the fade out.
+            MaterialPropertyBlock block = new MaterialPropertyBlock();
+
             // ⚡ Bolt: Use MaterialPropertyBlock instead of Renderer.material to prevent material cloning, GC allocations, and broken draw call batching.
             MaterialPropertyBlock propBlock = new MaterialPropertyBlock();
         // ⚡ Bolt: Use MaterialPropertyBlock to avoid instantiating material clones,
@@ -254,6 +257,9 @@ namespace MilehighWorld.Cinematics
             {
                 elapsed += Time.deltaTime;
                 float alpha = Mathf.Lerp(1f, 0f, elapsed / duration);
+                renderer.GetPropertyBlock(block);
+                block.SetFloat(baseColorAlphaId, alpha);
+                renderer.SetPropertyBlock(block);
                 targetRenderer.GetPropertyBlock(propBlock);
                 propBlock.SetFloat(baseColorAlphaId, alpha);
                 targetRenderer.SetPropertyBlock(propBlock);
