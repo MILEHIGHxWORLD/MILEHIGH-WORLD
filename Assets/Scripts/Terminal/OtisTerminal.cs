@@ -93,6 +93,7 @@ namespace MilehighWorld.World.Terminal
             string input = commandInput.text.ToLower();
             string[] commands = { "help", "clear" };
 
+            // Palette: Prefix-based autocomplete first
             bool prefixMatched = false;
             // Palette: Prioritize standard prefix matching.
             foreach (string cmd in commands)
@@ -101,6 +102,16 @@ namespace MilehighWorld.World.Terminal
                 {
                     commandInput.text = cmd;
                     commandInput.caretPosition = cmd.Length;
+                    return;
+                }
+            }
+
+            // Palette: Fuzzy-based autocomplete as a fallback for typos
+            string suggestion = GetCommandSuggestion(input);
+            if (!string.IsNullOrEmpty(suggestion))
+            {
+                commandInput.text = suggestion;
+                commandInput.caretPosition = suggestion.Length;
                     prefixMatched = true;
                     break;
                 }
@@ -200,6 +211,12 @@ namespace MilehighWorld.World.Terminal
                 }
             }
 
+            // Palette: Did You Mean? feature for unknown commands.
+            string suggestion = GetCommandSuggestion(command);
+            string errorMsg = $"\n[SYSTEM]: <color=#FF0000>Unknown command: '{parts[0]}'</color>";
+            if (!string.IsNullOrEmpty(suggestion))
+            {
+                errorMsg += $"\n[SYSTEM]: Did you mean: <color=#00FFFF>'{suggestion}'</color>?";
             // Unknown command logic with "Did You Mean?" fuzzy matching
             string suggestion = GetCommandSuggestion(command);
             string errorMsg = $"\n[SYSTEM]: <color=#FF0000>Unknown command: '{command}'</color>";
@@ -244,6 +261,7 @@ namespace MilehighWorld.World.Terminal
             {
                 errorMsg += $"\n[SYSTEM]: Did you mean: <color=#00FFFF>{_lastSuggestion}</color>?";
             }
+            WriteToTerminal(errorMsg);
 
             WriteToTerminal(errorMsg);
             if (commandInput != null) StartCoroutine(ShakeInputField());
@@ -322,6 +340,7 @@ namespace MilehighWorld.World.Terminal
                 yield return GetWait(0.02f);
             }
 
+            // ⚡ Bolt: Reset maxVisibleCharacters after typewriter completes to avoid text truncation on subsequent uses.
             // ⚡ Bolt: Ensure all characters are visible after typewriter completes to avoid text truncation on subsequent uses.
             outputDisplay.maxVisibleCharacters = outputDisplay.textInfo.characterCount;
             outputDisplay.maxVisibleCharacters = outputDisplay.textInfo.characterCount;
