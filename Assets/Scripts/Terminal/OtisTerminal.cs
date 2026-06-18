@@ -204,6 +204,11 @@ namespace MilehighWorld.World.Terminal
             {
                 errorMsg += $"\n[SYSTEM]: Did you mean: <color=#00FFFF>{suggestion}</color>?";
             // Unknown command or invalid argument count
+            string errorMsg = $"\n[SYSTEM]: <color=#FF0000>Unknown command or invalid argument count for '{parts[0]}'.</color>";
+            string suggestion = GetCommandSuggestion(command);
+            if (!string.IsNullOrEmpty(suggestion))
+            {
+                errorMsg += $"\n[SYSTEM]: Did you mean: <color=#00FFFF>'{suggestion}'</color>?";
             WriteToTerminal($"\n[SYSTEM]: <color=#FF0000>Error: Unknown command or invalid argument count for '{parts[0]}'.</color>");
 
             // Palette: Did You Mean? feature.
@@ -253,7 +258,6 @@ namespace MilehighWorld.World.Terminal
 
             return minDistance <= 2 ? bestMatch : "";
         }
-
 
         private void ClearTerminalDisplay()
         {
