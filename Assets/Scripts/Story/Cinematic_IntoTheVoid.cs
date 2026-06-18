@@ -198,6 +198,10 @@ namespace MilehighWorld.Cinematics
             LogNarrativeTelemetry("Omen Singularity Severed. Verse Stabilized.");
         }
 
+        // BOLT: Use MaterialPropertyBlock to prevent material cloning on the heap, eliminating GC allocations and preserving draw call batching.
+        private async Task TweenAlphaDecayAsync(Renderer renderer, float duration)
+        {
+            if (renderer == null) return;
         private async Task TweenAlphaDecayAsync(Renderer targetRenderer, float duration)
         {
             if (targetRenderer == null) return;
@@ -234,11 +238,16 @@ namespace MilehighWorld.Cinematics
             renderer.GetPropertyBlock(propBlock);
             _propertyBlock ??= new MaterialPropertyBlock();
 
+            MaterialPropertyBlock propBlock = new MaterialPropertyBlock();
             float elapsed = 0f;
             while (elapsed < duration)
             {
                 elapsed += Time.deltaTime;
                 float alpha = Mathf.Lerp(1f, 0f, elapsed / duration);
+
+                renderer.GetPropertyBlock(propBlock);
+                propBlock.SetFloat(baseColorAlphaId, alpha);
+                renderer.SetPropertyBlock(propBlock);
 
                 targetRenderer.GetPropertyBlock(propBlock);
                 propBlock.SetFloat(baseColorAlphaId, alpha);
