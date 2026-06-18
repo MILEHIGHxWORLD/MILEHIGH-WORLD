@@ -439,3 +439,6 @@
 ## 2026-06-17 - [MaterialPropertyBlock for Zero-Allocation Tweens]
 **Learning:** Modifying `Renderer.material` at runtime (like fading out an entity's alpha during a cinematic) instantiates a material clone on the heap, generating GC allocations and breaking draw call batching.
 **Action:** Always use a `MaterialPropertyBlock` and `Renderer.GetPropertyBlock`/`SetPropertyBlock` along with cached property IDs (`Shader.PropertyToID`) when tweening properties to preserve batching and avoid allocations.
+## 2025-02-14 - MaterialPropertyBlock Zero-Allocation Tweening
+**Learning:** Accessing `Renderer.material` during animations (like alpha decay tweens) silently instantiates a material clone on the heap, causing recurring GC allocations and permanently breaking draw call batching (SRP/GPU instancing) for that renderer.
+**Action:** Always use `MaterialPropertyBlock` with `renderer.GetPropertyBlock()` and `renderer.SetPropertyBlock()` when modifying per-instance shader values at runtime, caching property IDs (`Shader.PropertyToID`) for maximum efficiency.
