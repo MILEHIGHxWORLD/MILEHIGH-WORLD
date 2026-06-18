@@ -168,6 +168,12 @@ namespace MilehighWorld.Cinematics
             LogNarrativeTelemetry("Omen Singularity Severed. Verse Stabilized.");
         }
 
+        private async Task TweenAlphaDecayAsync(Renderer targetRenderer, float duration)
+        {
+            if (targetRenderer == null) return;
+
+            // ⚡ Bolt: Replaced Renderer.material with MaterialPropertyBlock to prevent GC allocations and preserve GPU instancing.
+            MaterialPropertyBlock propBlock = new MaterialPropertyBlock();
         private async Task TweenAlphaDecayAsync(Renderer renderer, float duration)
         {
             if (renderer == null) return;
@@ -204,6 +210,9 @@ namespace MilehighWorld.Cinematics
                 elapsed += Time.deltaTime;
                 float alpha = Mathf.Lerp(1f, 0f, elapsed / duration);
 
+                targetRenderer.GetPropertyBlock(propBlock);
+                propBlock.SetFloat(baseColorAlphaId, alpha);
+                targetRenderer.SetPropertyBlock(propBlock);
                 // ⚡ Bolt: Use MaterialPropertyBlock instead of Renderer.material to prevent material instantiation on the heap and preserve draw call batching (SRP/GPU instancing).
                 if (_propertyBlock == null) _propertyBlock = new MaterialPropertyBlock();
                 _alphaPropBlock.SetFloat(baseColorAlphaId, alpha);
