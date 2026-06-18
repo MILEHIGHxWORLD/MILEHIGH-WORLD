@@ -1,0 +1,13 @@
+[
+  {
+    "user": "no_mfa@example.com",
+    "issue": "MFA NOT ENROLLED",
+    "severity": "HIGH"
+  },
+  {
+    "user": "inactive@example.com",
+    "issue": "INACTIVE > 90 DAYS",
+    "severity": "MEDIUM",
+    "last_login": "2026-03-18T23:37:25.343731+00:00"
+  }
+]
