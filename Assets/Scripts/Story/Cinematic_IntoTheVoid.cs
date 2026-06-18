@@ -223,6 +223,15 @@ namespace MilehighWorld.Cinematics
             LogNarrativeTelemetry("Omen Singularity Severed. Verse Stabilized.");
         }
 
+        // BOLT OPTIMIZATION:
+        // What: Replaced renderer.material with MaterialPropertyBlock
+        // Why: Accessing renderer.material instantiates a material clone on the heap, causing GC allocations and breaking GPU instancing.
+        // Impact: Zero GC allocations during the tweening loop and preserves draw call batching.
+        private async Task TweenAlphaDecayAsync(Renderer renderer, float duration)
+        {
+            if (renderer == null) return;
+
+            MaterialPropertyBlock propBlock = new MaterialPropertyBlock();
         private async Task TweenAlphaDecayAsync(Renderer renderer, float duration)
         {
             if (renderer == null) return;
