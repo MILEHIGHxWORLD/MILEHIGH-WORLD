@@ -223,6 +223,12 @@ namespace MilehighWorld.Cinematics
             LogNarrativeTelemetry("Omen Singularity Severed. Verse Stabilized.");
         }
 
+        private async Task TweenAlphaDecayAsync(Renderer renderer, float duration)
+        {
+            if (renderer == null) return;
+
+            // ⚡ Bolt: Use MaterialPropertyBlock instead of Renderer.material to prevent material cloning, GC allocations, and broken draw call batching.
+            MaterialPropertyBlock propBlock = new MaterialPropertyBlock();
         // ⚡ Bolt: Use MaterialPropertyBlock to avoid instantiating material clones,
         // saving GC allocations and preserving draw call batching (SRP/GPU instancing).
         private async Task TweenAlphaDecayAsync(Renderer targetRenderer, float duration)
