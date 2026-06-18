@@ -154,6 +154,8 @@ namespace MilehighWorld.Cinematics
                 var renderer = kingCyrusPrefab.GetComponentInChildren<Renderer>();
                 if (renderer != null)
                 {
+                    // ⚡ Bolt: Use MaterialPropertyBlock to update alpha without instantiating a new material.
+                    // This preserves draw call batching (SRP/GPU instancing) and eliminates GC allocations.
                     await TweenAlphaDecayAsync(renderer, 1.5f);
                 }
                 kingCyrusPrefab.SetActive(false);
@@ -167,6 +169,8 @@ namespace MilehighWorld.Cinematics
         {
             if (renderer == null) return;
 
+            MaterialPropertyBlock propBlock = new MaterialPropertyBlock();
+            renderer.GetPropertyBlock(propBlock);
             _propertyBlock ??= new MaterialPropertyBlock();
 
             float elapsed = 0f;
@@ -174,6 +178,8 @@ namespace MilehighWorld.Cinematics
             {
                 elapsed += Time.deltaTime;
                 float alpha = Mathf.Lerp(1f, 0f, elapsed / duration);
+                propBlock.SetFloat(baseColorAlphaId, alpha);
+                renderer.SetPropertyBlock(propBlock);
 
                 // ⚡ Bolt: Use MaterialPropertyBlock instead of Renderer.material.
                 // What: Replaced direct material access with PropertyBlock.
