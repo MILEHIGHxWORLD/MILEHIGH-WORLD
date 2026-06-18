@@ -169,6 +169,9 @@ namespace MilehighWorld.Cinematics
         {
             if (renderer == null) return;
 
+            // ⚡ Bolt: Use MaterialPropertyBlock to prevent material instantiation and preserve draw call batching.
+            var propertyBlock = new MaterialPropertyBlock();
+            renderer.GetPropertyBlock(propertyBlock);
             MaterialPropertyBlock propBlock = new MaterialPropertyBlock();
             renderer.GetPropertyBlock(propBlock);
             _propertyBlock ??= new MaterialPropertyBlock();
@@ -178,6 +181,8 @@ namespace MilehighWorld.Cinematics
             {
                 elapsed += Time.deltaTime;
                 float alpha = Mathf.Lerp(1f, 0f, elapsed / duration);
+                propertyBlock.SetFloat(baseColorAlphaId, alpha);
+                renderer.SetPropertyBlock(propertyBlock);
                 propBlock.SetFloat(baseColorAlphaId, alpha);
                 renderer.SetPropertyBlock(propBlock);
 
