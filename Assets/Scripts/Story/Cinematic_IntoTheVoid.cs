@@ -226,6 +226,11 @@ namespace MilehighWorld.Cinematics
         {
             if (renderer == null) return;
 
+            // ⚡ Bolt: Optimization - Using MaterialPropertyBlock instead of accessing renderer.material prevents unnecessary material instantiation on the heap. This avoids a GC allocation spike and preserves draw call batching (SRP/GPU instancing) during alpha decay.
+            MaterialPropertyBlock propBlock = new MaterialPropertyBlock();
+        {
+            if (renderer == null) return;
+
             // ⚡ Bolt: Used MaterialPropertyBlock instead of Renderer.material to prevent material instantiation, GC allocations, and breaking draw call batching.
             MaterialPropertyBlock propBlock = new MaterialPropertyBlock();
         private async Task TweenAlphaDecayAsync(Renderer targetRenderer, float duration)
@@ -237,9 +242,11 @@ namespace MilehighWorld.Cinematics
             {
                 elapsed += Time.deltaTime;
                 float alpha = Mathf.Lerp(1f, 0f, elapsed / duration);
+
                 renderer.GetPropertyBlock(propBlock);
                 propBlock.SetFloat(baseColorAlphaId, alpha);
                 renderer.SetPropertyBlock(propBlock);
+
                 await Task.Yield();
             }
         }
