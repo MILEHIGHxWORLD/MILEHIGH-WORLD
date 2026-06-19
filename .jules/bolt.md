@@ -487,7 +487,3 @@
 ## 2025-02-14 - MaterialPropertyBlock Zero-Allocation Tweening
 **Learning:** Accessing `Renderer.material` during animations (like alpha decay tweens) silently instantiates a material clone on the heap, causing recurring GC allocations and permanently breaking draw call batching (SRP/GPU instancing) for that renderer.
 **Action:** Always use `MaterialPropertyBlock` with `renderer.GetPropertyBlock()` and `renderer.SetPropertyBlock()` when modifying per-instance shader values at runtime, caching property IDs (`Shader.PropertyToID`) for maximum efficiency.
-
-## 2026-06-19 - Eliminate redundant Input.anyKeyDown checks
-**Learning:** Redundant `Input` checks (e.g., calling `Input.anyKeyDown` multiple times in a single `Update()` frame) introduce unnecessary C#/C++ native boundary crossings, which can cause micro-stutters.
-**Action:** Always consolidate duplicate Input checks into a single block to reduce CPU overhead.

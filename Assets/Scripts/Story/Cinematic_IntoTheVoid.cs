@@ -104,15 +104,24 @@ namespace MilehighWorld.Cinematics
 
         private void Update()
         {
-            // Palette & Bolt: Global skip interaction and idle timer management
-            // ⚡ Bolt: Consolidated duplicate Input.anyKeyDown checks to reduce C#/native boundary crossings.
+            // Palette: Global skip interaction and idle timer management
             if (Input.anyKeyDown)
             {
                 _skipRequested = true;
                 _lastInteractionTime = Time.time;
+                if (_skipHint != null) _skipHint.SetActive(false);
+            }
+
+            // Palette: Show skip hint after 2 seconds of inactivity
+            if (_skipHint != null && !_skipHint.activeSelf && Time.time - _lastInteractionTime > 2f)
+            {
+                _skipHint.SetActive(true);
+            // Palette: Detect any interaction to trigger skip or reset idle hint timer.
+            if (Input.anyKeyDown)
+            {
+                _skipRequested = true;
                 _idleTimer = 0f;
 
-                if (_skipHint != null) _skipHint.SetActive(false);
                 if (skipHintObject != null && skipHintObject.activeSelf)
                 {
                     skipHintObject.SetActive(false);
@@ -121,12 +130,6 @@ namespace MilehighWorld.Cinematics
             else
             {
                 _idleTimer += Time.deltaTime;
-
-                // Palette: Show skip hint after 2 seconds of inactivity
-                if (_skipHint != null && !_skipHint.activeSelf && Time.time - _lastInteractionTime > 2f)
-                {
-                    _skipHint.SetActive(true);
-                }
 
                 // Palette: Show skip hint after 2 seconds of inactivity to improve discoverability.
                 if (_idleTimer >= 2.0f && skipHintObject != null && !skipHintObject.activeSelf)
