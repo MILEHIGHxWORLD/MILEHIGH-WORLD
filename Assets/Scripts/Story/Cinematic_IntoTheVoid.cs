@@ -104,34 +104,28 @@ namespace MilehighWorld.Cinematics
 
         private void Update()
         {
-            // Palette: Global skip interaction and idle timer management
-            if (Input.anyKeyDown)
-            {
-                _skipRequested = true;
-                _lastInteractionTime = Time.time;
-                if (_skipHint != null) _skipHint.SetActive(false);
-            }
-
-            // Palette: Show skip hint after 2 seconds of inactivity
-            if (_skipHint != null && !_skipHint.activeSelf && Time.time - _lastInteractionTime > 2f)
-            {
-                _skipHint.SetActive(true);
-            // Palette: Detect any interaction to trigger skip or reset idle hint timer.
+            // ⚡ Bolt: Consolidated redundant Input.anyKeyDown checks.
+            // What: Eliminated duplicate Input.anyKeyDown checks and merged idle timers.
+            // Why: Multiple Input.anyKeyDown checks in Update introduce unnecessary C#/C++ native boundary crossings.
+            // Impact: Reduces CPU overhead per frame by eliminating duplicate native execution paths.
             if (Input.anyKeyDown)
             {
                 _skipRequested = true;
                 _idleTimer = 0f;
+                _lastInteractionTime = Time.time;
 
-                if (skipHintObject != null && skipHintObject.activeSelf)
-                {
-                    skipHintObject.SetActive(false);
-                }
+                if (_skipHint != null && _skipHint.activeSelf) _skipHint.SetActive(false);
+                if (skipHintObject != null && skipHintObject.activeSelf) skipHintObject.SetActive(false);
             }
             else
             {
                 _idleTimer += Time.deltaTime;
 
-                // Palette: Show skip hint after 2 seconds of inactivity to improve discoverability.
+                if (Time.time - _lastInteractionTime > 2f)
+                {
+                    if (_skipHint != null && !_skipHint.activeSelf) _skipHint.SetActive(true);
+                }
+
                 if (_idleTimer >= 2.0f && skipHintObject != null && !skipHintObject.activeSelf)
                 {
                     skipHintObject.SetActive(true);
