@@ -247,6 +247,15 @@ namespace MilehighWorld.Cinematics
             LogNarrativeTelemetry("Omen Singularity Severed. Verse Stabilized.");
         }
 
+        private async Task TweenAlphaDecayAsync(Renderer targetRenderer, float duration)
+        {
+            if (targetRenderer == null) return;
+
+            // ⚡ Bolt Optimization
+            // 💡 What: Replaced direct Material.SetFloat with MaterialPropertyBlock usage.
+            // 🎯 Why: Accessing targetRenderer.material instantiates a clone of the material on the heap, breaking GPU instancing and causing GC allocations.
+            // 📊 Impact: Eliminates O(1) Material allocation per character decay sequence, preserving draw call batching and reducing GC pressure.
+            var propBlock = new MaterialPropertyBlock();
         // Bolt Optimization: Replaced Renderer.material with MaterialPropertyBlock to prevent GC allocation and preserve GPU instancing.
         private async Task TweenAlphaDecayAsync(Renderer renderer, float duration)
         {
@@ -265,6 +274,9 @@ namespace MilehighWorld.Cinematics
                 elapsed += Time.deltaTime;
                 float alpha = Mathf.Lerp(1f, 0f, elapsed / duration);
 
+                targetRenderer.GetPropertyBlock(propBlock);
+                propBlock.SetFloat(baseColorAlphaId, alpha);
+                targetRenderer.SetPropertyBlock(propBlock);
                 renderer.GetPropertyBlock(propBlock);
                 propBlock.SetFloat(baseColorAlphaId, alpha);
                 renderer.SetPropertyBlock(propBlock);
