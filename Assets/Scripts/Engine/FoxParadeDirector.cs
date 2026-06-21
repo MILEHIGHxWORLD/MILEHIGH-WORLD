@@ -75,8 +75,14 @@ namespace MilehighWorld.Engine
 
         private void OnDestroy()
         {
-            if (_positions.IsCreated) _positions.Dispose();
-            if (_velocities.IsCreated) _velocities.Dispose();
+            if (_positions.IsCreated)
+            {
+                _positions.Dispose();
+            }
+            if (_velocities.IsCreated)
+            {
+                _velocities.Dispose();
+            }
         }
 
         /// <summary>
