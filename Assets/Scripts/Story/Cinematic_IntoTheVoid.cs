@@ -504,6 +504,7 @@ namespace MilehighWorld.Cinematics
             float pauseStart = Time.time;
             while (Time.time - pauseStart < 1.0f && !_skipRequested)
             {
+                dialogueText.maxVisibleCharacters = i + 1;
                 await Task.Yield();
             }
 
