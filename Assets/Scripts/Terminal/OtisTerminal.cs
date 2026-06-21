@@ -33,6 +33,21 @@ namespace MilehighWorld.World.Terminal
             return wait;
         }
 
+        // ⚡ Bolt: Cache yield instructions using millisecond keys to prevent floating-point precision issues
+        // and eliminate redundant GC allocations during frequent UI routines.
+        private static readonly Dictionary<int, WaitForSeconds> _waitCache = new Dictionary<int, WaitForSeconds>();
+
+        private WaitForSeconds GetWait(float seconds)
+        {
+            int msKey = Mathf.RoundToInt(seconds * 1000f);
+            if (!_waitCache.TryGetValue(msKey, out var wait))
+            {
+                wait = new WaitForSeconds(seconds);
+                _waitCache[msKey] = wait;
+            }
+            return wait;
+        }
+
         private void Start()
         {
             if (outputDisplay != null)
@@ -329,6 +344,12 @@ namespace MilehighWorld.World.Terminal
                 }
 
                 yield return GetWait(0.02f);
+            }
+
+            // ⚡ Bolt: Reset to full string length when done to prevent bugs on next edit
+            if (outputDisplay != null && outputDisplay.text != null)
+            {
+                outputDisplay.maxVisibleCharacters = outputDisplay.text.Length;
             }
 
             // ⚡ Bolt: Reset maxVisibleCharacters after typewriter completes to avoid text truncation on subsequent uses.
