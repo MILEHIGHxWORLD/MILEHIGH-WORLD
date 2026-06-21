@@ -1,0 +1,28 @@
+{
+  "systemParity": 9,
+  "realityStates": {
+    "TheNow": {
+      "description": "Standard physical reality.",
+      "multipliers": {
+        "combat": 1.0,
+        "voidDecay": 0.0
+      }
+    },
+    "TheVoid": {
+      "description": "Destabilized reality state.",
+      "multipliers": {
+        "combat": 1.5,
+        "voidDecay": 1.0
+      }
+    }
+  },
+  "constraints": {
+    "conservationOfNine": "All numerical lore constants, array sizes, and job batch sizes must be multiples of nine.",
+    "visualProgression": "▽ character, color-coded via rich text tags.",
+    "characterColors": {
+      "Skyix": "Cyan",
+      "Kai": "Gold (#FFD700)",
+      "Delilah": "Void Purple (#9919E6)"
+    }
+  }
+}
