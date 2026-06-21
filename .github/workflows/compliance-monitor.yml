@@ -19,7 +19,7 @@ jobs:
       - name: Run Checkov SOC 2 Audit
         uses: bridgecrewio/checkov-action@v12
         with:
-          directory: Tools/Compliance/Infrastructure
+          directory: Compliance/Infrastructure
           framework: terraform
           # SOC 2 relevant checks: EBS encryption, S3 public access, MFA, etc.
           quiet: true
@@ -43,4 +43,4 @@ jobs:
         run: pip install requests
 
       - name: Run Identity Audit (Dry Run)
-        run: python Tools/Compliance/Scripts/identity_audit.py --output findings.json
+        run: python Compliance/Scripts/identity_audit.py --output findings.json

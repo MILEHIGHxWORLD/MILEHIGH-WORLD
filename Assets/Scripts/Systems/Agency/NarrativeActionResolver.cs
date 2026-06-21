@@ -112,10 +112,7 @@ namespace MilehighWorld.Systems.Agency
                 req.SetRequestHeader("Content-Type", "application/json");
 
                 // BOLT: Conservation of Nine - Yield if needed
-                if (Time.frameCount % 9 == 0)
-                {
-                    await Task.Yield();
-                }
+                if (Time.frameCount % 9 == 0) await Task.Yield();
 
                 // Using SendWebRequest and polling to avoid missing extension methods in sandbox
                 var operation = req.SendWebRequest();
@@ -143,25 +140,16 @@ namespace MilehighWorld.Systems.Agency
 
         private void EnactResolutionInGame(ActionResolutionResponse resolution)
         {
-            if (resolution == null)
-            {
-                return;
-            }
+            if (resolution == null) return;
 
             // PALETTE: Rich text for speaker identification and dialogue
             if (!string.IsNullOrEmpty(resolution.DialogueGenerated))
-            {
                 Debug.Log($"<color=cyan>[{resolution.EntityName}]:</color> {resolution.DialogueGenerated}");
-            }
 
             if (resolution.WasActionSuccessful)
-            {
                 Debug.Log($"<color=#00FF00>Action Succeeded:</color> {resolution.MechanicalDescription}");
-            }
             else
-            {
                 Debug.Log($"<color=red>Action Failed:</color> {resolution.MechanicalDescription}");
-            }
 
             // Ensure synchronization with the world engine if needed
             if (Mathf.Abs(resolution.VoidVarianceDelta) > 0f && EncounterDirector.Instance != null)
@@ -173,10 +161,7 @@ namespace MilehighWorld.Systems.Agency
         private async Task<string?> CapturePlayerViewAsync()
         {
             // SENTINEL: Ensure camera exists before capture
-            if (playerEyeCamera == null)
-            {
-                return null;
-            }
+            if (playerEyeCamera == null) return null;
 
             // Capture logic using RenderTexture
             int width = 512;
@@ -204,10 +189,7 @@ namespace MilehighWorld.Systems.Agency
 
         private string GetPlayerVitalsAndStance(RuntimeCharacterData playerData)
         {
-            if (playerData == null)
-            {
-                return "Unknown";
-            }
+            if (playerData == null) return "Unknown";
             return $"Health: {playerData.HealthPercentage:P0}, TechAlignment: {playerData.TechAlignment}, MagenActive: {playerData.HasMagenActive}";
         }
     }

@@ -4,7 +4,6 @@
 using UnityEngine;
 using TMPro; // Use TextMesh Pro equivalents
 using MilehighWorld.Systems.Agency;
-using MilehighWorld.Data;
 using System.Threading;
 
 namespace MilehighWorld.UI
@@ -52,7 +51,7 @@ namespace MilehighWorld.UI
                 CurrentDimension = "ŁĪNC"
             };
 
-            await NarrativeActionResolver.Instance.ExecuteLoreBoundChoiceAsync(context, default(RuntimeCharacterData), CancellationToken.None);
+            await NarrativeActionResolver.Instance.ExecuteLoreBoundChoiceAsync(context, CancellationToken.None);
         }
     }
 }

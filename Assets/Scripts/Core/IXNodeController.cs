@@ -42,10 +42,7 @@ namespace MilehighWorld.Core
 
         private void Update()
         {
-            if (hasCollapsed)
-            {
-                return;
-            }
+            if (hasCollapsed) return;
 
             ProcessStabilizationLoop();
         }
