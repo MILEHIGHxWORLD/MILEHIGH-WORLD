@@ -108,7 +108,10 @@ namespace MilehighWorld.Core
 
         public void SaveSecureData(string key, string data)
         {
-            if (System.String.IsNullOrEmpty(key) || System.String.IsNullOrEmpty(data)) return;
+            if (System.String.IsNullOrEmpty(key) || System.String.IsNullOrEmpty(data))
+            {
+                return;
+            }
 
             string obfuscated = this.ProcessXOR(data);
             UnityEngine.PlayerPrefs.SetString($"SECURE_{key}", obfuscated);
@@ -118,7 +121,10 @@ namespace MilehighWorld.Core
         public string LoadSecureData(string key)
         {
             string obfuscated = UnityEngine.PlayerPrefs.GetString($"SECURE_{key}", "");
-            if (System.String.IsNullOrEmpty(obfuscated)) return "";
+            if (System.String.IsNullOrEmpty(obfuscated))
+            {
+                return "";
+            }
 
             return this.ProcessXOR(obfuscated);
         }
