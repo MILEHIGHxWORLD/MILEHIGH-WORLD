@@ -410,6 +410,10 @@
 ## 2024-06-01 - Redundant Input Checks in Update Loop
 **Learning:** Repeatedly calling `Input` properties/methods (like `Input.anyKeyDown` alongside specific keydown checks) inside `Update()` loops introduces unnecessary C#/C++ native boundary crossings. This overhead accumulates, leading to micro-stutters, especially in input-heavy or critical path systems like cinematic playback.
 **Action:** Eliminate duplicate or redundant input execution paths to reduce CPU overhead and prevent micro-stutters.
+
+## 2026-05-22 - Otis Terminal Typewriter Zero-Allocation
+**Learning:** Instantiating `new WaitForSeconds` inside a fast-running loop like a typewriter effect causes a massive number of heap allocations and GC pressure.
+**Action:** Cache `WaitForSeconds` instances using millisecond integer keys to guarantee deterministic O(1) lookups and zero-allocation yields, especially for frequent UI effects.
 ## 2024-05-21 - True Zero-Allocation Typewriter Effect
 **Learning:** The cinematic typewriter effect was falsely labeled 'zero-allocation' because it used string concatenation (`text += char`) inside a loop, causing O(N^2) memory allocations and forcing expensive UI mesh rebuilds per character.
 **Action:** Always assign the full string to the `text` property once and increment the `maxVisibleCharacters` property over time to achieve a genuine zero-allocation typewriter effect.

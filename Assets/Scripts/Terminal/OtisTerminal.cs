@@ -16,6 +16,20 @@ namespace MilehighWorld.World.Terminal
         private static readonly Regex SafeCommandRegex = new Regex(@"^[a-zA-Z0-9\s._\-]+$", RegexOptions.Compiled);
         private static readonly Dictionary<int, WaitForSeconds> _waitCache = new Dictionary<int, WaitForSeconds>();
 
+        // ⚡ Bolt: Cache for WaitForSeconds using millisecond keys to prevent floating-point precision issues
+        private static readonly Dictionary<int, WaitForSeconds> _waitCache = new Dictionary<int, WaitForSeconds>();
+
+        private static WaitForSeconds GetWait(float seconds)
+        {
+            int ms = Mathf.RoundToInt(seconds * 1000f);
+            if (!_waitCache.TryGetValue(ms, out var wait))
+            {
+                wait = new WaitForSeconds(seconds);
+                _waitCache[ms] = wait;
+            }
+            return wait;
+        }
+
         private Coroutine? _typewriterCoroutine;
         private readonly List<string> _commandHistory = new List<string>();
         private int _historyIndex = -1;
