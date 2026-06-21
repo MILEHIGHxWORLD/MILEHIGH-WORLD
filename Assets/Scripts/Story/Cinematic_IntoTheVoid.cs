@@ -35,8 +35,6 @@ namespace MilehighWorld.Cinematics
 
         [Header("Lexical Tuning")]
         public float baseTypingSpeed = 0.03f;
-        public float kaiSpeedMultiplier = 3.0f;
-        public float skyixSpeedMultiplier = 1.2f;
 
         [Header("Environmental Shaders")]
         [SerializeField] private Material hyperrealisticPlatformShader = null!;
@@ -44,6 +42,7 @@ namespace MilehighWorld.Cinematics
         // Cached Shader Property IDs for zero-allocation performance
         private readonly int emissiveIntensityId = Shader.PropertyToID("_EmissiveIntensity");
         private readonly int baseColorAlphaId = Shader.PropertyToID("_BaseColor_Alpha");
+        private MaterialPropertyBlock _alphaPropBlock = null!;
 
         // Mathematical Constants
         private const float TrueMonadBaseline = 1.0f;
@@ -51,6 +50,9 @@ namespace MilehighWorld.Cinematics
 
         private bool _isStabilized = false;
         private Vector3 _originalSpeakerScale;
+        private bool _skipRequested = false;
+        private float _lastInteractionTime;
+        private GameObject? _skipHint;
 
         // Palette: UX State for skipping and idle-hint discoverability.
         private bool _skipRequested = false;
@@ -60,6 +62,8 @@ namespace MilehighWorld.Cinematics
         {
             // Lock timeScale for deterministic cinematic pacing
             Time.timeScale = 1.0f;
+
+            _alphaPropBlock = new MaterialPropertyBlock();
 
             if (speakerNameText != null)
             {
@@ -82,6 +86,14 @@ namespace MilehighWorld.Cinematics
                 LogNarrativeTelemetry("EVENT: Timeline Stabilized Signal Received.");
             };
 
+            // Palette: Search for SkipHint UI element within the dialogue canvas
+            if (dialogueCanvas != null)
+            {
+                _skipHint = dialogueCanvas.transform.Find("SkipHint")?.gameObject;
+                if (_skipHint != null) _skipHint.SetActive(false);
+            }
+            _lastInteractionTime = Time.time;
+
             _ = ExecuteConvergenceSequenceAsync();
         }
 
@@ -102,6 +114,18 @@ namespace MilehighWorld.Cinematics
                 {
                     skipHint.SetActive(true);
                 }
+            // Palette: Global skip interaction and idle timer management
+            if (Input.anyKeyDown)
+            {
+                _skipRequested = true;
+                _lastInteractionTime = Time.time;
+                if (_skipHint != null && _skipHint.activeSelf) _skipHint.SetActive(false);
+            }
+
+            // Palette: Show skip hint after 2 seconds of inactivity
+            if (_skipHint != null && !_skipHint.activeSelf && Time.time - _lastInteractionTime > 2f)
+            {
+                _skipHint.SetActive(true);
             }
         }
 
@@ -121,6 +145,8 @@ namespace MilehighWorld.Cinematics
             if (dialogueCanvas != null) dialogueCanvas.SetActive(true);
 
             await StreamDialogueAsync("King Cyrus", "Tremble, mortals, as the Age of Millenia crumbles before the might of the Void!", 0.04f);
+            await WaitForSecondsOrSkipAsync(0.5f);
+
             await StreamDialogueAsync("Sky.ix", "Negative. The resonance is peaking. Engaging Void Conduit via Vitis AI Bridge.", 0.03f);
 
             // 4. Parity Verification via Vitis AI and Timeline Engine
@@ -172,7 +198,8 @@ namespace MilehighWorld.Cinematics
                 var renderer = kingCyrusPrefab.GetComponentInChildren<Renderer>();
                 if (renderer != null)
                 {
-                    await TweenAlphaDecayAsync(renderer.material, 1.5f);
+                    // ⚡ Bolt: Use MaterialPropertyBlock to update alpha without instantiating a new material.
+                    await TweenAlphaDecayAsync(renderer, 1.5f);
                 }
                 kingCyrusPrefab.SetActive(false);
             }
@@ -181,22 +208,27 @@ namespace MilehighWorld.Cinematics
             LogNarrativeTelemetry("Omen Singularity Severed. Verse Stabilized.");
         }
 
-        private async Task TweenAlphaDecayAsync(Material mat, float duration)
+        private async Task TweenAlphaDecayAsync(Renderer renderer, float duration)
         {
-            if (mat == null) return;
+            if (renderer == null) return;
 
             float elapsed = 0f;
             while (elapsed < duration)
             {
                 elapsed += Time.deltaTime;
                 float alpha = Mathf.Lerp(1f, 0f, elapsed / duration);
-                mat.SetFloat(baseColorAlphaId, alpha);
+
+                renderer.GetPropertyBlock(_alphaPropBlock);
+                _alphaPropBlock.SetFloat(baseColorAlphaId, alpha);
+                renderer.SetPropertyBlock(_alphaPropBlock);
+
                 await Task.Yield();
             }
         }
 
         /// <summary>
         /// Zero-allocation rhythmic typewriter effect for dialogue rendering with rhythmic pacing and speaker transitions.
+        /// Zero-allocation rhythmic typewriter effect with themed completion cues, speaker pop animations, and skip support.
         /// </summary>
         private async Task StreamDialogueAsync(string speaker, string content, float charDelay)
         {
@@ -206,6 +238,10 @@ namespace MilehighWorld.Cinematics
             _skipRequested = false;
             _idleTimer = 0f;
             if (skipHint != null) skipHint.SetActive(false);
+            // Palette: Reset interaction tracking for each line
+            _skipRequested = false;
+            _lastInteractionTime = Time.time;
+            if (_skipHint != null) _skipHint.SetActive(false);
 
             string hexColor = GetSpeakerColorHex(speaker);
             string formattedSpeaker = $"<color={hexColor}>[{speaker}]</color>";
@@ -218,6 +254,7 @@ namespace MilehighWorld.Cinematics
 
             // Palette: Append a color-coded '▽' completion cue to the dialogue for better interaction clarity.
             // By setting the full text (including the cue) at the start, we ensure layout stability.
+            // BOLT: Zero-allocation typewriter effect.
             dialogueText.text = $"{content} <color={hexColor}>▽</color>";
             dialogueText.maxVisibleCharacters = 0;
             dialogueText.ForceMeshUpdate();
@@ -280,6 +317,56 @@ namespace MilehighWorld.Cinematics
                 elapsed += Time.deltaTime;
                 await Task.Yield();
             }
+            int characterCount = dialogueText.textInfo.characterCount;
+
+            for (int i = 1; i <= characterCount; i++)
+            {
+                if (_skipRequested)
+                {
+                    dialogueText.maxVisibleCharacters = characterCount;
+                    break;
+                }
+
+                dialogueText.maxVisibleCharacters = i;
+
+                if (i > 0 && i < characterCount)
+                {
+                    char c = dialogueText.textInfo.characterInfo[i - 1].character;
+                    float multiplier = 1f;
+
+                    // Palette: Rhythmic punctuation pauses with look-ahead to handle mid-word periods (e.g., Sky.ix)
+                    bool isEndOfSentence = (c == '.' || c == '?' || c == '!');
+                    bool isClause = (c == ',' || c == ';' || c == ':');
+
+                    if (isEndOfSentence || isClause)
+                    {
+                        bool isLastVisibleChar = (i == characterCount - 1);
+                        bool isFollowedBySpace = (!isLastVisibleChar && char.IsWhiteSpace(dialogueText.textInfo.characterInfo[i].character));
+
+                        if (isLastVisibleChar || isFollowedBySpace)
+                        {
+                            multiplier = isEndOfSentence ? 12f : 6f;
+                        }
+                    }
+
+                    await Task.Delay(Mathf.RoundToInt(charDelay * multiplier * 1000));
+                }
+                else
+                {
+                    await Task.Delay(Mathf.RoundToInt(charDelay * 1000));
+                }
+            }
+
+            dialogueText.maxVisibleCharacters = characterCount;
+
+            // Palette: Skippable post-line pause
+            float pauseStart = Time.time;
+            while (Time.time - pauseStart < 1.0f && !_skipRequested)
+            {
+                await Task.Yield();
+            }
+
+            _skipRequested = false;
         }
 
         private async Task PopScaleAsync(Transform target, float duration, float scaleFactor)
@@ -302,13 +389,24 @@ namespace MilehighWorld.Cinematics
         {
             return speaker switch
             {
-                "Sky.ix" => "#00FFFF",      // Cyan
-                "King Cyrus" => "#FFFF00",  // Yellow
-                "Reverie" => "#FF00FF",     // Magenta
-                "Kai" => "#FFD700",         // Gold
-                "Delilah" => "#9933FF",     // Void Purple
-                _ => "#FFFFFF"              // Default White
+                "Sky.ix" => "#00FFFF",
+                "King Cyrus" => "#FFFF00",
+                "Reverie" => "#FF00FF",
+                "Kai" => "#FFD700",
+                "Delilah" => "#9933FF",
+                _ => "#FFFFFF"
             };
+        }
+
+        private async Task WaitForSecondsOrSkipAsync(float seconds)
+        {
+            float elapsed = 0f;
+            while (elapsed < seconds && !_skipRequested)
+            {
+                elapsed += Time.deltaTime;
+                await Task.Yield();
+            }
+            _skipRequested = false;
         }
 
         [Conditional("ENABLE_NARRATIVE_LOGS")]
