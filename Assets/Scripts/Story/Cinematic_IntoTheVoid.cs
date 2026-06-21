@@ -59,6 +59,7 @@ namespace MilehighWorld.Cinematics
         // Cached Shader Property IDs for zero-allocation performance
         private readonly int emissiveIntensityId = Shader.PropertyToID("_EmissiveIntensity");
         private readonly int baseColorAlphaId = Shader.PropertyToID("_BaseColor_Alpha");
+        private static MaterialPropertyBlock _propertyBlock = null!;
         private static MaterialPropertyBlock _sharedPropertyBlock = null!;
         private MaterialPropertyBlock _alphaPropBlock = null!;
 
@@ -252,6 +253,9 @@ namespace MilehighWorld.Cinematics
         {
             LogNarrativeTelemetry("PROTOCOL_SAVE_EVERYONE Initiated. Physics re-aligning.");
 
+            // ⚡ Bolt: Use MaterialPropertyBlock to avoid material cloning.
+            Renderer cyrusRenderer = kingCyrusPrefab.GetComponentInChildren<Renderer>();
+            await TweenAlphaDecayAsync(cyrusRenderer, 1.5f);
             // ⚡ Bolt: Cache renderer to avoid repeated GetComponent calls and use MaterialPropertyBlock for fading.
             Renderer cyrusRenderer = kingCyrusPrefab.GetComponentInChildren<Renderer>();
             if (cyrusRenderer != null)
@@ -275,6 +279,10 @@ namespace MilehighWorld.Cinematics
         }
 
         private async Task TweenAlphaDecayAsync(Renderer renderer, float duration)
+        {
+            if (renderer == null) return;
+            if (_propertyBlock == null) _propertyBlock = new MaterialPropertyBlock();
+
         {
             if (_sharedPropertyBlock == null) _sharedPropertyBlock = new MaterialPropertyBlock();
 
@@ -315,6 +323,10 @@ namespace MilehighWorld.Cinematics
                 elapsed += Time.deltaTime;
                 float alpha = Mathf.Lerp(1f, 0f, elapsed / duration);
 
+                // ⚡ Bolt: Use MaterialPropertyBlock to prevent material instantiation and preserve draw call batching.
+                renderer.GetPropertyBlock(_propertyBlock);
+                _propertyBlock.SetFloat(baseColorAlphaId, alpha);
+                renderer.SetPropertyBlock(_propertyBlock);
                 // ⚡ Bolt: Use MaterialPropertyBlock to prevent material cloning and preserve draw call batching.
                 renderer.GetPropertyBlock(_sharedPropertyBlock);
                 _sharedPropertyBlock.SetFloat(baseColorAlphaId, alpha);
@@ -414,6 +426,14 @@ namespace MilehighWorld.Cinematics
 
                     await Task.Delay(Mathf.RoundToInt(charDelay * delayFactor * 1000));
             speakerNameText.text = $"<color=cyan>[{speaker}]</color>";
+
+            // ⚡ Bolt: Use maxVisibleCharacters instead of string concatenation to eliminate O(N^2) allocations.
+            dialogueText.text = content;
+            dialogueText.maxVisibleCharacters = 0;
+            dialogueText.ForceMeshUpdate();
+
+            for (int i = 0; i <= content.Length; i++)
+            {
             // BOLT: Zero-allocation typewriter effect.
             // Assign full string once and increment maxVisibleCharacters to avoid O(N^2) string allocations and UI rebuilds.
             dialogueText.text = content;
