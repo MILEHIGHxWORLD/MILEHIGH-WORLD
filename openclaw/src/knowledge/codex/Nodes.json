@@ -1,0 +1,30 @@
+{
+  "metadata": {
+    "codexVersion": "1.0.0",
+    "universe": "Milehigh.World: Into the Void"
+  },
+  "entities": [
+    {
+      "id": "IX_NODE_01",
+      "name": "IX-Node-01",
+      "entityType": "Node",
+      "canon": {
+        "designation": "Genesis",
+        "stabilityThreshold": 0.75,
+        "narrativePurpose": "Initial Void anchor point",
+        "immutableTraits": ["Root stabilization node"]
+      }
+    },
+    {
+      "id": "IX_NODE_09",
+      "name": "IX-Node-09",
+      "entityType": "Node",
+      "canon": {
+        "designation": "Transcendence",
+        "stabilityThreshold": 0.99,
+        "narrativePurpose": "Final stabilization sequence",
+        "immutableTraits": ["Apex node", "Requires full Enneasync alignment"]
+      }
+    }
+  ]
+}

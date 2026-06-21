@@ -32,9 +32,18 @@ namespace MilehighWorld.Narrative
         private void Awake()
         {
             // SENTINEL: Security & Robustness - Ensure all required components are assigned to prevent NullReferenceExceptions
-            if (_reverieVoiceBox == null) Debug.LogError("[REVERIE_SYNC] Missing AudioSource reference.");
-            if (_reverieAcknowledgeClip == null) Debug.LogError("[REVERIE_SYNC] Missing AudioClip reference.");
-            if (_reverieAnimator == null) Debug.LogError("[REVERIE_SYNC] Missing Animator reference.");
+            if (_reverieVoiceBox == null)
+            {
+                Debug.LogError("[REVERIE_SYNC] Missing AudioSource reference.");
+            }
+            if (_reverieAcknowledgeClip == null)
+            {
+                Debug.LogError("[REVERIE_SYNC] Missing AudioClip reference.");
+            }
+            if (_reverieAnimator == null)
+            {
+                Debug.LogError("[REVERIE_SYNC] Missing Animator reference.");
+            }
         }
 
         public void OnHologramCritical(string sourceId)

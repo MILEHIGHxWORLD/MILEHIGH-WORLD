@@ -1,0 +1,34 @@
+{
+  "metadata": {
+    "codexVersion": "1.0.0",
+    "universe": "Milehigh.World: Into the Void"
+  },
+  "entities": [
+    {
+      "id": "PRT_SHARD_HANDSHAKE",
+      "name": "Shard Handshake Protocol",
+      "entityType": "Protocol",
+      "canon": {
+        "narrativePurpose": "Establishes secure data telemetry between shattered entities and IX-Nodes.",
+        "digitalRoot": 9,
+        "immutableTraits": [
+          "Requires bi-directional validation",
+          "Fails under extreme Omen levels"
+        ]
+      }
+    },
+    {
+      "id": "PRT_NOVEMINAD",
+      "name": "The Ɲōvəmîŋāđ",
+      "entityType": "Protocol",
+      "canon": {
+        "narrativePurpose": "Governing architectural oversight protocol for the Enneaverse.",
+        "digitalRoot": 9,
+        "immutableTraits": [
+          "Absolute authority over node stabilization",
+          "Executes Omen Severance upon critical failure"
+        ]
+      }
+    }
+  ]
+}
