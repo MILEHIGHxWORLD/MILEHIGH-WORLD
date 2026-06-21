@@ -410,6 +410,9 @@
 ## 2024-06-01 - Redundant Input Checks in Update Loop
 **Learning:** Repeatedly calling `Input` properties/methods (like `Input.anyKeyDown` alongside specific keydown checks) inside `Update()` loops introduces unnecessary C#/C++ native boundary crossings. This overhead accumulates, leading to micro-stutters, especially in input-heavy or critical path systems like cinematic playback.
 **Action:** Eliminate duplicate or redundant input execution paths to reduce CPU overhead and prevent micro-stutters.
+## 2026-05-23 - Caching Yield Instructions in Coroutines
+**Learning:** Instantiating `new WaitForSeconds` inside a coroutine loop (like a typewriter effect per character) causes continuous heap allocations, generating garbage and potential micro-stutters during execution.
+**Action:** Cache `WaitForSeconds` instances in a static dictionary using integer keys (milliseconds) to prevent floating-point precision cache misses, and reuse them to eliminate redundant GC allocations.
 
 ## 2026-05-24 - OtisTerminal Typewriter GC Allocations
 **Learning:** In `OtisTerminal.cs`, dynamically creating `new WaitForSeconds` inside the `TypewriterEffect` loop for every character and punctuation delay caused severe O(N) heap allocations. This generated heavy Garbage Collection (GC) pressure proportional to the length of the string being displayed, leading to potential micro-stutters.
