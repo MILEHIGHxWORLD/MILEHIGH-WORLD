@@ -20,6 +20,7 @@ namespace MilehighWorld.World.Terminal
         private readonly List<string> _commandHistory = new List<string>();
         private int _historyIndex = -1;
         private string? _lastSuggestion;
+        private string _lastSuggestion = ""; // Palette: Track fuzzy-match suggestions for "Tab to Fix" recovery.
 
         private static WaitForSeconds GetWait(float seconds)
         {
@@ -75,7 +76,7 @@ namespace MilehighWorld.World.Terminal
             {
                 commandInput.text = _lastSuggestion;
                 commandInput.caretPosition = _lastSuggestion.Length;
-                _lastSuggestion = null;
+                _lastSuggestion = "";
                 return;
             }
 
@@ -84,6 +85,7 @@ namespace MilehighWorld.World.Terminal
             string input = commandInput.text.ToLower();
             string[] commands = { "help", "clear" };
 
+            // Palette: Prioritize standard prefix matching.
             foreach (string cmd in commands)
             {
                 if (cmd.StartsWith(input))
@@ -93,12 +95,21 @@ namespace MilehighWorld.World.Terminal
                     return;
                 }
             }
+
+            // Palette: Fuzzy-based autocomplete as a fallback for typos
+            string suggestion = GetCommandSuggestion(input);
+            if (!string.IsNullOrEmpty(suggestion))
+            {
+                commandInput.text = suggestion;
+                commandInput.caretPosition = suggestion.Length;
+            }
         }
 
         private void NavigateHistory(int direction)
         {
             if (_commandHistory.Count == 0) return;
             _lastSuggestion = null;
+            _lastSuggestion = ""; // Palette: Clear suggestion when navigating history for a fresh state.
             _historyIndex = Mathf.Clamp(_historyIndex + direction, 0, _commandHistory.Count);
             commandInput.text = _historyIndex < _commandHistory.Count ? _commandHistory[_historyIndex] : "";
             commandInput.caretPosition = commandInput.text.Length;
@@ -158,6 +169,8 @@ namespace MilehighWorld.World.Terminal
                 if (index != -1)
                 {
                     ExecuteExtendedCommand(parts[0], input.Substring(index));
+                    string argument = input.Substring(index);
+                    ExecuteExtendedCommand(parts[0], argument);
                     WriteToTerminal($"\n[SYSTEM]: <color=#00FF00>Command '{parts[0]}' executed.</color>");
                     return;
                 }
@@ -169,6 +182,15 @@ namespace MilehighWorld.World.Terminal
             {
                 errorMsg += $"\n[SYSTEM]: Did you mean: <color=#00FFFF>'{_lastSuggestion}'</color>? (Press <color=#FFFF00>[Tab]</color> to fix)";
             }
+            // Palette: Unknown command handling with "Did You Mean?" suggestion.
+            _lastSuggestion = GetCommandSuggestion(command);
+            string errorMsg = $"\n[SYSTEM]: <color=#FF0000>Error: Unknown command or invalid argument count for '{parts[0]}'.</color>";
+
+            if (!string.IsNullOrEmpty(_lastSuggestion))
+            {
+                errorMsg += $"\n[SYSTEM]: Did you mean: <color=#00FFFF>{_lastSuggestion}</color>? (Press [Tab] to fix)";
+            }
+
             WriteToTerminal(errorMsg);
             if (commandInput != null) StartCoroutine(ShakeInputField());
         }
@@ -292,6 +314,29 @@ namespace MilehighWorld.World.Terminal
         private void ExecuteExtendedCommand(string cmd, string args)
         {
             // Implementation for specific terminal logic
+        }
+
+        private int ComputeLevenshteinDistance(string s, string t)
+        {
+            if (string.IsNullOrEmpty(s)) return string.IsNullOrEmpty(t) ? 0 : t.Length;
+            if (string.IsNullOrEmpty(t)) return s.Length;
+
+            int n = s.Length;
+            int m = t.Length;
+            int[,] d = new int[n + 1, m + 1];
+
+            for (int i = 0; i <= n; d[i, 0] = i++) ;
+            for (int j = 0; j <= m; d[0, j] = j++) ;
+
+            for (int i = 1; i <= n; i++)
+            {
+                for (int j = 1; j <= m; j++)
+                {
+                    int cost = (t[j - 1] == s[i - 1]) ? 0 : 1;
+                    d[i, j] = Mathf.Min(Mathf.Min(d[i - 1, j] + 1, d[i, j - 1] + 1), d[i - 1, j - 1] + cost);
+                }
+            }
+            return d[n, m];
         }
     }
 }
