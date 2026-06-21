@@ -34,7 +34,10 @@ namespace MilehighWorld.Characters
 
                 // Asynchronous delay before cleanup to prevent main-thread lockup
                 await System.Threading.Tasks.Task.Delay(500);
-                if (beam != null) Destroy(beam);
+                if (beam != null)
+                {
+                    Destroy(beam);
+                }
 
                 Debug.Log("<color=cyan>[Skylx]: Firing Void Conduit Gauntlet (Async).</color>");
 

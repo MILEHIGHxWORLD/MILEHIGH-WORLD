@@ -42,10 +42,16 @@ namespace MilehighWorld.Characters
         public async System.Threading.Tasks.Task TriggerEnemyGlitchAsync()
         {
             // ⚡ Bolt: Use cached renderer to avoid expensive GetComponent calls.
-            if (_renderer == null) return;
+            if (_renderer == null)
+            {
+                return;
+            }
 
             // ⚡ Bolt: Use MaterialPropertyBlock to prevent material instantiation and preserve draw call batching.
-            if (_propertyBlock == null) _propertyBlock = new MaterialPropertyBlock();
+            if (_propertyBlock == null)
+            {
+                _propertyBlock = new MaterialPropertyBlock();
+            }
 
             _renderer.GetPropertyBlock(_propertyBlock);
             _propertyBlock.SetFloat(GlitchIntensityId, 1.0f);
@@ -56,7 +62,10 @@ namespace MilehighWorld.Characters
 
             if (_renderer != null)
             {
-                if (_propertyBlock == null) _propertyBlock = new MaterialPropertyBlock();
+                if (_propertyBlock == null)
+                {
+                    _propertyBlock = new MaterialPropertyBlock();
+                }
 
                 _renderer.GetPropertyBlock(_propertyBlock);
                 _propertyBlock.SetFloat(GlitchIntensityId, 0f);
