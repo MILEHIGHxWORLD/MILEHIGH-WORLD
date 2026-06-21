@@ -438,6 +438,14 @@
 ## 2026-06-02 - Eliminate Per-Character Wait Allocations in UI
 **Learning:** In UI routines like the `TypewriterEffect`, instantiating a `new WaitForSeconds` on every single character creates significant per-frame GC allocation overhead (O(N) allocations where N is text length).
 **Action:** Always utilize a centralized `WaitForSeconds` cache with integer millisecond keys for recurring loop delays to achieve a zero-allocation coroutine.
+
+## 2026-06-07 - Robust Negative Caching with ReferenceEquals
+**Learning:** In Unity managers like `SceneDirector.cs`, simply checking `if (obj != null)` after retrieving from a cache prevents robust negative caching because it fails to distinguish between an explicitly cached `null` (negative cache hit) and a destroyed Unity object (fake null). This causes redundant `GameObject.Find` and `GetComponent` calls every frame for missing objects.
+**Action:** Use `System.Object.ReferenceEquals(obj, null)` alongside Unity's `== null` to safely identify explicitly cached true nulls and prevent redundant O(N) traversals, and always cache the result of the lookup (even if null).
+
+## 2026-06-07 - Risky Negative Caching in Dynamic Scenes
+**Learning:** Storing 'null' in a dictionary cache for a failed 'GameObject.Find' result (negative caching) is risky in dynamic Unity scenes. It can lead to stale references if the requested object is instantiated after the initial cache-miss, preventing the application from finding the newly created object.
+**Action:** Revert to safe caching that only stores valid, non-null GameObject references unless the object lifecycle is strictly static or the cache is explicitly updated upon instantiation.
 ## 2024-06-08 - [Negative Caching for GetComponent Lookups]
 **Learning:** In Unity, dictionary caches storing components can repeatedly execute slow `GetComponent` calls if they don't distinguish between a "Real Null" (we searched and found nothing) and an uncached state. While negative caching `GameObject.Find` is unsafe because objects can dynamically spawn later, negative caching `GetComponent` on a specific instance ID is safe because static geometry or entities rarely add new components at runtime.
 **Action:** Implement negative caching for component lookups by explicitly storing `null` in caches when lookups fail. Use `System.Object.ReferenceEquals` to definitively return `null` and skip O(N) traversals for components that definitively do not exist on the object.

@@ -193,6 +193,8 @@ namespace MilehighWorld.Core
 
             if (_objectCache.TryGetValue(objectName, out GameObject? obj))
             {
+                // ⚡ Bolt: Check for valid object. Re-fetch if the object was destroyed.
+                if (obj != null) return obj;
                 if (obj != null)
                 {
                     return obj;
@@ -202,7 +204,9 @@ namespace MilehighWorld.Core
             }
 
             obj = GameObject.Find(objectName);
-            _objectCache[objectName] = obj;
+            // ⚡ Bolt Optimization: Only cache actual objects for GetCachedObject because scene objects are dynamic
+            // Caching null here breaks late-instantiated objects.
+            if (obj != null) _objectCache[objectName] = obj;
             return obj;
         }
 
@@ -215,13 +219,18 @@ namespace MilehighWorld.Core
 
             if (_prefabCache.TryGetValue(profileName, out GameObject? prefab))
             {
+                // ⚡ Bolt: Robust negative caching for static prefabs
+                if (System.Object.ReferenceEquals(prefab, null)) return null;
+                if (prefab != null) return prefab;
                 if (prefab != null)
                 {
                     return prefab;
                 }
             }
 
+            // ⚡ Bolt: Cache missing static prefabs as null to prevent repeated O(P) list searches
             prefab = characterPrefabs?.Find(p => p != null && (p.name == profileName || p.name.Contains(profileName)));
+            _prefabCache[profileName] = prefab;
             if (prefab != null)
             {
                 _prefabCache[profileName] = prefab;
@@ -235,9 +244,13 @@ namespace MilehighWorld.Core
             // ⚡ Bolt: Implement negative caching using ReferenceEquals to safely skip redundant GetComponent calls on GameObjects that definitively lack the component.
             if (_controllerCache.TryGetValue(id, out CharacterControllerBase? controller))
             {
+                // ⚡ Bolt: Robust negative caching for components
+                if (System.Object.ReferenceEquals(controller, null)) return null;
+                if (controller != null) return controller;
                 if (System.Object.ReferenceEquals(controller, null) || controller != null) return controller;
             }
 
+            // ⚡ Bolt: Cache missing components as null to prevent repeated GetComponent overhead
             controller = characterObj.GetComponent<CharacterControllerBase>();
             _controllerCache[id] = controller;
                 if (controller != null)
