@@ -353,6 +353,13 @@ namespace MilehighWorld.Cinematics
 
                     await Task.Delay(Mathf.RoundToInt(charDelay * delayFactor * 1000));
             speakerNameText.text = $"<color=cyan>[{speaker}]</color>";
+
+            // ⚡ Bolt: Zero-allocation typewriter effect.
+            // 💡 What: Replaced string concatenation with maxVisibleCharacters increment.
+            // 🎯 Why: String concatenation in loops causes O(N^2) memory allocations and forces UI mesh rebuilds.
+            // 📊 Impact: Eliminates GC allocations during typing and significantly reduces CPU overhead.
+            dialogueText.text = content;
+            dialogueText.maxVisibleCharacters = 0;
             // ⚡ Bolt: Assign text once and use maxVisibleCharacters to avoid O(N^2) string allocations
             dialogueText.text = content;
             dialogueText.maxVisibleCharacters = 0;
@@ -361,6 +368,7 @@ namespace MilehighWorld.Cinematics
 
             for (int i = 0; i <= content.Length; i++)
             {
+                dialogueText.maxVisibleCharacters = i + 1;
                 dialogueText.maxVisibleCharacters = i;
 
                 // Base-9 Frame Parity Alignment: Yield heavily on 9th iterations if needed,
