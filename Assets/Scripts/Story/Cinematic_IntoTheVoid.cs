@@ -247,6 +247,9 @@ namespace MilehighWorld.Cinematics
             LogNarrativeTelemetry("Omen Singularity Severed. Verse Stabilized.");
         }
 
+        // Bolt Optimization: Replaced Renderer.material with MaterialPropertyBlock to prevent GC allocation and preserve GPU instancing.
+        private async Task TweenAlphaDecayAsync(Renderer renderer, float duration)
+        {
         private async Task TweenAlphaDecayAsync(Renderer renderer, float duration)
         {
             if (mat == null)
@@ -255,12 +258,16 @@ namespace MilehighWorld.Cinematics
             }
             if (renderer == null) return;
 
+            var propBlock = new MaterialPropertyBlock();
             float elapsed = 0f;
             while (elapsed < duration)
             {
                 elapsed += Time.deltaTime;
                 float alpha = Mathf.Lerp(1f, 0f, elapsed / duration);
 
+                renderer.GetPropertyBlock(propBlock);
+                propBlock.SetFloat(baseColorAlphaId, alpha);
+                renderer.SetPropertyBlock(propBlock);
                 renderer.GetPropertyBlock(_alphaPropBlock);
                 _alphaPropBlock.SetFloat(baseColorAlphaId, alpha);
                 renderer.SetPropertyBlock(_alphaPropBlock);
