@@ -411,6 +411,9 @@
 **Learning:** Repeatedly calling `Input` properties/methods (like `Input.anyKeyDown` alongside specific keydown checks) inside `Update()` loops introduces unnecessary C#/C++ native boundary crossings. This overhead accumulates, leading to micro-stutters, especially in input-heavy or critical path systems like cinematic playback.
 **Action:** Eliminate duplicate or redundant input execution paths to reduce CPU overhead and prevent micro-stutters.
 
+## 2026-05-24 - OtisTerminal Typewriter GC Allocations
+**Learning:** In `OtisTerminal.cs`, dynamically creating `new WaitForSeconds` inside the `TypewriterEffect` loop for every character and punctuation delay caused severe O(N) heap allocations. This generated heavy Garbage Collection (GC) pressure proportional to the length of the string being displayed, leading to potential micro-stutters.
+**Action:** Always utilize a static `Dictionary<int, WaitForSeconds>` cache indexed by milliseconds for yielding delays in tight loops (like typewriter effects) to ensure zero allocations after the cache is initially populated.
 ## 2024-06-02 - Zero-Allocation Typewriter Effect
 **Learning:** Using string concatenation (`text += char`) inside loops for typewriter effects in TextMeshPro causes O(N^2) memory allocations and forces UI mesh rebuilds per character. This leads to severe frame stuttering during long dialogues.
 **Action:** Assign the full string to the `text` property once and increment the `maxVisibleCharacters` property over time to achieve a zero-allocation, high-performance typewriter effect.
