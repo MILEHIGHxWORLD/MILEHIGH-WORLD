@@ -220,7 +220,10 @@ namespace MilehighWorld.Data
                 }
                 foreach (var interaction in interactiveObjects)
                 {
-                    if (interaction == null || !interaction.IsValid()) return false;
+                    if (interaction == null || !interaction.IsValid())
+                    {
+                        return false;
+                    }
                 }
             }
 
@@ -233,7 +236,10 @@ namespace MilehighWorld.Data
                 }
                 foreach (var d in dialogue)
                 {
-                    if (d == null || !d.IsValid()) return false;
+                    if (d == null || !d.IsValid())
+                    {
+                        return false;
+                    }
                 }
             }
 
@@ -282,7 +288,10 @@ namespace MilehighWorld.Data
             }
             foreach (var character in characters)
             {
-                if (character == null || !character.IsValid()) return false;
+                if (character == null || !character.IsValid())
+                {
+                    return false;
+                }
             }
 
             if (scenarios == null || scenarios.Count == 0)
@@ -297,7 +306,10 @@ namespace MilehighWorld.Data
             }
             foreach (var scenario in scenarios)
             {
-                if (scenario == null || !scenario.IsValid()) return false;
+                if (scenario == null || !scenario.IsValid())
+                {
+                    return false;
+                }
             }
 
             return true;

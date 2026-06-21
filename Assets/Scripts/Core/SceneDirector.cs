@@ -21,9 +21,10 @@ namespace MilehighWorld.Core
         private readonly Dictionary<string, GameObject?> _prefabCache = new Dictionary<string, GameObject?>();
         private readonly Dictionary<int, CharacterControllerBase?> _controllerCache = new Dictionary<int, CharacterControllerBase?>();
 
+        // 🛡️ Sentinel: Prevent IDOR (Insecure Direct Object Reference) by blocking GameObject.Find access to core singletons.
+        // 🛡️ Sentinel: Protected core singletons from Insecure Direct Object Reference (IDOR) access via GameObject.Find.
         private static readonly HashSet<string> _protectedManagers = new HashSet<string>
         {
-            "CampaignManager", "SceneDirector", "CameraManager", "AlliancePowerManager", "GlobalResonanceManager", "CombatManager", "EncounterDirector", "NarrativeActionResolver", "GameManager", "BackendSyncService", "RealitySyncEngine"
             "CampaignManager", "SceneDirector", "CameraManager", "AlliancePowerManager", "GlobalResonanceManager", "CombatManager", "EncounterDirector", "NarrativeActionResolver", "GameManager", "BackendSyncService", "RealitySyncEngine", "FoxParadeDirector", "TimelineSimulationEngine", "VitisAIBridge", "IXNodeController"
         };
 
@@ -67,7 +68,10 @@ namespace MilehighWorld.Core
 
         public void SetupScene(SceneScenario scenario)
         {
-            if (scenario == null || !scenario.IsValid()) return;
+            if (scenario == null || !scenario.IsValid())
+            {
+                return;
+            }
             Debug.Log($"Setting up scenario: {scenario.scenarioId}");
 
             _objectCache.Clear();
@@ -84,7 +88,10 @@ namespace MilehighWorld.Core
             {
                 foreach (var charProfile in campaignData.characters)
                 {
-                    if (charProfile != null) SpawnOrUpdateCharacter(charProfile);
+                    if (charProfile != null)
+                    {
+                        SpawnOrUpdateCharacter(charProfile);
+                    }
                 }
             }
 
@@ -92,14 +99,20 @@ namespace MilehighWorld.Core
             {
                 foreach (var interaction in scenario.interactiveObjects)
                 {
-                    if (interaction != null) ApplyInteraction(interaction);
+                    if (interaction != null)
+                    {
+                        ApplyInteraction(interaction);
+                    }
                 }
             }
         }
 
         public void SpawnOrUpdateCharacter(CharacterProfile profile)
         {
-            if (profile == null || !profile.IsValid()) return;
+            if (profile == null || !profile.IsValid())
+            {
+                return;
+            }
 
             GameObject? characterObj = GetCachedObject(profile.name);
 
@@ -132,7 +145,10 @@ namespace MilehighWorld.Core
 
         private void ApplyInteraction(ObjectInteraction interaction)
         {
-            if (interaction == null || string.IsNullOrEmpty(interaction.objectId)) return;
+            if (interaction == null || string.IsNullOrEmpty(interaction.objectId))
+            {
+                return;
+            }
 
             string sanitizedId = interaction.objectId.TrimStart('/');
             string[] segments = sanitizedId.Split('/');
@@ -162,7 +178,10 @@ namespace MilehighWorld.Core
 
         private GameObject? GetCachedObject(string objectName)
         {
-            if (string.IsNullOrEmpty(objectName)) return null;
+            if (string.IsNullOrEmpty(objectName))
+            {
+                return null;
+            }
 
             if (objectName.Length > 128 || !_nameValidator.IsMatch(objectName))
             {
@@ -172,7 +191,12 @@ namespace MilehighWorld.Core
 
             if (_objectCache.TryGetValue(objectName, out GameObject? obj))
             {
-                if (obj != null) return obj;
+                if (obj != null)
+                {
+                    return obj;
+                }
+                // ⚡ Bolt: Use ReferenceEquals for robust negative caching, skipping O(N) GameObject.Find for truly missing objects.
+                if (System.Object.ReferenceEquals(obj, null) || obj != null) return obj;
             }
 
             obj = GameObject.Find(objectName);
@@ -182,15 +206,24 @@ namespace MilehighWorld.Core
 
         private GameObject? GetPrefab(string profileName)
         {
-            if (string.IsNullOrEmpty(profileName)) return null;
+            if (string.IsNullOrEmpty(profileName))
+            {
+                return null;
+            }
 
             if (_prefabCache.TryGetValue(profileName, out GameObject? prefab))
             {
-                if (prefab != null) return prefab;
+                if (prefab != null)
+                {
+                    return prefab;
+                }
             }
 
             prefab = characterPrefabs?.Find(p => p != null && (p.name == profileName || p.name.Contains(profileName)));
-            if (prefab != null) _prefabCache[profileName] = prefab;
+            if (prefab != null)
+            {
+                _prefabCache[profileName] = prefab;
+            }
             return prefab;
         }
 
@@ -199,11 +232,17 @@ namespace MilehighWorld.Core
             int id = characterObj.GetInstanceID();
             if (_controllerCache.TryGetValue(id, out CharacterControllerBase? controller))
             {
-                if (controller != null) return controller;
+                if (controller != null)
+                {
+                    return controller;
+                }
             }
 
             controller = characterObj.GetComponent<CharacterControllerBase>();
-            if (controller != null) _controllerCache[id] = controller;
+            if (controller != null)
+            {
+                _controllerCache[id] = controller;
+            }
             return controller;
         }
     }
