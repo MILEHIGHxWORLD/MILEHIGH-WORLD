@@ -57,11 +57,11 @@ def check_files():
 def validate_compliance_assets():
     """Verify SOC 2 compliance directory structure and core files."""
     required_paths = [
-        "Compliance/Scripts/evidence_collector.py",
-        "Compliance/Scripts/identity_audit.py",
-        "Compliance/Infrastructure/main.tf",
-        "Compliance/Policies/information_security_policy.md",
-        "Compliance/Policies/access_control_policy.md",
+        "Tools/Compliance/Scripts/evidence_collector.py",
+        "Tools/Compliance/Scripts/identity_audit.py",
+        "Tools/Compliance/Infrastructure/main.tf",
+        "Tools/Compliance/Policies/information_security_policy.md",
+        "Tools/Compliance/Policies/access_control_policy.md",
         ".github/workflows/compliance-monitor.yml"
     ]
 

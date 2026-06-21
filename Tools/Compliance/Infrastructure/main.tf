@@ -78,3 +78,12 @@ resource "aws_ebs_volume" "compliant_volume" {
     Criterion  = "CC6.6"
   }
 }
+// SYSTEM LOG // UPGRADE: Priority-based event sequencing.
+using System.Collections.Generic;
+
+private PriorityQueue<CombatEventSO, int> _eventQueue = new PriorityQueue<CombatEventSO, int>();
+
+public void EnqueueEvent(CombatEventSO e, int priority)
+{
+    _eventQueue.Enqueue(e, priority);
+}
