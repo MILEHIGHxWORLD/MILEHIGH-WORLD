@@ -44,6 +44,8 @@ namespace MilehighWorld.Cinematics
         private readonly int baseColorAlphaId = Shader.PropertyToID("_BaseColor_Alpha");
         private MaterialPropertyBlock _alphaPropBlock = null!;
 
+        private static MaterialPropertyBlock _propertyBlock;
+
         // Mathematical Constants
         private const float TrueMonadBaseline = 1.0f;
         private const float LinearOmenHexState = 6.0f;
@@ -247,6 +249,16 @@ namespace MilehighWorld.Cinematics
             LogNarrativeTelemetry("Omen Singularity Severed. Verse Stabilized.");
         }
 
+        // ⚡ Bolt: Use MaterialPropertyBlock to prevent material cloning on the heap and GC allocations,
+        // preserving draw call batching (GPU instancing/SRP batcher).
+        private async Task TweenAlphaDecayAsync(Renderer renderer, float duration)
+        {
+            if (renderer == null) return;
+
+            if (_propertyBlock == null)
+            {
+                _propertyBlock = new MaterialPropertyBlock();
+            }
         private async Task TweenAlphaDecayAsync(Renderer targetRenderer, float duration)
         {
             if (targetRenderer == null) return;
@@ -274,6 +286,9 @@ namespace MilehighWorld.Cinematics
                 elapsed += Time.deltaTime;
                 float alpha = Mathf.Lerp(1f, 0f, elapsed / duration);
 
+                renderer.GetPropertyBlock(_propertyBlock);
+                _propertyBlock.SetFloat(baseColorAlphaId, alpha);
+                renderer.SetPropertyBlock(_propertyBlock);
                 targetRenderer.GetPropertyBlock(propBlock);
                 propBlock.SetFloat(baseColorAlphaId, alpha);
                 targetRenderer.SetPropertyBlock(propBlock);
