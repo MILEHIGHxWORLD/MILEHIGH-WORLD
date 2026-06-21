@@ -25,6 +25,8 @@ namespace MilehighWorld.Core
         // 🛡️ Sentinel: Protected core singletons from Insecure Direct Object Reference (IDOR) access via GameObject.Find.
         private static readonly HashSet<string> _protectedManagers = new HashSet<string>
         {
+            "CampaignManager", "SceneDirector", "CameraManager", "AlliancePowerManager", "GlobalResonanceManager", "CombatManager", "EncounterDirector", "NarrativeActionResolver", "GameManager", "BackendSyncService",
+            "RealitySyncEngine", "RealityAnchor", "BicameralBattleEngine", "FoxParadeDirector", "CinematicController"
             "CampaignManager", "SceneDirector", "CameraManager", "AlliancePowerManager", "GlobalResonanceManager", "CombatManager", "EncounterDirector", "NarrativeActionResolver", "GameManager", "BackendSyncService", "RealitySyncEngine"
             "CampaignManager", "SceneDirector", "CameraManager", "AlliancePowerManager", "GlobalResonanceManager", "CombatManager", "EncounterDirector", "NarrativeActionResolver", "GameManager", "BackendSyncService", "RealitySyncEngine", "FoxParadeDirector", "TimelineSimulationEngine", "VitisAIBridge", "IXNodeController", "HarmonicTerrainEngine", "BicameralBattleEngine"
             "CampaignManager", "SceneDirector", "CameraManager", "AlliancePowerManager", "GlobalResonanceManager", "CombatManager", "EncounterDirector", "NarrativeActionResolver", "GameManager", "BackendSyncService", "RealitySyncEngine",
