@@ -232,8 +232,14 @@ namespace MilehighWorld.Core
         private CharacterControllerBase? GetCharacterController(GameObject characterObj)
         {
             int id = characterObj.GetInstanceID();
+            // ⚡ Bolt: Implement negative caching using ReferenceEquals to safely skip redundant GetComponent calls on GameObjects that definitively lack the component.
             if (_controllerCache.TryGetValue(id, out CharacterControllerBase? controller))
             {
+                if (System.Object.ReferenceEquals(controller, null) || controller != null) return controller;
+            }
+
+            controller = characterObj.GetComponent<CharacterControllerBase>();
+            _controllerCache[id] = controller;
                 if (controller != null)
                 {
                     return controller;

@@ -438,6 +438,9 @@
 ## 2026-06-02 - Eliminate Per-Character Wait Allocations in UI
 **Learning:** In UI routines like the `TypewriterEffect`, instantiating a `new WaitForSeconds` on every single character creates significant per-frame GC allocation overhead (O(N) allocations where N is text length).
 **Action:** Always utilize a centralized `WaitForSeconds` cache with integer millisecond keys for recurring loop delays to achieve a zero-allocation coroutine.
+## 2024-06-08 - [Negative Caching for GetComponent Lookups]
+**Learning:** In Unity, dictionary caches storing components can repeatedly execute slow `GetComponent` calls if they don't distinguish between a "Real Null" (we searched and found nothing) and an uncached state. While negative caching `GameObject.Find` is unsafe because objects can dynamically spawn later, negative caching `GetComponent` on a specific instance ID is safe because static geometry or entities rarely add new components at runtime.
+**Action:** Implement negative caching for component lookups by explicitly storing `null` in caches when lookups fail. Use `System.Object.ReferenceEquals` to definitively return `null` and skip O(N) traversals for components that definitively do not exist on the object.
 ## 2024-06-03 - [MaterialPropertyBlock Optimization in Cinematic Tween]
 **Learning:** In Unity, accessing `Renderer.material` at runtime (like during the alpha fade tween in `Cinematic_IntoTheVoid.cs`) instantiates a material clone on the heap, generating GC allocations and breaking draw call batching (SRP/GPU instancing).
 **Action:** Always use a `MaterialPropertyBlock` (via `GetPropertyBlock` and `SetPropertyBlock`) with cached property IDs (`Shader.PropertyToID`) for per-renderer shader modifications to prevent material cloning and eliminate GC allocations.
