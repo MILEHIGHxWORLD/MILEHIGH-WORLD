@@ -137,12 +137,24 @@ namespace MilehighWorld.Cinematics
             await TweenShaderEntropyAsync(LinearOmenHexState, 2.0f);
 
             // 2. Transfinite Data Load: Initialize entities from object pools
-            if (skyixPrefab != null) skyixPrefab.SetActive(true);
-            if (reveriePrefab != null) reveriePrefab.SetActive(true);
-            if (kingCyrusPrefab != null) kingCyrusPrefab.SetActive(true);
+            if (skyixPrefab != null)
+            {
+                skyixPrefab.SetActive(true);
+            }
+            if (reveriePrefab != null)
+            {
+                reveriePrefab.SetActive(true);
+            }
+            if (kingCyrusPrefab != null)
+            {
+                kingCyrusPrefab.SetActive(true);
+            }
 
             // 3. Asynchronous Lexical Pacing
-            if (dialogueCanvas != null) dialogueCanvas.SetActive(true);
+            if (dialogueCanvas != null)
+            {
+                dialogueCanvas.SetActive(true);
+            }
 
             await StreamDialogueAsync("King Cyrus", "Tremble, mortals, as the Age of Millenia crumbles before the might of the Void!", 0.04f);
             await WaitForSecondsOrSkipAsync(0.5f);
@@ -153,7 +165,10 @@ namespace MilehighWorld.Cinematics
             LogNarrativeTelemetry("Executing Vitis AI Bridge Analysis: Calculating System Tension...");
 
             // Register final shards to reach parity
-            for (int i = 0; i < 999; i++) timelineEngine.RegisterSynchronizedShard();
+            for (int i = 0; i < 999; i++)
+            {
+                timelineEngine.RegisterSynchronizedShard();
+            }
 
             double tension = vitisBridge.CalculateSystemTension();
             timelineEngine.EvaluateSystemTension(tension);
@@ -170,12 +185,18 @@ namespace MilehighWorld.Cinematics
                 await StreamDialogueAsync("King Cyrus", "Your reality is too brittle for this power!", 0.04f);
             }
 
-            if (dialogueCanvas != null) dialogueCanvas.SetActive(false);
+            if (dialogueCanvas != null)
+            {
+                dialogueCanvas.SetActive(false);
+            }
         }
 
         private async Task TweenShaderEntropyAsync(float targetIntensity, float duration)
         {
-            if (hyperrealisticPlatformShader == null) return;
+            if (hyperrealisticPlatformShader == null)
+            {
+                return;
+            }
 
             float startIntensity = hyperrealisticPlatformShader.GetFloat(emissiveIntensityId);
             float elapsed = 0f;
@@ -210,6 +231,10 @@ namespace MilehighWorld.Cinematics
 
         private async Task TweenAlphaDecayAsync(Renderer renderer, float duration)
         {
+            if (mat == null)
+            {
+                return;
+            }
             if (renderer == null) return;
 
             float elapsed = 0f;
@@ -227,6 +252,17 @@ namespace MilehighWorld.Cinematics
         }
 
         /// <summary>
+        /// Zero-allocation rhythmic typewriter effect with themed completion cues and speaker pop animations.
+        /// </summary>
+        private async Task StreamDialogueAsync(string speaker, string content, float charDelay)
+        {
+            if (speakerNameText == null || dialogueText == null)
+            {
+                return;
+            }
+
+            string colorHex = GetSpeakerColorHex(speaker);
+            string formattedSpeaker = $"<color={colorHex}>[{speaker}]</color>";
         /// Zero-allocation rhythmic typewriter effect for dialogue rendering with rhythmic pacing and speaker transitions.
         /// Zero-allocation rhythmic typewriter effect with themed completion cues, speaker pop animations, and skip support.
         /// </summary>
@@ -251,6 +287,11 @@ namespace MilehighWorld.Cinematics
                 speakerNameText.text = formattedSpeaker;
                 _ = PopScaleAsync(speakerNameText.transform, 0.2f, 1.1f);
             }
+
+            // BOLT: Zero-allocation typewriter effect.
+            dialogueText.text = $"{content} <color={colorHex}>▽</color>";
+            dialogueText.maxVisibleCharacters = 0;
+            dialogueText.ForceMeshUpdate();
 
             // Palette: Append a color-coded '▽' completion cue to the dialogue for better interaction clarity.
             // By setting the full text (including the cue) at the start, we ensure layout stability.
@@ -334,7 +375,6 @@ namespace MilehighWorld.Cinematics
                     char c = dialogueText.textInfo.characterInfo[i - 1].character;
                     float multiplier = 1f;
 
-                    // Palette: Rhythmic punctuation pauses with look-ahead to handle mid-word periods (e.g., Sky.ix)
                     bool isEndOfSentence = (c == '.' || c == '?' || c == '!');
                     bool isClause = (c == ',' || c == ';' || c == ':');
 
@@ -359,6 +399,15 @@ namespace MilehighWorld.Cinematics
 
             dialogueText.maxVisibleCharacters = characterCount;
 
+        private async Task PopScaleAsync(Transform target, float duration, float scaleFactor)
+        {
+            if (target == null)
+            {
+                return;
+            }
+
+            float elapsed = 0f;
+            while (elapsed < duration)
             // Palette: Skippable post-line pause
             float pauseStart = Time.time;
             while (Time.time - pauseStart < 1.0f && !_skipRequested)
@@ -369,19 +418,17 @@ namespace MilehighWorld.Cinematics
             _skipRequested = false;
         }
 
-        private async Task PopScaleAsync(Transform target, float duration, float scaleFactor)
+        public float GetSpeedMultiplier(string speaker)
         {
-            if (target == null) return;
-
-            float elapsed = 0f;
-            while (elapsed < duration)
+            if (speaker == "Kai")
             {
-                elapsed += Time.deltaTime;
-                float t = elapsed / duration;
-                float sin = Mathf.Sin(t * Mathf.PI);
-                target.localScale = _originalSpeakerScale * (1f + (sin * (scaleFactor - 1f)));
-                await Task.Yield();
+                return kaiSpeedMultiplier;
             }
+            if (speaker == "Sky.ix")
+            {
+                return skyixSpeedMultiplier;
+            }
+            return 1.0f;
             target.localScale = _originalSpeakerScale;
         }
 
@@ -400,6 +447,15 @@ namespace MilehighWorld.Cinematics
 
         private async Task WaitForSecondsOrSkipAsync(float seconds)
         {
+            return speaker switch
+            {
+                "Sky.ix" => Color.cyan,
+                "King Cyrus" => Color.yellow,
+                "Reverie" => Color.magenta,
+                "Kai" => new Color(1f, 0.84f, 0f),
+                "Delilah" => new Color(0.6f, 0.1f, 0.9f),
+                _ => Color.white
+            };
             float elapsed = 0f;
             while (elapsed < seconds && !_skipRequested)
             {

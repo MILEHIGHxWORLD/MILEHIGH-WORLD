@@ -52,7 +52,10 @@ namespace MilehighWorld.World.Terminal
 
         private void Update()
         {
-            if (commandInput == null || !commandInput.isFocused) return;
+            if (commandInput == null || !commandInput.isFocused)
+            {
+                return;
+            }
 
             bool isControlPressed = Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl);
             if (isControlPressed && Input.GetKeyDown(KeyCode.L))
@@ -62,6 +65,21 @@ namespace MilehighWorld.World.Terminal
                 commandInput.ActivateInputField();
             }
 
+            // Palette: Refined history navigation - ensure responsiveness by polling in Update.
+            if (Input.GetKeyDown(KeyCode.UpArrow))
+            {
+                NavigateHistory(-1);
+            }
+            else if (Input.GetKeyDown(KeyCode.DownArrow))
+            {
+                NavigateHistory(1);
+            }
+
+            // Palette: Productivity - Tab-to-Autocomplete for common commands.
+            if (Input.GetKeyDown(KeyCode.Tab))
+            {
+                HandleAutocomplete();
+            }
             if (Input.GetKeyDown(KeyCode.UpArrow)) NavigateHistory(-1);
             else if (Input.GetKeyDown(KeyCode.DownArrow)) NavigateHistory(1);
 
@@ -80,6 +98,12 @@ namespace MilehighWorld.World.Terminal
                 return;
             }
 
+        private void HandleAutocomplete()
+        {
+            if (commandInput == null || string.IsNullOrWhiteSpace(commandInput.text))
+            {
+                return;
+            }
             if (string.IsNullOrWhiteSpace(commandInput.text)) return;
 
             string input = commandInput.text.ToLower();
@@ -107,6 +131,10 @@ namespace MilehighWorld.World.Terminal
 
         private void NavigateHistory(int direction)
         {
+            if (_commandHistory.Count == 0)
+            {
+                return;
+            }
             if (_commandHistory.Count == 0) return;
             _lastSuggestion = null;
             _lastSuggestion = ""; // Palette: Clear suggestion when navigating history for a fresh state.
@@ -117,6 +145,14 @@ namespace MilehighWorld.World.Terminal
 
         public void ProcessCommand(string input)
         {
+            if (string.IsNullOrWhiteSpace(input))
+            {
+                return;
+            }
+            if (_commandHistory.Count == 0 || _commandHistory[^1] != input)
+            {
+                _commandHistory.Add(input);
+            }
             if (string.IsNullOrWhiteSpace(input)) return;
 
             if (_commandHistory.Count == 0 || _commandHistory[^1] != input)
@@ -133,14 +169,20 @@ namespace MilehighWorld.World.Terminal
             if (input.Length > MaxInputLength)
             {
                 WriteToTerminal("\n[SECURITY]: <color=#FF0000>Input exceeds maximum length (256 characters).</color>");
-                if (commandInput != null) StartCoroutine(ShakeInputField());
+                if (commandInput != null)
+                {
+                    StartCoroutine(ShakeInputField());
+                }
                 return;
             }
 
             if (!SafeCommandRegex.IsMatch(input))
             {
                 WriteToTerminal("\n[SECURITY]: <color=#FF0000>Invalid characters. Use only A-Z, 0-9, spaces, '.', '_', and '-'.</color>");
-                if (commandInput != null) StartCoroutine(ShakeInputField());
+                if (commandInput != null)
+                {
+                    StartCoroutine(ShakeInputField());
+                }
                 return;
             }
 
@@ -176,6 +218,18 @@ namespace MilehighWorld.World.Terminal
                 }
             }
 
+            // Unknown command or invalid argument count
+            string suggestion = GetCommandSuggestion(command);
+            string errorMsg = $"\n[SYSTEM]: <color=#FF0000>Unknown command: '{parts[0]}'</color>";
+            if (!string.IsNullOrEmpty(suggestion))
+            {
+                errorMsg += $"\n[SYSTEM]: Did you mean: <color=#00FFFF>{suggestion}</color>?";
+            }
+            WriteToTerminal(errorMsg);
+            if (commandInput != null)
+            {
+                StartCoroutine(ShakeInputField());
+            }
             _lastSuggestion = GetCommandSuggestion(command);
             string errorMsg = $"\n[SYSTEM]: <color=#FF0000>Error: Unknown command or invalid argument count for '{parts[0]}'.</color>";
             if (!string.IsNullOrEmpty(_lastSuggestion))
@@ -214,32 +268,17 @@ namespace MilehighWorld.World.Terminal
             return minDistance <= 2 ? bestMatch : "";
         }
 
-        private int ComputeLevenshteinDistance(string s, string t)
+        private void ClearTerminalDisplay()
         {
-            int n = s.Length;
-            int m = t.Length;
-            int[,] d = new int[n + 1, m + 1];
-
-            if (n == 0) return m;
-            if (m == 0) return n;
-
-            for (int i = 0; i <= n; d[i, 0] = i++) ;
-            for (int j = 0; j <= m; d[0, j] = j++) ;
-
-            for (int i = 1; i <= n; i++)
+            if (outputDisplay == null)
             {
+                return;
                 for (int j = 1; j <= m; j++)
                 {
                     int cost = (t[j - 1] == s[i - 1]) ? 0 : 1;
                     d[i, j] = Math.Min(Math.Min(d[i - 1, j] + 1, d[i, j - 1] + 1), d[i - 1, j - 1] + cost);
                 }
             }
-            return d[n, m];
-        }
-
-        private void ClearTerminalDisplay()
-        {
-            if (outputDisplay == null) return;
             outputDisplay.text = "";
             outputDisplay.maxVisibleCharacters = 0;
 
@@ -251,7 +290,10 @@ namespace MilehighWorld.World.Terminal
 
         private void WriteToTerminal(string message)
         {
-            if (outputDisplay == null) return;
+            if (outputDisplay == null)
+            {
+                return;
+            }
 
             if (_typewriterCoroutine != null)
             {
@@ -288,6 +330,9 @@ namespace MilehighWorld.World.Terminal
 
                 yield return GetWait(0.02f);
             }
+
+            // ⚡ Bolt: Reset maxVisibleCharacters after typewriter completes to avoid text truncation on subsequent uses.
+            outputDisplay.maxVisibleCharacters = outputDisplay.textInfo.characterCount;
 
             outputDisplay.maxVisibleCharacters = outputDisplay.textInfo.characterCount;
             _typewriterCoroutine = null;
