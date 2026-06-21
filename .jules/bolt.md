@@ -1,3 +1,6 @@
+## 2025-01-20 - Renderer.material Allocation Pattern
+**Learning:** In Unity, accessing `Renderer.material` at runtime instantiates a material clone on the heap. This breaks draw call batching (SRP/GPU instancing) and causes GC allocations for every access.
+**Action:** Use a `MaterialPropertyBlock` (via `GetPropertyBlock` and `SetPropertyBlock`) to apply per-renderer shader modifications without cloning the material.
 ## 2024-05-24 - Unity GameObject.Find Performance Bottleneck
 **Learning:** In Unity 3D scripts like `SceneDirector.cs` within this project, methods frequently call `GameObject.Find()` to search for characters or interactive objects by name during scene setups. This forces Unity to traverse the entire scene hierarchy repeatedly (O(N) operation), which can cause noticeable load times or frame drops if called continuously or on large scenes.
 **Action:** Replace direct `GameObject.Find()` calls with a `Dictionary<string, GameObject>` cache when objects are fetched by name multiple times or instantiated dynamically. Check `cachedObj != null` to handle Unity's custom object destruction logic safely before returning a cached reference.
@@ -443,3 +446,69 @@
 ## 2026-06-07 - Risky Negative Caching in Dynamic Scenes
 **Learning:** Storing 'null' in a dictionary cache for a failed 'GameObject.Find' result (negative caching) is risky in dynamic Unity scenes. It can lead to stale references if the requested object is instantiated after the initial cache-miss, preventing the application from finding the newly created object.
 **Action:** Revert to safe caching that only stores valid, non-null GameObject references unless the object lifecycle is strictly static or the cache is explicitly updated upon instantiation.
+## 2024-06-08 - [Negative Caching for GetComponent Lookups]
+**Learning:** In Unity, dictionary caches storing components can repeatedly execute slow `GetComponent` calls if they don't distinguish between a "Real Null" (we searched and found nothing) and an uncached state. While negative caching `GameObject.Find` is unsafe because objects can dynamically spawn later, negative caching `GetComponent` on a specific instance ID is safe because static geometry or entities rarely add new components at runtime.
+**Action:** Implement negative caching for component lookups by explicitly storing `null` in caches when lookups fail. Use `System.Object.ReferenceEquals` to definitively return `null` and skip O(N) traversals for components that definitively do not exist on the object.
+## 2024-06-03 - [MaterialPropertyBlock Optimization in Cinematic Tween]
+**Learning:** In Unity, accessing `Renderer.material` at runtime (like during the alpha fade tween in `Cinematic_IntoTheVoid.cs`) instantiates a material clone on the heap, generating GC allocations and breaking draw call batching (SRP/GPU instancing).
+**Action:** Always use a `MaterialPropertyBlock` (via `GetPropertyBlock` and `SetPropertyBlock`) with cached property IDs (`Shader.PropertyToID`) for per-renderer shader modifications to prevent material cloning and eliminate GC allocations.
+
+## 2026-06-09 - Material Allocation via Renderer.material
+**Learning:** Accessing `Renderer.material` at runtime in Unity instantiates a material clone on the managed heap, which causes unexpected GC allocations and breaks draw call batching (SRP/GPU instancing).
+**Action:** Always utilize a `MaterialPropertyBlock` (via `GetPropertyBlock` and `SetPropertyBlock`) with cached property IDs to modify per-renderer shader properties without allocating new material instances.
+## 2024-06-09 - [MaterialPropertyBlock for Renderer Shader Modifications]
+**Learning:** Accessing `Renderer.material` at runtime instantiates a material clone on the heap, generating GC allocations and breaking draw call batching (SRP/GPU instancing).
+**Action:** Always use a `MaterialPropertyBlock` (via `GetPropertyBlock` and `SetPropertyBlock`) with cached property IDs (`Shader.PropertyToID`) for per-renderer shader modifications to prevent allocations and preserve instancing.
+## 2026-06-10 - [Renderer.material GC Allocation]
+**Learning:** In Unity, accessing `Renderer.material` at runtime instantiates a material clone on the heap, generating GC allocations and breaking draw call batching (SRP/GPU instancing).
+**Action:** Always use a `MaterialPropertyBlock` (via `GetPropertyBlock` and `SetPropertyBlock`) with cached property IDs (`Shader.PropertyToID`) for per-renderer shader modifications.
+
+## 2024-06-03 - MaterialPropertyBlock for Zero-Allocation Fades
+**Learning:** In `Cinematic_IntoTheVoid.cs`, passing `renderer.material` to an async fading routine instantiates a material clone on the heap, causing unnecessary GC allocations and breaking draw call batching (SRP/GPU instancing).
+**Action:** Always pass the `Renderer` instead of `Material` to coroutines/async tasks and use a `MaterialPropertyBlock` (`GetPropertyBlock` and `SetPropertyBlock`) to manipulate shader properties over time without allocating new materials.
+## 2024-06-03 - MaterialPropertyBlock for Renderer Material Access
+**Learning:** Accessing `Renderer.material` at runtime instantiates a material clone on the heap, generating GC allocations and breaking draw call batching (SRP/GPU instancing).
+**Action:** Always use a `MaterialPropertyBlock` (via `GetPropertyBlock` and `SetPropertyBlock`) with cached property IDs (`Shader.PropertyToID`) for per-renderer shader modifications.
+## 2026-06-12 - Prevent Material Instantiation via MaterialPropertyBlock
+**Learning:** In Unity, accessing `Renderer.material` at runtime instantiates a material clone on the heap, generating GC allocations and breaking draw call batching (SRP/GPU instancing).
+**Action:** Always use a `MaterialPropertyBlock` (via `GetPropertyBlock` and `SetPropertyBlock`) with cached property IDs (`Shader.PropertyToID`) for per-renderer shader modifications.
+## 2024-05-31 - Renderer.material GC Allocation
+**Learning:** Accessing `Renderer.material` at runtime instantiates a material clone on the heap, generating GC allocations and breaking draw call batching (SRP/GPU instancing).
+**Action:** Always use a `MaterialPropertyBlock` (via `GetPropertyBlock` and `SetPropertyBlock`) with cached property IDs (`Shader.PropertyToID`) for per-renderer shader modifications.
+## 2024-06-14 - Unity Material Allocation Overhead
+**Learning:** Accessing `Renderer.material` at runtime instantiates a material clone on the heap, generating GC allocations and breaking draw call batching (SRP/GPU instancing).
+**Action:** Always use a `MaterialPropertyBlock` (via `GetPropertyBlock` and `SetPropertyBlock`) with cached property IDs (`Shader.PropertyToID`) for per-renderer shader modifications.
+
+## 2026-06-14 - Renderer.material Allocation Anti-Pattern
+**Learning:** Accessing `Renderer.material` at runtime instantiates a material clone on the heap, generating GC allocations and breaking draw call batching (SRP/GPU instancing).
+**Action:** Always use a `MaterialPropertyBlock` with cached property IDs (`Shader.PropertyToID`) for per-renderer modifications, ensuring `renderer.GetPropertyBlock()` is called first to preserve existing properties.
+## 2024-06-14 - MaterialPropertyBlock for Zero-Allocation Shading
+**Learning:** Accessing `Renderer.material` at runtime instantiates a material clone on the heap, generating GC allocations and breaking draw call batching (SRP/GPU instancing).
+**Action:** Always use a `MaterialPropertyBlock` with cached property IDs (`Shader.PropertyToID`) for per-renderer modifications. Call `renderer.GetPropertyBlock()` prior to modifying values to ensure previously applied property block data is preserved and not overwritten.
+## 2026-06-15 - [MaterialPropertyBlock for Shader Properties]
+**Learning:** Accessing `Renderer.material` at runtime instantiates a material clone on the heap, generating GC allocations and breaking draw call batching (SRP/GPU instancing).
+**Action:** Always use a `MaterialPropertyBlock` with cached property IDs (`Shader.PropertyToID`) for per-renderer modifications. Call `renderer.GetPropertyBlock()` prior to modifying values to ensure previously applied property block data is preserved.
+
+## 2024-06-16 - Consolidate duplicate Levenshtein Distance functions
+**Learning:** In `OtisTerminal.cs`, code rot led to three duplicate methods computing the Levenshtein distance (`GetLevenshteinDistance`, `ComputeLevenshteinDistance` duplicated), and a redundant loop duplicating `GetCommandSuggestion` inside `ProcessCommand`. This redundancy increases code size and executes duplicate loops calculating distance during error handling.
+**Action:** When working on codebase with poor merges or duplicated error handling routines, consolidate repeated implementations to improve maintainability and avoid unnecessary allocations/loops.
+## 2026-06-03 - [MaterialPropertyBlock in Coroutines]
+**Learning:** Accessing `Renderer.material` in Unity coroutines triggers a material clone on the heap, which increases memory overhead and breaks draw call batching.
+**Action:** Always use a `MaterialPropertyBlock` with cached property IDs for per-renderer modifications. Call `renderer.GetPropertyBlock()` prior to modifying values to ensure previously applied property block data is preserved.
+## 2024-06-03 - Robust Negative Caching for Unity Lookups
+**Learning:** In Unity, caching `null` results for `GameObject.Find` requires using `System.Object.ReferenceEquals(obj, null)` to distinguish between a legitimate `null` cache entry (negative caching) and a natively destroyed object (fake null).
+**Action:** Always check `System.Object.ReferenceEquals(obj, null)` before returning from a cache to avoid O(N) scene traversals for explicitly missing objects while retaining the ability to refetch destroyed ones.
+## 2024-06-16 - Prevent GC Allocations by caching MaterialPropertyBlock
+**Learning:** Accessing `Renderer.material` at runtime instantiates a material clone on the heap, generating Garbage Collection allocations and breaking draw call batching (SRP/GPU instancing).
+**Action:** Always use a `MaterialPropertyBlock` with cached property IDs (`Shader.PropertyToID`) for per-renderer modifications. Cache the `MaterialPropertyBlock` and call `renderer.GetPropertyBlock()` prior to modifying values to ensure previously applied property block data is preserved.
+
+## 2026-06-17 - [MaterialPropertyBlock for Zero-Allocation Tweens]
+**Learning:** Modifying `Renderer.material` at runtime (like fading out an entity's alpha during a cinematic) instantiates a material clone on the heap, generating GC allocations and breaking draw call batching.
+**Action:** Always use a `MaterialPropertyBlock` and `Renderer.GetPropertyBlock`/`SetPropertyBlock` along with cached property IDs (`Shader.PropertyToID`) when tweening properties to preserve batching and avoid allocations.
+## 2025-02-14 - MaterialPropertyBlock Zero-Allocation Tweening
+**Learning:** Accessing `Renderer.material` during animations (like alpha decay tweens) silently instantiates a material clone on the heap, causing recurring GC allocations and permanently breaking draw call batching (SRP/GPU instancing) for that renderer.
+**Action:** Always use `MaterialPropertyBlock` with `renderer.GetPropertyBlock()` and `renderer.SetPropertyBlock()` when modifying per-instance shader values at runtime, caching property IDs (`Shader.PropertyToID`) for maximum efficiency.
+
+## 2026-06-19 - Consolidate Redundant Input Checks
+**Learning:** In Unity, redundant `Input` checks (e.g., repeatedly calling `Input.anyKeyDown`) inside `Update()` loops introduce unnecessary C#/C++ native boundary crossings, which increases CPU overhead and can cause micro-stutters.
+**Action:** Eliminate duplicate execution paths to reduce CPU overhead per frame, ensuring native-managed boundary crossings are minimized.
