@@ -82,6 +82,9 @@
 **Learning:** Pacing in dialogue-heavy cinematics is significantly improved by distinguishing between sentence endings (long pause), ellipses (medium pause), and mid-word periods (no pause, e.g., 'Sky.ix'). Furthermore, color-coding progress indicators (like the '▽' cue) to match the speaker's theme strengthens the visual association between the narrative content and the character, reducing cognitive load for the player.
 **Action:** Implement look-ahead/look-behind logic for punctuation to refine pacing, and use speaker-specific colors for interactive UI cues via TMP rich text tags.
 
+## 2026-03-27 - [Layout-Stable Rhythmic Typewriter with Look-Ahead]
+**Learning:** Pre-appending completion cues (like '▽') to the full text and using 'maxVisibleCharacters' for reveal ensures layout stability and prevents word-wrap jumping. Incorporating look-ahead whitespace checks for punctuation allows for natural rhythmic pauses (e.g. 15x delay for sentence ends) while correctly ignoring periods in technical names (e.g. 'Sky.ix').
+**Action:** Always pre-calculate dialogue layout with all cues present and use look-ahead logic for context-aware rhythmic pacing in typewriter effects.
 ## 2026-06-16 - [Fuzzy Command Matching for Terminal Usability]
 **Learning:** In terminal-style interfaces, users often make typos. Implementing a "Did you mean?" feature using Levenshtein distance (with a threshold of 2) significantly reduces frustration by guiding users toward valid commands without being overly intrusive.
 **Action:** Always include fuzzy matching/suggestions for command-line inputs to improve error recovery and discoverability.

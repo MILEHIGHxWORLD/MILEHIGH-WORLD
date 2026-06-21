@@ -44,6 +44,13 @@ namespace MilehighWorld.Cinematics
         public float kaiSpeedMultiplier { get; set; } = 3.0f;
         public float skyixSpeedMultiplier { get; set; } = 1.2f;
 
+        // Palette: Public getters to support existing tests and external UI coordination
+        public TextMeshProUGUI SpeakerNameText => speakerNameText;
+        public TextMeshProUGUI DialogueText => dialogueText;
+        public GameObject DialogueBox => dialogueCanvas;
+
+        [Header("Lexical Pacing Settings")]
+        public float baseTypingSpeed = 0.03f;
         public TextMeshProUGUI SpeakerNameText { get => speakerNameText; set => speakerNameText = value; }
         public TextMeshProUGUI DialogueText { get => dialogueText; set => dialogueText = value; }
         public GameObject DialogueBox { get => dialogueCanvas; set => dialogueCanvas = value; }
@@ -370,6 +377,55 @@ namespace MilehighWorld.Cinematics
         }
 
         /// <summary>
+        /// Zero-allocation typewriter effect for dialogue rendering.
+        /// Optimized with maxVisibleCharacters, rhythmic pacing, and themed cues.
+        /// </summary>
+        private async Task StreamDialogueAsync(string speaker, string content, float charDelay)
+        {
+            Color speakerColor = GetSpeakerColor(speaker);
+            string hexColor = ColorUtility.ToHtmlStringRGB(speakerColor);
+            float multiplier = GetSpeedMultiplier(speaker);
+            float effectiveDelay = (charDelay / multiplier) * 1000;
+
+            speakerNameText.text = $"<color=#{hexColor}>[{speaker}]</color>";
+
+            // Palette: Pre-append completion cue and use maxVisibleCharacters for stable layout
+            dialogueText.text = $"{content} <color=#{hexColor}>▽</color>";
+            dialogueText.maxVisibleCharacters = 0;
+            dialogueText.ForceMeshUpdate();
+
+            int totalCharacters = dialogueText.textInfo.characterCount;
+            // Subtracting 1 because the last character is our '▽' cue
+            int dialogueLength = totalCharacters - 1;
+
+            for (int i = 0; i <= dialogueLength; i++)
+            {
+                dialogueText.maxVisibleCharacters = i;
+
+                if (i > 0 && i <= dialogueLength)
+                {
+                    char c = dialogueText.textInfo.characterInfo[i - 1].character;
+                    float pauseMultiplier = 1f;
+
+                    // Palette: Rhythmic pacing with look-ahead to ignore technical names
+                    bool isTechnicalName = (i < dialogueLength && !char.IsWhiteSpace(dialogueText.textInfo.characterInfo[i].character));
+
+                    if (!isTechnicalName)
+                    {
+                        if (".!?".Contains(c)) pauseMultiplier = 15f;
+                        else if (",:".Contains(c)) pauseMultiplier = 8f;
+                    }
+
+                    // Ellipsis handling (roughly)
+                    if (c == '.' && i > 1 && dialogueText.textInfo.characterInfo[i - 2].character == '.')
+                        pauseMultiplier = 5f;
+
+                    await Task.Delay(Mathf.RoundToInt(effectiveDelay * pauseMultiplier));
+                }
+                else
+                {
+                    await Task.Delay(Mathf.RoundToInt(effectiveDelay));
+                }
         /// Zero-allocation rhythmic typewriter effect with themed completion cues and speaker pop animations.
         /// </summary>
         private async Task StreamDialogueAsync(string speaker, string content, float charDelay)
@@ -586,6 +642,33 @@ namespace MilehighWorld.Cinematics
             {
                 await WaitForSecondsOrSkip(1.0f);
             }
+
+            // Reveal the completion cue
+            dialogueText.maxVisibleCharacters = totalCharacters;
+        }
+
+        // Palette: Speaker-specific theme colors and pacing multipliers
+        public Color GetSpeakerColor(string speaker)
+        {
+            return speaker switch
+            {
+                "Sky.ix" => Color.cyan,
+                "Kai" => new Color(1f, 0.84f, 0f), // Gold
+                "Delilah" => new Color(0.6f, 0.1f, 0.9f), // Void Purple
+                "King Cyrus" => new Color(1f, 0.27f, 0f), // #FF4500
+                "Reverie" => new Color(0.66f, 0.33f, 0.97f), // #A855F7
+                _ => Color.white
+            };
+        }
+
+        public float GetSpeedMultiplier(string speaker)
+        {
+            return speaker switch
+            {
+                "Kai" => kaiSpeedMultiplier,
+                "Sky.ix" => skyixSpeedMultiplier,
+                _ => 1.0f
+            };
         }
 
         private async Task WaitForSecondsOrSkip(float seconds)
