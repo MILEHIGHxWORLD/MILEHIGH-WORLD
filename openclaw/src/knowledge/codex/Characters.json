@@ -1,0 +1,81 @@
+{
+  "metadata": {
+    "codexVersion": "1.0.0",
+    "universe": "Milehigh.World: Into the Void",
+    "lastUpdated": "2026-06-07"
+  },
+  "entities": [
+    {
+      "id": "CHAR_SKYIX",
+      "name": "Sky.ix",
+      "entityType": "Character",
+      "canon": {
+        "digitalRoot": 9,
+        "alignment": "Balance",
+        "narrativePurpose": "Void Harmonizer",
+        "immutableTraits": [
+          "Can absorb Void energy",
+          "Cannot destroy Void energy",
+          "Maintains equilibrium"
+        ]
+      }
+    },
+    {
+      "id": "CHAR_ERA",
+      "name": "Era",
+      "entityType": "Character",
+      "canon": {
+        "digitalRoot": 9,
+        "alignment": "Entropy",
+        "narrativePurpose": "Corrupted Counterbalance",
+        "immutableTraits": [
+          "Always corrupted",
+          "Embodies uncontrolled Void recursion"
+        ]
+      }
+    },
+    {
+      "id": "CHAR_KAI",
+      "name": "Kai the Prophet",
+      "entityType": "Character",
+      "canon": {
+        "digitalRoot": 9,
+        "alignment": "Witness",
+        "narrativePurpose": "Architectural Observer",
+        "immutableTraits": [
+          "Former Lucent engineer",
+          "Maintains prophetic insight"
+        ]
+      }
+    },
+    {
+      "id": "CHAR_CLOUDTNINE",
+      "name": "CloudtNine",
+      "entityType": "Character",
+      "canon": {
+        "digitalRoot": 9,
+        "alignment": "Creative",
+        "narrativePurpose": "Signal Broadcaster",
+        "immutableTraits": [
+          "Musical manifestation",
+          "Transmits harmonized knowledge"
+        ]
+      }
+    },
+    {
+      "id": "CHAR_REVERIE",
+      "name": "Reverie",
+      "entityType": "Character",
+      "canon": {
+        "digitalRoot": 9,
+        "alignment": "Skeptic",
+        "narrativePurpose": "Reluctant Anchor",
+        "immutableTraits": [
+          "Fairy physiology with wings",
+          "Requires floating/hovering kinematic constraints",
+          "Maintains reluctant skepticism towards main protocols"
+        ]
+      }
+    }
+  ]
+}
