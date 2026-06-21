@@ -52,14 +52,26 @@ namespace MilehighWorld.Engine
         public WFCCell()
         {
             Possibilities = new bool[(int)TileType.Count];
-            for (int i = 0; i < Possibilities.Length; i++) Possibilities[i] = true;
+            for (int i = 0; i < Possibilities.Length; i++)
+            {
+                Possibilities[i] = true;
+            }
         }
 
         public int GetEntropy()
         {
-            if (Collapsed) return 9999;
+            if (Collapsed)
+            {
+                return 9999;
+            }
             int count = 0;
-            foreach (bool p in Possibilities) if (p) count++;
+            foreach (bool p in Possibilities)
+            {
+                if (p)
+                {
+                    count++;
+                }
+            }
             return count;
         }
     }
@@ -128,7 +140,10 @@ namespace MilehighWorld.Engine
                 List<TileType> options = new List<TileType>();
                 for (int t = 0; t < (int)TileType.Count; t++)
                 {
-                    if (wfcGrid[idx].Possibilities[t]) options.Add((TileType)t);
+                    if (wfcGrid[idx].Possibilities[t])
+                    {
+                        options.Add((TileType)t);
+                    }
                 }
 
                 TileType selected = options.Count > 0 ? options[0] : TileType.Empty;
@@ -156,7 +171,10 @@ namespace MilehighWorld.Engine
 
             for (int i = 0; i < grid.Length; i++)
             {
-                if (grid[i].Collapsed) continue;
+                if (grid[i].Collapsed)
+                {
+                    continue;
+                }
                 int entropy = grid[i].GetEntropy();
                 if (entropy < minEntropy)
                 {
@@ -204,12 +222,18 @@ namespace MilehighWorld.Engine
                     if (nx >= 0 && nx < size && nz >= 0 && nz < size)
                     {
                         int neighborIdx = nz * size + nx;
-                        if (grid[neighborIdx].Collapsed) continue;
+                        if (grid[neighborIdx].Collapsed)
+                        {
+                            continue;
+                        }
 
                         bool changed = false;
                         for (int t = 0; t < (int)TileType.Count; t++)
                         {
-                            if (!grid[neighborIdx].Possibilities[t]) continue;
+                            if (!grid[neighborIdx].Possibilities[t])
+                            {
+                                continue;
+                            }
 
                             bool pathPossible = false;
                             for (int c = 0; c < (int)TileType.Count; c++)
@@ -228,7 +252,10 @@ namespace MilehighWorld.Engine
                             }
                         }
 
-                        if (changed) propagationQueue.Enqueue(new Vector2Int(nx, nz));
+                        if (changed)
+                        {
+                            propagationQueue.Enqueue(new Vector2Int(nx, nz));
+                        }
                     }
                 }
             }
