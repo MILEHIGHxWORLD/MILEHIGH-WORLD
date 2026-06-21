@@ -316,6 +316,42 @@ namespace MilehighWorld.Cinematics
         /// </summary>
         private async Task StreamDialogueAsync(string speaker, string content, float charDelay)
         {
+            string speakerColor = speaker switch
+            {
+                "King Cyrus" => "#FF4500",
+                "Sky.ix" => "#00FFFF",
+                "Reverie" => "#A855F7",
+                _ => "#FFFFFF"
+            };
+
+            speakerNameText.text = $"<color={speakerColor}>[{speaker}]</color>";
+            string fullContent = content + $" <color={speakerColor}>▽</color>";
+            dialogueText.text = fullContent;
+            dialogueText.maxVisibleCharacters = 0;
+            dialogueText.ForceMeshUpdate();
+
+            for (int i = 0; i <= content.Length; i++)
+            {
+                dialogueText.maxVisibleCharacters = i;
+
+                if (i > 0 && i < content.Length)
+                {
+                    char c = content[i - 1];
+                    float delayFactor = 1.0f;
+
+                    // Palette: Rhythmic pacing - pause for punctuation
+                    if (c == '.' || c == '!' || c == '?')
+                    {
+                        // Look-ahead to avoid pausing on abbreviations (e.g., Sky.ix)
+                        if (i == content.Length || char.IsWhiteSpace(content[i]))
+                            delayFactor = 15.0f;
+                    }
+                    else if (c == ',' || c == ':')
+                    {
+                        delayFactor = 8.0f;
+                    }
+
+                    await Task.Delay(Mathf.RoundToInt(charDelay * delayFactor * 1000));
             speakerNameText.text = $"<color=cyan>[{speaker}]</color>";
             // ⚡ Bolt: Assign text once and use maxVisibleCharacters to avoid O(N^2) string allocations
             dialogueText.text = content;
@@ -503,6 +539,10 @@ namespace MilehighWorld.Cinematics
                 {
                     await Task.Delay(Mathf.RoundToInt(charDelay * 1000));
                 }
+            }
+
+            // Reveal the completion cue
+            dialogueText.maxVisibleCharacters = fullContent.Length;
             }
 
             dialogueText.maxVisibleCharacters = characterCount;

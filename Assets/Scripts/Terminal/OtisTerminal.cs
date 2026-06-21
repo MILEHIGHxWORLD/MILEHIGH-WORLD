@@ -165,6 +165,7 @@ namespace MilehighWorld.World.Terminal
                 return;
             }
             if (_commandHistory.Count == 0) return;
+            _historyIndex = (int)Mathf.Clamp(_historyIndex + direction, 0, _commandHistory.Count);
             _lastSuggestion = null;
             _lastSuggestion = ""; // Palette: Clear suggestion when navigating history for a fresh state.
             _historyIndex = Mathf.Clamp(_historyIndex + direction, 0, _commandHistory.Count);
