@@ -34,6 +34,10 @@ namespace MilehighWorld.World.Terminal
         // and eliminate redundant GC allocations during coroutine execution.
         private static readonly Dictionary<int, WaitForSeconds> _waitCache = new Dictionary<int, WaitForSeconds>();
 
+        // ⚡ Bolt: Cache for WaitForSeconds using millisecond keys to prevent floating-point precision issues
+        // and eliminate redundant GC allocations during typewriter coroutine execution.
+        private static readonly Dictionary<int, WaitForSeconds> _waitCache = new Dictionary<int, WaitForSeconds>();
+
         private Coroutine? _typewriterCoroutine;
         private readonly List<string> _commandHistory = new List<string>();
         private int _historyIndex = -1;
@@ -102,6 +106,36 @@ namespace MilehighWorld.World.Terminal
             {
                 wait = new WaitForSeconds(seconds);
                 _waitCache[ms] = wait;
+            }
+            return wait;
+        }
+
+        // ⚡ Bolt: Cache for WaitForSeconds using millisecond keys to prevent floating-point precision issues
+        // and eliminate redundant GC allocations during coroutine execution.
+        private static readonly Dictionary<int, WaitForSeconds> _waitCache = new Dictionary<int, WaitForSeconds>();
+
+        private static WaitForSeconds GetWait(float seconds)
+        {
+            int ms = Mathf.RoundToInt(seconds * 1000f);
+            if (!_waitCache.TryGetValue(ms, out var wait))
+            {
+                wait = new WaitForSeconds(seconds);
+                _waitCache[ms] = wait;
+            }
+            return wait;
+        }
+
+        // ⚡ Bolt: Cache yield instructions using millisecond keys to prevent floating-point precision issues
+        // and eliminate redundant GC allocations during frequent typewriter coroutine execution.
+        private static readonly Dictionary<int, WaitForSeconds> _waitCache = new Dictionary<int, WaitForSeconds>();
+
+        private static WaitForSeconds GetWait(float seconds)
+        {
+            int msKey = Mathf.RoundToInt(seconds * 1000f);
+            if (!_waitCache.TryGetValue(msKey, out var wait))
+            {
+                wait = new WaitForSeconds(seconds);
+                _waitCache[msKey] = wait;
             }
             return wait;
         }
@@ -215,6 +249,17 @@ namespace MilehighWorld.World.Terminal
             _historyIndex = Mathf.Clamp(_historyIndex + direction, 0, _commandHistory.Count);
             commandInput.text = _historyIndex < _commandHistory.Count ? _commandHistory[_historyIndex] : "";
             commandInput.caretPosition = commandInput.text.Length;
+        }
+
+        private WaitForSeconds GetWait(float seconds)
+        {
+            int ms = Mathf.RoundToInt(seconds * 1000f);
+            if (!_waitCache.TryGetValue(ms, out var wait))
+            {
+                wait = new WaitForSeconds(seconds);
+                _waitCache[ms] = wait;
+            }
+            return wait;
         }
 
         public void ProcessCommand(string input)

@@ -411,6 +411,23 @@
 **Learning:** Repeatedly calling `Input` properties/methods (like `Input.anyKeyDown` alongside specific keydown checks) inside `Update()` loops introduces unnecessary C#/C++ native boundary crossings. This overhead accumulates, leading to micro-stutters, especially in input-heavy or critical path systems like cinematic playback.
 **Action:** Eliminate duplicate or redundant input execution paths to reduce CPU overhead and prevent micro-stutters.
 
+## 2026-05-18 - TextMeshPro Typewriter O(N^2) Allocations
+**Learning:** Appending characters to a string in a loop to create a typewriter effect (e.g., `text += content[i]`) causes O(N^2) string allocations and severe GC pressure in Unity/TMPro. TextMeshPro's `maxVisibleCharacters` property allows for the same effect with zero additional allocations.
+**Action:** Always use `maxVisibleCharacters` for typewriter effects in TextMeshPro instead of string concatenation.
+
+## 2026-05-18 - Material Cloning via .material Access
+**Learning:** Accessing `Renderer.material` in Unity creates a unique clone of the material, breaking draw call batching and increasing memory usage.
+**Action:** Use `MaterialPropertyBlock` and `Renderer.SetPropertyBlock` to modify material properties (like alpha or color) at runtime to preserve batching and prevent material leaks.
+## 2024-05-24 - Fake Zero-Allocation Typewriter
+**Learning:** The cinematic typewriter effect was documented as "zero-allocation" but used `text += char` in a loop. In Unity, concatenating strings on a TextMeshPro component per frame causes O(N^2) memory allocations and forces the UI mesh to rebuild for every character, causing major GC spikes.
+**Action:** Always assign the full string to TextMeshPro once and increment `maxVisibleCharacters` to achieve a true zero-allocation typewriter effect.
+## $(date +%Y-%m-%d) - Coroutine GC Spikes in UI Typewriter Effects
+**Learning:** Instantiating `new WaitForSeconds` inside high-frequency loops like UI typewriter effects causes O(N) GC allocations per string, triggering garbage collection spikes and micro-stutters during text rendering.
+**Action:** Implement a static dictionary cache using `Mathf.RoundToInt(seconds * 1000f)` as integer keys to store and reuse `WaitForSeconds` instances, eliminating runtime allocations. Ensure helper methods like `GetWait` are also declared static.
+## 2026-05-23 - Caching Yield Instructions in Coroutines
+**Learning:** Instantiating `new WaitForSeconds` inside a coroutine loop (like a typewriter effect per character) causes continuous heap allocations, generating garbage and potential micro-stutters during execution.
+**Action:** Cache `WaitForSeconds` instances in a static dictionary using integer keys (milliseconds) to prevent floating-point precision cache misses, and reuse them to eliminate redundant GC allocations.
+
 ## 2026-05-24 - OtisTerminal Typewriter GC Allocations
 **Learning:** In `OtisTerminal.cs`, dynamically creating `new WaitForSeconds` inside the `TypewriterEffect` loop for every character and punctuation delay caused severe O(N) heap allocations. This generated heavy Garbage Collection (GC) pressure proportional to the length of the string being displayed, leading to potential micro-stutters.
 **Action:** Always utilize a static `Dictionary<int, WaitForSeconds>` cache indexed by milliseconds for yielding delays in tight loops (like typewriter effects) to ensure zero allocations after the cache is initially populated.
