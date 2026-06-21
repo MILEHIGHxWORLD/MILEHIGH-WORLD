@@ -1,0 +1,18 @@
+[
+  {
+    "entityId": "CHAR_SKYIX",
+    "unity": {
+      "class": "SkyIXController",
+      "prefab": "Assets/Characters/SkyIX.prefab"
+    },
+    "typescript": {
+      "module": "src/gameplay/SkyIXState.ts"
+    },
+    "github": {
+      "paths": [
+        "Assets/Scripts/Characters/",
+        "src/gameplay/"
+      ]
+    }
+  }
+]
