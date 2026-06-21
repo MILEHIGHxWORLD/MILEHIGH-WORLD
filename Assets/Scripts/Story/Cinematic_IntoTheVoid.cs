@@ -414,6 +414,10 @@ namespace MilehighWorld.Cinematics
 
                     await Task.Delay(Mathf.RoundToInt(charDelay * delayFactor * 1000));
             speakerNameText.text = $"<color=cyan>[{speaker}]</color>";
+            // BOLT: Zero-allocation typewriter effect.
+            // Assign full string once and increment maxVisibleCharacters to avoid O(N^2) string allocations and UI rebuilds.
+            dialogueText.text = content;
+            dialogueText.maxVisibleCharacters = 0;
 
             // ⚡ Bolt: Zero-allocation typewriter effect.
             // 💡 What: Replaced string concatenation with maxVisibleCharacters increment.
@@ -634,6 +638,8 @@ namespace MilehighWorld.Cinematics
                 await Task.Yield();
             }
 
+            // Ensure all characters are visible when done
+            dialogueText.maxVisibleCharacters = content.Length;
             _skipRequested = false;
         }
 
