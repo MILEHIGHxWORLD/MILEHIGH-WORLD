@@ -234,7 +234,6 @@ namespace MilehighWorld.World.Terminal
                                 "\n\n[SYSTEM]: <color=#FFFF00>Shortcuts:</color> Up/Down Arrow for History, Tab to Autocomplete/Fix, Ctrl+L to Clear.");
                 return;
             }
-
             if (parts.Length >= 3)
             {
                 int index = input.IndexOf(parts[1]);
