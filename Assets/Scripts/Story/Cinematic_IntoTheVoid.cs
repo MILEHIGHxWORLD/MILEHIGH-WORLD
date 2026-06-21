@@ -29,11 +29,9 @@ namespace MilehighWorld.Cinematics
 
         [Header("UI & Lexical Systems")]
         [SerializeField] private TextMeshProUGUI speakerNameText = null!;
-        public TextMeshProUGUI SpeakerNameText { get => speakerNameText; set => speakerNameText = value; }
         [SerializeField] private TextMeshProUGUI dialogueText = null!;
-        public TextMeshProUGUI DialogueText { get => dialogueText; set => dialogueText = value; }
         [SerializeField] private GameObject dialogueCanvas = null!;
-        public GameObject DialogueBox { get => dialogueCanvas; set => dialogueCanvas = value; }
+        [SerializeField] private GameObject skipHint = null!;
 
         [Header("Lexical Tuning")]
         public float baseTypingSpeed = 0.03f;
@@ -56,6 +54,10 @@ namespace MilehighWorld.Cinematics
         private float _lastInteractionTime;
         private GameObject? _skipHint;
 
+        // Palette: UX State for skipping and idle-hint discoverability.
+        private bool _skipRequested = false;
+        private float _idleTimer = 0f;
+
         private void Start()
         {
             // Lock timeScale for deterministic cinematic pacing
@@ -70,11 +72,14 @@ namespace MilehighWorld.Cinematics
                 speakerNameText.outlineWidth = 0.2f;
                 speakerNameText.outlineColor = Color.black;
             }
+
             if (dialogueText != null)
             {
                 dialogueText.outlineWidth = 0.2f;
                 dialogueText.outlineColor = Color.black;
             }
+
+            if (skipHint != null) skipHint.SetActive(false);
 
             TimelineSimulationEngine.OnTimelineStabilized += () => {
                 _isStabilized = true;
@@ -94,6 +99,21 @@ namespace MilehighWorld.Cinematics
 
         private void Update()
         {
+            // Palette: Capture any user interaction to trigger a skip or reset the idle timer.
+            if (Input.anyKeyDown)
+            {
+                _skipRequested = true;
+                _idleTimer = 0f;
+                if (skipHint != null) skipHint.SetActive(false);
+            }
+            else
+            {
+                _idleTimer += Time.deltaTime;
+                // Palette: Show the skip hint only after 2 seconds of inactivity to maintain immersion.
+                if (_idleTimer >= 2f && skipHint != null && !skipHint.activeSelf)
+                {
+                    skipHint.SetActive(true);
+                }
             // Palette: Global skip interaction and idle timer management
             if (Input.anyKeyDown)
             {
@@ -207,12 +227,17 @@ namespace MilehighWorld.Cinematics
         }
 
         /// <summary>
+        /// Zero-allocation rhythmic typewriter effect for dialogue rendering with rhythmic pacing and speaker transitions.
         /// Zero-allocation rhythmic typewriter effect with themed completion cues, speaker pop animations, and skip support.
         /// </summary>
         private async Task StreamDialogueAsync(string speaker, string content, float charDelay)
         {
             if (speakerNameText == null || dialogueText == null) return;
 
+            // Palette: Reset skip state and idle timer for the new dialogue segment.
+            _skipRequested = false;
+            _idleTimer = 0f;
+            if (skipHint != null) skipHint.SetActive(false);
             // Palette: Reset interaction tracking for each line
             _skipRequested = false;
             _lastInteractionTime = Time.time;
@@ -227,11 +252,71 @@ namespace MilehighWorld.Cinematics
                 _ = PopScaleAsync(speakerNameText.transform, 0.2f, 1.1f);
             }
 
+            // Palette: Append a color-coded '▽' completion cue to the dialogue for better interaction clarity.
+            // By setting the full text (including the cue) at the start, we ensure layout stability.
             // BOLT: Zero-allocation typewriter effect.
             dialogueText.text = $"{content} <color={hexColor}>▽</color>";
             dialogueText.maxVisibleCharacters = 0;
             dialogueText.ForceMeshUpdate();
 
+            int totalVisibleCharacters = dialogueText.textInfo.characterCount;
+
+            for (int i = 1; i <= totalVisibleCharacters; i++)
+            {
+                if (_skipRequested) break;
+
+                dialogueText.maxVisibleCharacters = i;
+
+                // Palette: Rhythmic pacing - apply multipliers for punctuation to mimic natural speech cadence.
+                float currentDelay = charDelay;
+                if (i < totalVisibleCharacters)
+                {
+                    char c = dialogueText.textInfo.characterInfo[i - 1].character;
+                    bool isEndOfSentence = (c == '.' || c == '!' || c == '?');
+                    bool isPause = (c == ',' || c == ':' || c == ';');
+
+                    if (isEndOfSentence)
+                    {
+                        // Palette: Advanced pacing - detect ellipses (...) and apply a shorter pause (5x).
+                        bool isEllipsis = (i < totalVisibleCharacters && dialogueText.textInfo.characterInfo[i].character == '.');
+                        if (isEllipsis)
+                        {
+                            currentDelay *= 5f;
+                        }
+                        else
+                        {
+                            // Look ahead: only long pause if followed by a space or it's the last character before the cue
+                            bool nextIsSpace = (i < totalVisibleCharacters && char.IsWhiteSpace(dialogueText.textInfo.characterInfo[i].character));
+                            if (nextIsSpace || i == totalVisibleCharacters - 1) currentDelay *= 12f;
+                        }
+                    }
+                    else if (isPause)
+                    {
+                        currentDelay *= 6f;
+                    }
+                }
+
+                await Task.Delay(Mathf.RoundToInt(currentDelay * 1000));
+            }
+
+            // BOLT: Explicitly reset maxVisibleCharacters to the full length to ensure stability for future reuse.
+            dialogueText.maxVisibleCharacters = totalVisibleCharacters;
+
+            // Palette: Carry skip intent to the inter-line pause for better responsiveness.
+            if (!_skipRequested)
+            {
+                await WaitForSecondsOrSkip(1.0f);
+            }
+        }
+
+        private async Task WaitForSecondsOrSkip(float seconds)
+        {
+            float elapsed = 0f;
+            while (elapsed < seconds && !_skipRequested)
+            {
+                elapsed += Time.deltaTime;
+                await Task.Yield();
+            }
             int characterCount = dialogueText.textInfo.characterCount;
 
             for (int i = 1; i <= characterCount; i++)
@@ -286,6 +371,8 @@ namespace MilehighWorld.Cinematics
 
         private async Task PopScaleAsync(Transform target, float duration, float scaleFactor)
         {
+            if (target == null) return;
+
             float elapsed = 0f;
             while (elapsed < duration)
             {
