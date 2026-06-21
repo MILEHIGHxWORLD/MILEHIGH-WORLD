@@ -228,6 +228,19 @@ namespace MilehighWorld.World.Terminal
             {
                 WriteToTerminal("\n[SYSTEM]: <color=#FFFF00>Available Commands:</color>" +
                                 "\n - <color=#00FFFF>help</color>: Show this message." +
+                                "\n - <color=#00FFFF>clear</color>: Clear the terminal display." +
+                                "\n - <color=#00FFFF>verify</color>: Run ECC data integrity check." +
+                                "\n - <color=#00FFFF>[cmd] [arg1] [arg2]</color>: Execute extended system commands." +
+                                "\n\n[SYSTEM]: <color=#FFFF00>Shortcuts:</color> Up/Down Arrow (History), Tab (Autocomplete), Ctrl+L (Clear)." +
+                                "\n[STATUS]: ECC Buffer: <color=#00FF00>OPTIMAL</color>");
+                return;
+            }
+
+            if (command == "verify")
+            {
+                WriteToTerminal("\n[SYSTEM]: Initiating Data Integrity Check..." +
+                                "\n[ECC]: Calculating Syndromes in GF(2^8)..." +
+                                "\n[ECC]: <color=#00FF00>No errors detected. Reality parity at 100%.</color>");
                                 "\n - <color=#00FFFF>clear</color>: Clear the terminal display (or Ctrl+L)." +
                                 "\n - <color=#00FFFF>help/clear</color>: Show help or clear display." +
                                 "\n - <color=#00FFFF>[cmd] [arg1] [arg2]</color>: Execute extended system commands." +
