@@ -99,16 +99,34 @@ namespace MilehighWorld.Cinematics
 
         private void Update()
         {
+            // ⚡ Bolt: Consolidated redundant Input.anyKeyDown checks.
+            // What: Eliminated duplicate Input.anyKeyDown checks and merged idle timers.
+            // Why: Multiple Input.anyKeyDown checks in Update introduce unnecessary C#/C++ native boundary crossings.
+            // Impact: Reduces CPU overhead per frame by eliminating duplicate native execution paths.
             // Palette: Capture any user interaction to trigger a skip or reset the idle timer.
             if (Input.anyKeyDown)
             {
                 _skipRequested = true;
                 _idleTimer = 0f;
+                _lastInteractionTime = Time.time;
+
+                if (_skipHint != null && _skipHint.activeSelf) _skipHint.SetActive(false);
+                if (skipHintObject != null && skipHintObject.activeSelf) skipHintObject.SetActive(false);
                 if (skipHint != null) skipHint.SetActive(false);
             }
             else
             {
                 _idleTimer += Time.deltaTime;
+
+                if (Time.time - _lastInteractionTime > 2f)
+                {
+                    if (_skipHint != null && !_skipHint.activeSelf) _skipHint.SetActive(true);
+                }
+
+                if (_idleTimer >= 2.0f && skipHintObject != null && !skipHintObject.activeSelf)
+                {
+                    skipHintObject.SetActive(true);
+                }
                 // Palette: Show the skip hint only after 2 seconds of inactivity to maintain immersion.
                 if (_idleTimer >= 2f && skipHint != null && !skipHint.activeSelf)
                 {
