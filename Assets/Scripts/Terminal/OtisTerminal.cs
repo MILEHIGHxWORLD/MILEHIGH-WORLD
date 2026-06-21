@@ -12,16 +12,15 @@ namespace MilehighWorld.World.Terminal
         [SerializeField] private TMP_InputField commandInput;
         [SerializeField] private TextMeshProUGUI outputDisplay;
 
-        // 🛡️ Sentinel: Security constants for input validation to prevent DoS and malformed input processing.
         private const int MaxInputLength = 256;
         private static readonly Regex SafeCommandRegex = new Regex(@"^[a-zA-Z0-9\s._\-]+$", RegexOptions.Compiled);
-
-        // ⚡ Bolt Optimization: Cache WaitForSeconds using ms keys to prevent GC spikes in per-character typewriter loops
         private static readonly Dictionary<int, WaitForSeconds> _waitCache = new Dictionary<int, WaitForSeconds>();
 
         private Coroutine? _typewriterCoroutine;
-        private List<string> _commandHistory = new List<string>();
+        private readonly List<string> _commandHistory = new List<string>();
         private int _historyIndex = -1;
+        private string? _lastSuggestion;
+        private string _lastSuggestion = ""; // Palette: Track fuzzy-match suggestions for "Tab to Fix" recovery.
 
         private static WaitForSeconds GetWait(float seconds)
         {
@@ -58,12 +57,12 @@ namespace MilehighWorld.World.Terminal
                 return;
             }
 
-            // Palette: Productivity - Ctrl+L shortcut to clear the terminal for better workspace management.
             bool isControlPressed = Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl);
             if (isControlPressed && Input.GetKeyDown(KeyCode.L))
             {
                 ClearTerminalDisplay();
                 commandInput.text = "";
+                commandInput.ActivateInputField();
             }
 
             // Palette: Refined history navigation - ensure responsiveness by polling in Update.
@@ -81,33 +80,23 @@ namespace MilehighWorld.World.Terminal
             {
                 HandleAutocomplete();
             }
+            if (Input.GetKeyDown(KeyCode.UpArrow)) NavigateHistory(-1);
+            else if (Input.GetKeyDown(KeyCode.DownArrow)) NavigateHistory(1);
+
+            if (Input.GetKeyDown(KeyCode.Tab)) HandleAutocomplete();
         }
 
-        /// <summary>
-        /// Calculates the Levenshtein distance between two strings to support "Did You Mean?" suggestions.
-        /// </summary>
-        private int ComputeLevenshteinDistance(string s, string t)
+        private void HandleAutocomplete()
         {
-            int n = s.Length;
-            int m = t.Length;
-            int[,] d = new int[n + 1, m + 1];
+            if (commandInput == null) return;
 
-            if (n == 0) return m;
-            if (m == 0) return n;
-
-            for (int i = 0; i <= n; d[i, 0] = i++) ;
-            for (int j = 0; j <= m; d[0, j] = j++) ;
-
-            for (int i = 1; i <= n; i++)
+            if (!string.IsNullOrEmpty(_lastSuggestion))
             {
-                for (int j = 1; j <= m; j++)
-                {
-                    int cost = (t[j - 1] == s[i - 1]) ? 0 : 1;
-                    d[i, j] = Mathf.Min(Mathf.Min(d[i - 1, j] + 1, d[i, j - 1] + 1), d[i - 1, j - 1] + cost);
-                }
+                commandInput.text = _lastSuggestion;
+                commandInput.caretPosition = _lastSuggestion.Length;
+                _lastSuggestion = "";
+                return;
             }
-            return d[n, m];
-        }
 
         private void HandleAutocomplete()
         {
@@ -115,18 +104,28 @@ namespace MilehighWorld.World.Terminal
             {
                 return;
             }
+            if (string.IsNullOrWhiteSpace(commandInput.text)) return;
 
             string input = commandInput.text.ToLower();
             string[] commands = { "help", "clear" };
 
+            // Palette: Prioritize standard prefix matching.
             foreach (string cmd in commands)
             {
                 if (cmd.StartsWith(input))
                 {
                     commandInput.text = cmd;
                     commandInput.caretPosition = cmd.Length;
-                    break;
+                    return;
                 }
+            }
+
+            // Palette: Fuzzy-based autocomplete as a fallback for typos
+            string suggestion = GetCommandSuggestion(input);
+            if (!string.IsNullOrEmpty(suggestion))
+            {
+                commandInput.text = suggestion;
+                commandInput.caretPosition = suggestion.Length;
             }
         }
 
@@ -136,6 +135,9 @@ namespace MilehighWorld.World.Terminal
             {
                 return;
             }
+            if (_commandHistory.Count == 0) return;
+            _lastSuggestion = null;
+            _lastSuggestion = ""; // Palette: Clear suggestion when navigating history for a fresh state.
             _historyIndex = Mathf.Clamp(_historyIndex + direction, 0, _commandHistory.Count);
             commandInput.text = _historyIndex < _commandHistory.Count ? _commandHistory[_historyIndex] : "";
             commandInput.caretPosition = commandInput.text.Length;
@@ -151,16 +153,19 @@ namespace MilehighWorld.World.Terminal
             {
                 _commandHistory.Add(input);
             }
-            _historyIndex = _commandHistory.Count;
+            if (string.IsNullOrWhiteSpace(input)) return;
 
-            // UX Enhancement: Clear input and refocus immediately for better flow
+            if (_commandHistory.Count == 0 || _commandHistory[^1] != input)
+                _commandHistory.Add(input);
+            _historyIndex = _commandHistory.Count;
+            _lastSuggestion = null;
+
             if (commandInput != null)
             {
                 commandInput.text = "";
                 commandInput.ActivateInputField();
             }
 
-            // 🛡️ Sentinel: Input validation and DoS protection
             if (input.Length > MaxInputLength)
             {
                 WriteToTerminal("\n[SECURITY]: <color=#FF0000>Input exceeds maximum length (256 characters).</color>");
@@ -196,15 +201,16 @@ namespace MilehighWorld.World.Terminal
                                 "\n - <color=#00FFFF>help</color>: Show this message." +
                                 "\n - <color=#00FFFF>clear</color>: Clear the terminal display (or Ctrl+L)." +
                                 "\n - <color=#00FFFF>[cmd] [arg1] [arg2]</color>: Execute extended system commands." +
-                                "\n\n[SYSTEM]: <color=#FFFF00>Shortcuts:</color> Up/Down Arrow for History, Tab to Autocomplete, Ctrl+L to Clear.");
+                                "\n\n[SYSTEM]: <color=#FFFF00>Shortcuts:</color> Up/Down Arrow for History, Tab to Autocomplete/Fix, Ctrl+L to Clear.");
                 return;
             }
 
             if (parts.Length >= 3)
             {
-                int index = input.IndexOf(parts[2]);
+                int index = input.IndexOf(parts[1]);
                 if (index != -1)
                 {
+                    ExecuteExtendedCommand(parts[0], input.Substring(index));
                     string argument = input.Substring(index);
                     ExecuteExtendedCommand(parts[0], argument);
                     WriteToTerminal($"\n[SYSTEM]: <color=#00FF00>Command '{parts[0]}' executed.</color>");
@@ -224,29 +230,23 @@ namespace MilehighWorld.World.Terminal
             {
                 StartCoroutine(ShakeInputField());
             }
-        }
-
-        private int GetLevenshteinDistance(string s, string t)
-        {
-            if (string.IsNullOrEmpty(s)) return string.IsNullOrEmpty(t) ? 0 : t.Length;
-            if (string.IsNullOrEmpty(t)) return s.Length;
-
-            int n = s.Length;
-            int m = t.Length;
-            int[,] d = new int[n + 1, m + 1];
-
-            for (int i = 0; i <= n; d[i, 0] = i++) ;
-            for (int j = 0; j <= m; d[0, j] = j++) ;
-
-            for (int i = 1; i <= n; i++)
+            _lastSuggestion = GetCommandSuggestion(command);
+            string errorMsg = $"\n[SYSTEM]: <color=#FF0000>Error: Unknown command or invalid argument count for '{parts[0]}'.</color>";
+            if (!string.IsNullOrEmpty(_lastSuggestion))
             {
-                for (int j = 1; j <= m; j++)
-                {
-                    int cost = (t[j - 1] == s[i - 1]) ? 0 : 1;
-                    d[i, j] = Math.Min(Math.Min(d[i - 1, j] + 1, d[i, j - 1] + 1), d[i - 1, j - 1] + cost);
-                }
+                errorMsg += $"\n[SYSTEM]: Did you mean: <color=#00FFFF>'{_lastSuggestion}'</color>? (Press <color=#FFFF00>[Tab]</color> to fix)";
             }
-            return d[n, m];
+            // Palette: Unknown command handling with "Did You Mean?" suggestion.
+            _lastSuggestion = GetCommandSuggestion(command);
+            string errorMsg = $"\n[SYSTEM]: <color=#FF0000>Error: Unknown command or invalid argument count for '{parts[0]}'.</color>";
+
+            if (!string.IsNullOrEmpty(_lastSuggestion))
+            {
+                errorMsg += $"\n[SYSTEM]: Did you mean: <color=#00FFFF>{_lastSuggestion}</color>? (Press [Tab] to fix)";
+            }
+
+            WriteToTerminal(errorMsg);
+            if (commandInput != null) StartCoroutine(ShakeInputField());
         }
 
         private string GetCommandSuggestion(string input)
@@ -273,9 +273,19 @@ namespace MilehighWorld.World.Terminal
             if (outputDisplay == null)
             {
                 return;
+                for (int j = 1; j <= m; j++)
+                {
+                    int cost = (t[j - 1] == s[i - 1]) ? 0 : 1;
+                    d[i, j] = Math.Min(Math.Min(d[i - 1, j] + 1, d[i, j - 1] + 1), d[i - 1, j - 1] + cost);
+                }
             }
             outputDisplay.text = "";
             outputDisplay.maxVisibleCharacters = 0;
+
+            if (commandInput != null)
+            {
+                commandInput.ActivateInputField();
+            }
         }
 
         private void WriteToTerminal(string message)
@@ -288,7 +298,7 @@ namespace MilehighWorld.World.Terminal
             if (_typewriterCoroutine != null)
             {
                 StopCoroutine(_typewriterCoroutine);
-                outputDisplay.maxVisibleCharacters = int.MaxValue; // Reveal all current text
+                outputDisplay.maxVisibleCharacters = int.MaxValue;
             }
 
             _typewriterCoroutine = StartCoroutine(TypewriterEffect(message));
@@ -309,7 +319,6 @@ namespace MilehighWorld.World.Terminal
             {
                 outputDisplay.maxVisibleCharacters = startVisibleCount + i;
 
-                // Palette: Rhythmic punctuation pauses to mimic natural speech cadence.
                 if (i > 0 && i <= charactersToReveal)
                 {
                     char c = outputDisplay.textInfo.characterInfo[startVisibleCount + i - 1].character;
@@ -325,6 +334,7 @@ namespace MilehighWorld.World.Terminal
             // ⚡ Bolt: Reset maxVisibleCharacters after typewriter completes to avoid text truncation on subsequent uses.
             outputDisplay.maxVisibleCharacters = outputDisplay.textInfo.characterCount;
 
+            outputDisplay.maxVisibleCharacters = outputDisplay.textInfo.characterCount;
             _typewriterCoroutine = null;
         }
 
@@ -339,7 +349,7 @@ namespace MilehighWorld.World.Terminal
             while (elapsed < duration)
             {
                 float x = UnityEngine.Random.Range(-1f, 1f) * magnitude;
-                commandInput.transform.localPosition = originalPos + new UnityEngine.Vector3(x, 0, 0);
+                commandInput.transform.localPosition = originalPos + new Vector3(x, 0, 0);
                 elapsed += Time.deltaTime;
                 yield return null;
             }
@@ -349,6 +359,29 @@ namespace MilehighWorld.World.Terminal
         private void ExecuteExtendedCommand(string cmd, string args)
         {
             // Implementation for specific terminal logic
+        }
+
+        private int ComputeLevenshteinDistance(string s, string t)
+        {
+            if (string.IsNullOrEmpty(s)) return string.IsNullOrEmpty(t) ? 0 : t.Length;
+            if (string.IsNullOrEmpty(t)) return s.Length;
+
+            int n = s.Length;
+            int m = t.Length;
+            int[,] d = new int[n + 1, m + 1];
+
+            for (int i = 0; i <= n; d[i, 0] = i++) ;
+            for (int j = 0; j <= m; d[0, j] = j++) ;
+
+            for (int i = 1; i <= n; i++)
+            {
+                for (int j = 1; j <= m; j++)
+                {
+                    int cost = (t[j - 1] == s[i - 1]) ? 0 : 1;
+                    d[i, j] = Mathf.Min(Mathf.Min(d[i - 1, j] + 1, d[i, j - 1] + 1), d[i - 1, j - 1] + cost);
+                }
+            }
+            return d[n, m];
         }
     }
 }
