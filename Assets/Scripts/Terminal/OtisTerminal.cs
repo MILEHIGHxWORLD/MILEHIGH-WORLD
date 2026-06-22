@@ -206,7 +206,6 @@ namespace MilehighWorld.World.Terminal
                 int index = input.IndexOf(parts[1]);
                 if (index != -1)
                 {
-                    ExecuteExtendedCommand(parts[0], input.Substring(index));
                     string argument = input.Substring(index);
                     ExecuteExtendedCommand(parts[0], argument);
                     WriteToTerminal($"\n[SYSTEM]: <color=#00FF00>Command '{parts[0]}' executed.</color>");
