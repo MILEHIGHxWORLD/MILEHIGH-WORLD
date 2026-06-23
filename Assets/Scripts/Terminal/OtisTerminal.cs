@@ -14,131 +14,25 @@ namespace MilehighWorld.World.Terminal
 
         private const int MaxInputLength = 256;
         private static readonly Regex SafeCommandRegex = new Regex(@"^[a-zA-Z0-9\s._\-]+$", RegexOptions.Compiled);
-        private static readonly Dictionary<int, WaitForSeconds> _waitCache = new Dictionary<int, WaitForSeconds>();
-
         // ⚡ Bolt: Cache for WaitForSeconds using millisecond keys to prevent floating-point precision issues
+        // and eliminate redundant GC allocations during frequent terminal updates.
         private static readonly Dictionary<int, WaitForSeconds> _waitCache = new Dictionary<int, WaitForSeconds>();
 
         private static WaitForSeconds GetWait(float seconds)
         {
-            int ms = Mathf.RoundToInt(seconds * 1000f);
-            if (!_waitCache.TryGetValue(ms, out var wait))
+            int msKey = Mathf.RoundToInt(seconds * 1000f);
+            if (!_waitCache.TryGetValue(msKey, out var wait))
             {
                 wait = new WaitForSeconds(seconds);
-                _waitCache[ms] = wait;
+                _waitCache[msKey] = wait;
             }
             return wait;
         }
-
-        // ⚡ Bolt: Cache for WaitForSeconds using millisecond keys to prevent floating-point precision issues
-        // and eliminate redundant GC allocations during coroutine execution.
-        private static readonly Dictionary<int, WaitForSeconds> _waitCache = new Dictionary<int, WaitForSeconds>();
-
-        // ⚡ Bolt: Cache for WaitForSeconds using millisecond keys to prevent floating-point precision issues
-        // and eliminate redundant GC allocations during typewriter coroutine execution.
-        private static readonly Dictionary<int, WaitForSeconds> _waitCache = new Dictionary<int, WaitForSeconds>();
 
         private Coroutine? _typewriterCoroutine;
         private readonly List<string> _commandHistory = new List<string>();
         private int _historyIndex = -1;
-        private string? _lastSuggestion;
         private string _lastSuggestion = ""; // Palette: Track fuzzy-match suggestions for "Tab to Fix" recovery.
-
-        private static WaitForSeconds GetWait(float seconds)
-        {
-            int msKey = Mathf.RoundToInt(seconds * 1000f);
-            if (!_waitCache.TryGetValue(msKey, out var wait))
-            {
-                wait = new WaitForSeconds(seconds);
-                _waitCache[msKey] = wait;
-            }
-            return wait;
-        }
-
-        // ⚡ Bolt: Cache yield instructions using millisecond keys to prevent floating-point precision issues
-        // and eliminate redundant GC allocations during frequent UI routines.
-        private static readonly Dictionary<int, WaitForSeconds> _waitCache = new Dictionary<int, WaitForSeconds>();
-
-        private WaitForSeconds GetWait(float seconds)
-        {
-            int msKey = Mathf.RoundToInt(seconds * 1000f);
-            if (!_waitCache.TryGetValue(msKey, out var wait))
-            {
-                wait = new WaitForSeconds(seconds);
-                _waitCache[msKey] = wait;
-            }
-            return wait;
-        }
-
-        // ⚡ Bolt: Cache for WaitForSeconds to prevent GC allocations during typewriter effect
-        private static readonly Dictionary<int, WaitForSeconds> _waitCache = new Dictionary<int, WaitForSeconds>();
-
-        private static WaitForSeconds GetWait(float seconds)
-        {
-            int ms = Mathf.RoundToInt(seconds * 1000f);
-            if (!_waitCache.TryGetValue(ms, out var wait))
-            {
-                wait = new WaitForSeconds(seconds);
-                _waitCache[ms] = wait;
-            }
-            return wait;
-        }
-
-        private static WaitForSeconds GetWait(float seconds)
-        {
-            int ms = Mathf.RoundToInt(seconds * 1000f);
-            if (!_waitCache.TryGetValue(ms, out var wait))
-            {
-                wait = new WaitForSeconds(seconds);
-                _waitCache[ms] = wait;
-            }
-            return wait;
-        }
-
-        // ⚡ Bolt: Cache for WaitForSeconds using millisecond keys to prevent floating-point precision issues
-        // and eliminate redundant GC allocations during frequent terminal typewriter updates.
-        private static readonly Dictionary<int, WaitForSeconds> _waitCache = new Dictionary<int, WaitForSeconds>();
-
-        private WaitForSeconds GetWait(float seconds)
-        {
-            int ms = Mathf.RoundToInt(seconds * 1000f);
-            if (!_waitCache.TryGetValue(ms, out var wait))
-            {
-                wait = new WaitForSeconds(seconds);
-                _waitCache[ms] = wait;
-            }
-            return wait;
-        }
-
-        // ⚡ Bolt: Cache for WaitForSeconds using millisecond keys to prevent floating-point precision issues
-        // and eliminate redundant GC allocations during coroutine execution.
-        private static readonly Dictionary<int, WaitForSeconds> _waitCache = new Dictionary<int, WaitForSeconds>();
-
-        private static WaitForSeconds GetWait(float seconds)
-        {
-            int ms = Mathf.RoundToInt(seconds * 1000f);
-            if (!_waitCache.TryGetValue(ms, out var wait))
-            {
-                wait = new WaitForSeconds(seconds);
-                _waitCache[ms] = wait;
-            }
-            return wait;
-        }
-
-        // ⚡ Bolt: Cache yield instructions using millisecond keys to prevent floating-point precision issues
-        // and eliminate redundant GC allocations during frequent typewriter coroutine execution.
-        private static readonly Dictionary<int, WaitForSeconds> _waitCache = new Dictionary<int, WaitForSeconds>();
-
-        private static WaitForSeconds GetWait(float seconds)
-        {
-            int msKey = Mathf.RoundToInt(seconds * 1000f);
-            if (!_waitCache.TryGetValue(msKey, out var wait))
-            {
-                wait = new WaitForSeconds(seconds);
-                _waitCache[msKey] = wait;
-            }
-            return wait;
-        }
 
         private void Start()
         {
@@ -187,16 +81,13 @@ namespace MilehighWorld.World.Terminal
             {
                 HandleAutocomplete();
             }
-            if (Input.GetKeyDown(KeyCode.UpArrow)) NavigateHistory(-1);
-            else if (Input.GetKeyDown(KeyCode.DownArrow)) NavigateHistory(1);
-
-            if (Input.GetKeyDown(KeyCode.Tab)) HandleAutocomplete();
         }
 
         private void HandleAutocomplete()
         {
             if (commandInput == null) return;
 
+            // Priority 1: Tab to fix typo if a suggestion is active
             if (!string.IsNullOrEmpty(_lastSuggestion))
             {
                 commandInput.text = _lastSuggestion;
@@ -205,18 +96,12 @@ namespace MilehighWorld.World.Terminal
                 return;
             }
 
-        private void HandleAutocomplete()
-        {
-            if (commandInput == null || string.IsNullOrWhiteSpace(commandInput.text))
-            {
-                return;
-            }
             if (string.IsNullOrWhiteSpace(commandInput.text)) return;
 
             string input = commandInput.text.ToLower();
-            string[] commands = { "help", "clear" };
+            string[] commands = { "help", "clear", "verify" };
 
-            // Palette: Prioritize standard prefix matching.
+            // Priority 2: Standard prefix matching.
             foreach (string cmd in commands)
             {
                 if (cmd.StartsWith(input))
@@ -227,7 +112,7 @@ namespace MilehighWorld.World.Terminal
                 }
             }
 
-            // Palette: Fuzzy-based autocomplete as a fallback for typos
+            // Priority 3: Fuzzy-based autocomplete as a fallback for typos
             string suggestion = GetCommandSuggestion(input);
             if (!string.IsNullOrEmpty(suggestion))
             {
@@ -238,46 +123,29 @@ namespace MilehighWorld.World.Terminal
 
         private void NavigateHistory(int direction)
         {
-            if (_commandHistory.Count == 0)
-            {
-                return;
-            }
             if (_commandHistory.Count == 0) return;
-            _historyIndex = (int)Mathf.Clamp(_historyIndex + direction, 0, _commandHistory.Count);
-            _lastSuggestion = null;
-            _lastSuggestion = ""; // Palette: Clear suggestion when navigating history for a fresh state.
+
             _historyIndex = Mathf.Clamp(_historyIndex + direction, 0, _commandHistory.Count);
+            _lastSuggestion = ""; // Palette: Clear suggestion when navigating history for a fresh state.
+
             commandInput.text = _historyIndex < _commandHistory.Count ? _commandHistory[_historyIndex] : "";
             commandInput.caretPosition = commandInput.text.Length;
         }
 
-        private WaitForSeconds GetWait(float seconds)
-        {
-            int ms = Mathf.RoundToInt(seconds * 1000f);
-            if (!_waitCache.TryGetValue(ms, out var wait))
-            {
-                wait = new WaitForSeconds(seconds);
-                _waitCache[ms] = wait;
-            }
-            return wait;
-        }
 
         public void ProcessCommand(string input)
         {
-            if (string.IsNullOrWhiteSpace(input))
-            {
-                return;
-            }
-            if (_commandHistory.Count == 0 || _commandHistory[^1] != input)
-            {
-                _commandHistory.Add(input);
-            }
             if (string.IsNullOrWhiteSpace(input)) return;
 
+            // Palette: Echo user command for better feedback and professional feel.
+            WriteToTerminal($"\n<color=#00FFFF>> {input}</color>");
+
             if (_commandHistory.Count == 0 || _commandHistory[^1] != input)
+            {
                 _commandHistory.Add(input);
+            }
             _historyIndex = _commandHistory.Count;
-            _lastSuggestion = null;
+            _lastSuggestion = "";
 
             if (commandInput != null)
             {
@@ -331,10 +199,6 @@ namespace MilehighWorld.World.Terminal
                 WriteToTerminal("\n[SYSTEM]: Initiating Data Integrity Check..." +
                                 "\n[ECC]: Calculating Syndromes in GF(2^8)..." +
                                 "\n[ECC]: <color=#00FF00>No errors detected. Reality parity at 100%.</color>");
-                                "\n - <color=#00FFFF>clear</color>: Clear the terminal display (or Ctrl+L)." +
-                                "\n - <color=#00FFFF>help/clear</color>: Show help or clear display." +
-                                "\n - <color=#00FFFF>[cmd] [arg1] [arg2]</color>: Execute extended system commands." +
-                                "\n\n[SYSTEM]: <color=#FFFF00>Shortcuts:</color> Up/Down Arrow for History, Tab to Autocomplete/Fix, Ctrl+L to Clear.");
                 return;
             }
             if (parts.Length >= 3)
@@ -342,7 +206,6 @@ namespace MilehighWorld.World.Terminal
                 int index = input.IndexOf(parts[1]);
                 if (index != -1)
                 {
-                    ExecuteExtendedCommand(parts[0], input.Substring(index));
                     string argument = input.Substring(index);
                     ExecuteExtendedCommand(parts[0], argument);
                     WriteToTerminal($"\n[SYSTEM]: <color=#00FF00>Command '{parts[0]}' executed.</color>");
@@ -351,30 +214,12 @@ namespace MilehighWorld.World.Terminal
             }
 
             // Unknown command or invalid argument count
-            string suggestion = GetCommandSuggestion(command);
-            string errorMsg = $"\n[SYSTEM]: <color=#FF0000>Unknown command: '{parts[0]}'</color>";
-            if (!string.IsNullOrEmpty(suggestion))
-            {
-                errorMsg += $"\n[SYSTEM]: Did you mean: <color=#00FFFF>{suggestion}</color>?";
-            }
-            WriteToTerminal(errorMsg);
-            if (commandInput != null)
-            {
-                StartCoroutine(ShakeInputField());
-            }
-            _lastSuggestion = GetCommandSuggestion(command);
-            string errorMsg = $"\n[SYSTEM]: <color=#FF0000>Error: Unknown command or invalid argument count for '{parts[0]}'.</color>";
-            if (!string.IsNullOrEmpty(_lastSuggestion))
-            {
-                errorMsg += $"\n[SYSTEM]: Did you mean: <color=#00FFFF>'{_lastSuggestion}'</color>? (Press <color=#FFFF00>[Tab]</color> to fix)";
-            }
-            // Palette: Unknown command handling with "Did You Mean?" suggestion.
             _lastSuggestion = GetCommandSuggestion(command);
             string errorMsg = $"\n[SYSTEM]: <color=#FF0000>Error: Unknown command or invalid argument count for '{parts[0]}'.</color>";
 
             if (!string.IsNullOrEmpty(_lastSuggestion))
             {
-                errorMsg += $"\n[SYSTEM]: Did you mean: <color=#00FFFF>{_lastSuggestion}</color>? (Press [Tab] to fix)";
+                errorMsg += $"\n[SYSTEM]: Did you mean: <color=#00FFFF>{_lastSuggestion}</color>? (Press <color=#FFFF00>[Tab]</color> to fix)";
             }
 
             WriteToTerminal(errorMsg);
@@ -383,7 +228,7 @@ namespace MilehighWorld.World.Terminal
 
         private string GetCommandSuggestion(string input)
         {
-            string[] availableCommands = { "help", "clear" };
+            string[] availableCommands = { "help", "clear", "verify" };
             string bestMatch = "";
             int minDistance = int.MaxValue;
 
@@ -402,15 +247,8 @@ namespace MilehighWorld.World.Terminal
 
         private void ClearTerminalDisplay()
         {
-            if (outputDisplay == null)
-            {
-                return;
-                for (int j = 1; j <= m; j++)
-                {
-                    int cost = (t[j - 1] == s[i - 1]) ? 0 : 1;
-                    d[i, j] = Math.Min(Math.Min(d[i - 1, j] + 1, d[i, j - 1] + 1), d[i - 1, j - 1] + cost);
-                }
-            }
+            if (outputDisplay == null) return;
+
             outputDisplay.text = "";
             outputDisplay.maxVisibleCharacters = 0;
 
