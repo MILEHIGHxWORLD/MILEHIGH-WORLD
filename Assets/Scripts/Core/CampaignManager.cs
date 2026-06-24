@@ -108,7 +108,10 @@ namespace MilehighWorld.Core
 
         public void SaveSecureData(string key, string data)
         {
-            if (System.String.IsNullOrEmpty(key) || System.String.IsNullOrEmpty(data)) return;
+            if (System.String.IsNullOrEmpty(key) || System.String.IsNullOrEmpty(data))
+            {
+                return;
+            }
 
             string obfuscated = this.ProcessXOR(data);
             UnityEngine.PlayerPrefs.SetString($"SECURE_{key}", obfuscated);
@@ -118,7 +121,10 @@ namespace MilehighWorld.Core
         public string LoadSecureData(string key)
         {
             string obfuscated = UnityEngine.PlayerPrefs.GetString($"SECURE_{key}", "");
-            if (System.String.IsNullOrEmpty(obfuscated)) return "";
+            if (System.String.IsNullOrEmpty(obfuscated))
+            {
+                return "";
+            }
 
             return this.ProcessXOR(obfuscated);
         }
@@ -130,7 +136,11 @@ namespace MilehighWorld.Core
                 _cachedDeviceIdentifier = UnityEngine.SystemInfo.deviceUniqueIdentifier;
                 if (string.IsNullOrEmpty(_cachedDeviceIdentifier) || _cachedDeviceIdentifier == "n/a")
                 {
-                    _cachedDeviceIdentifier = "MILEHIGH_FALLBACK_STABLE_SALT_2025";
+                    // 🛡️ Sentinel: Fall back to a derived salt from application metadata to avoid hardcoded string literals.
+                    // This makes the obfuscation key more difficult to discover via static analysis.
+                    string cName = UnityEngine.Application.companyName ?? "Milehigh";
+                    string pName = UnityEngine.Application.productName ?? "World";
+                    _cachedDeviceIdentifier = string.Format("{0}_{1}_{2}", pName, cName, pName.Length ^ cName.Length);
                 }
             }
 

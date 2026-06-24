@@ -1,3 +1,9 @@
+## 2025-05-15 - [Cinematic Typewriter Allocation-Free Pacing]
+**Learning:** Using `string.Substring` or string concatenation inside a high-frequency loop (like a typewriter effect) re-introduces $O(n^2)$ memory pressure and defeats the purpose of `maxVisibleCharacters` optimization.
+**Action:** Use manual character indexing and multi-character comparison logic (e.g., `content[i-4] == 'S'`) to implement look-ahead or look-behind logic in loops without allocating temporary strings.
+## 2025-01-20 - Renderer.material Allocation Pattern
+**Learning:** In Unity, accessing `Renderer.material` at runtime instantiates a material clone on the heap. This breaks draw call batching (SRP/GPU instancing) and causes GC allocations for every access.
+**Action:** Use a `MaterialPropertyBlock` (via `GetPropertyBlock` and `SetPropertyBlock`) to apply per-renderer shader modifications without cloning the material.
 ## 2024-05-24 - Unity GameObject.Find Performance Bottleneck
 **Learning:** In Unity 3D scripts like `SceneDirector.cs` within this project, methods frequently call `GameObject.Find()` to search for characters or interactive objects by name during scene setups. This forces Unity to traverse the entire scene hierarchy repeatedly (O(N) operation), which can cause noticeable load times or frame drops if called continuously or on large scenes.
 **Action:** Replace direct `GameObject.Find()` calls with a `Dictionary<string, GameObject>` cache when objects are fetched by name multiple times or instantiated dynamically. Check `cachedObj != null` to handle Unity's custom object destruction logic safely before returning a cached reference.
@@ -404,6 +410,43 @@
 ## 2024-06-01 - Redundant Input Checks in Update Loop
 **Learning:** Repeatedly calling `Input` properties/methods (like `Input.anyKeyDown` alongside specific keydown checks) inside `Update()` loops introduces unnecessary C#/C++ native boundary crossings. This overhead accumulates, leading to micro-stutters, especially in input-heavy or critical path systems like cinematic playback.
 **Action:** Eliminate duplicate or redundant input execution paths to reduce CPU overhead and prevent micro-stutters.
+
+## 2026-05-18 - TextMeshPro Typewriter O(N^2) Allocations
+**Learning:** Appending characters to a string in a loop to create a typewriter effect (e.g., `text += content[i]`) causes O(N^2) string allocations and severe GC pressure in Unity/TMPro. TextMeshPro's `maxVisibleCharacters` property allows for the same effect with zero additional allocations.
+**Action:** Always use `maxVisibleCharacters` for typewriter effects in TextMeshPro instead of string concatenation.
+
+## 2026-05-18 - Material Cloning via .material Access
+**Learning:** Accessing `Renderer.material` in Unity creates a unique clone of the material, breaking draw call batching and increasing memory usage.
+**Action:** Use `MaterialPropertyBlock` and `Renderer.SetPropertyBlock` to modify material properties (like alpha or color) at runtime to preserve batching and prevent material leaks.
+## 2024-05-24 - Fake Zero-Allocation Typewriter
+**Learning:** The cinematic typewriter effect was documented as "zero-allocation" but used `text += char` in a loop. In Unity, concatenating strings on a TextMeshPro component per frame causes O(N^2) memory allocations and forces the UI mesh to rebuild for every character, causing major GC spikes.
+**Action:** Always assign the full string to TextMeshPro once and increment `maxVisibleCharacters` to achieve a true zero-allocation typewriter effect.
+## $(date +%Y-%m-%d) - Coroutine GC Spikes in UI Typewriter Effects
+**Learning:** Instantiating `new WaitForSeconds` inside high-frequency loops like UI typewriter effects causes O(N) GC allocations per string, triggering garbage collection spikes and micro-stutters during text rendering.
+**Action:** Implement a static dictionary cache using `Mathf.RoundToInt(seconds * 1000f)` as integer keys to store and reuse `WaitForSeconds` instances, eliminating runtime allocations. Ensure helper methods like `GetWait` are also declared static.
+## 2026-05-23 - Caching Yield Instructions in Coroutines
+**Learning:** Instantiating `new WaitForSeconds` inside a coroutine loop (like a typewriter effect per character) causes continuous heap allocations, generating garbage and potential micro-stutters during execution.
+**Action:** Cache `WaitForSeconds` instances in a static dictionary using integer keys (milliseconds) to prevent floating-point precision cache misses, and reuse them to eliminate redundant GC allocations.
+
+## 2026-05-24 - OtisTerminal Typewriter GC Allocations
+**Learning:** In `OtisTerminal.cs`, dynamically creating `new WaitForSeconds` inside the `TypewriterEffect` loop for every character and punctuation delay caused severe O(N) heap allocations. This generated heavy Garbage Collection (GC) pressure proportional to the length of the string being displayed, leading to potential micro-stutters.
+**Action:** Always utilize a static `Dictionary<int, WaitForSeconds>` cache indexed by milliseconds for yielding delays in tight loops (like typewriter effects) to ensure zero allocations after the cache is initially populated.
+## 2024-06-02 - Zero-Allocation Typewriter Effect
+**Learning:** Using string concatenation (`text += char`) inside loops for typewriter effects in TextMeshPro causes O(N^2) memory allocations and forces UI mesh rebuilds per character. This leads to severe frame stuttering during long dialogues.
+**Action:** Assign the full string to the `text` property once and increment the `maxVisibleCharacters` property over time to achieve a zero-allocation, high-performance typewriter effect.
+## 2026-05-22 - Otis Terminal Typewriter Zero-Allocation
+**Learning:** Instantiating `new WaitForSeconds` inside a fast-running loop like a typewriter effect causes a massive number of heap allocations and GC pressure.
+**Action:** Cache `WaitForSeconds` instances using millisecond integer keys to guarantee deterministic O(1) lookups and zero-allocation yields, especially for frequent UI effects.
+## 2024-05-21 - True Zero-Allocation Typewriter Effect
+**Learning:** The cinematic typewriter effect was falsely labeled 'zero-allocation' because it used string concatenation (`text += char`) inside a loop, causing O(N^2) memory allocations and forcing expensive UI mesh rebuilds per character.
+**Action:** Always assign the full string to the `text` property once and increment the `maxVisibleCharacters` property over time to achieve a genuine zero-allocation typewriter effect.
+
+## 2026-05-21 - Zero-allocation Typewriter Effect
+**Learning:** Using string concatenation (`text += char`) inside loops for a typewriter effect with TextMeshPro causes O(N^2) memory allocations and forces UI mesh rebuilds per character, creating a performance bottleneck.
+**Action:** Assign the full string to the `text` property once and increment the `maxVisibleCharacters` property over time to achieve a true zero-allocation typewriter effect.
+## 2026-05-18 - OtisTerminal Typewriter GC Pressure
+**Learning:** In `OtisTerminal.cs`, the `TypewriterEffect` coroutine was allocating new `WaitForSeconds` instances for every single character revealed in a loop. Even though string concatenation was optimized, these temporal allocations caused immense GC pressure and micro-stutters during long text outputs.
+**Action:** Always cache `WaitForSeconds` using `Mathf.RoundToInt(time * 1000f)` as a dictionary key, especially within high-frequency coroutines like typewriter effects, to guarantee zero-allocation yields.
 ## 2024-05-25 - Cached WaitForSeconds in Typewriter Effects
 **Learning:** The OtisTerminal uses a typewriter effect that was instantiating 'new WaitForSeconds' for every single character revealed. This is a common anti-pattern in Unity that causes rapid heap allocations and GC spikes.
 **Action:** Implement a static dictionary cache keyed by integer milliseconds to reuse WaitForSeconds instances, reducing per-character GC allocations to zero.
@@ -425,6 +468,9 @@
 **Learning:** Standard string concatenation (`text += char`) in a typewriter loop causes O(N^2) memory allocations and forces the UI mesh to rebuild for every character, leading to performance degradation and GC pressure in long cinematic sequences.
 **Action:** Implement a zero-allocation typewriter effect by assigning the full string to the `text` property once and incrementing the `maxVisibleCharacters` property of TextMeshPro over time. Always reset `maxVisibleCharacters` to the content length upon completion to ensure stability.
 
+## 2026-06-03 - Typewriter Effect GC Allocations
+**Learning:** Using `new WaitForSeconds` inside a per-character typewriter loop instantiates an object for every single character rendered. This causes massive O(N) memory allocations per message, leading to severe garbage collection pressure and micro-stutters during terminal usage.
+**Action:** Always cache and reuse `WaitForSeconds` instances using an integer millisecond key (via a static dictionary and helper method) inside frequent UI loops to achieve zero-allocation yields.
 ## 2026-05-18 - WaitForSeconds GC Allocations in Typewriter Loops
 **Learning:** Instantiating `new WaitForSeconds` inside tight loops (like a per-character typewriter effect) causes O(N) GC allocations per string, leading to significant garbage collection pressure.
 **Action:** Cache `WaitForSeconds` instances in a static dictionary using integer millisecond keys to eliminate redundant heap allocations during frequent looping coroutines.
@@ -435,6 +481,46 @@
 ## 2026-06-02 - Eliminate Per-Character Wait Allocations in UI
 **Learning:** In UI routines like the `TypewriterEffect`, instantiating a `new WaitForSeconds` on every single character creates significant per-frame GC allocation overhead (O(N) allocations where N is text length).
 **Action:** Always utilize a centralized `WaitForSeconds` cache with integer millisecond keys for recurring loop delays to achieve a zero-allocation coroutine.
+
+## 2026-06-07 - Robust Negative Caching with ReferenceEquals
+**Learning:** In Unity managers like `SceneDirector.cs`, simply checking `if (obj != null)` after retrieving from a cache prevents robust negative caching because it fails to distinguish between an explicitly cached `null` (negative cache hit) and a destroyed Unity object (fake null). This causes redundant `GameObject.Find` and `GetComponent` calls every frame for missing objects.
+**Action:** Use `System.Object.ReferenceEquals(obj, null)` alongside Unity's `== null` to safely identify explicitly cached true nulls and prevent redundant O(N) traversals, and always cache the result of the lookup (even if null).
+
+## 2026-06-07 - Risky Negative Caching in Dynamic Scenes
+**Learning:** Storing 'null' in a dictionary cache for a failed 'GameObject.Find' result (negative caching) is risky in dynamic Unity scenes. It can lead to stale references if the requested object is instantiated after the initial cache-miss, preventing the application from finding the newly created object.
+**Action:** Revert to safe caching that only stores valid, non-null GameObject references unless the object lifecycle is strictly static or the cache is explicitly updated upon instantiation.
+## 2024-06-08 - [Negative Caching for GetComponent Lookups]
+**Learning:** In Unity, dictionary caches storing components can repeatedly execute slow `GetComponent` calls if they don't distinguish between a "Real Null" (we searched and found nothing) and an uncached state. While negative caching `GameObject.Find` is unsafe because objects can dynamically spawn later, negative caching `GetComponent` on a specific instance ID is safe because static geometry or entities rarely add new components at runtime.
+**Action:** Implement negative caching for component lookups by explicitly storing `null` in caches when lookups fail. Use `System.Object.ReferenceEquals` to definitively return `null` and skip O(N) traversals for components that definitively do not exist on the object.
+## 2024-06-03 - [MaterialPropertyBlock Optimization in Cinematic Tween]
+**Learning:** In Unity, accessing `Renderer.material` at runtime (like during the alpha fade tween in `Cinematic_IntoTheVoid.cs`) instantiates a material clone on the heap, generating GC allocations and breaking draw call batching (SRP/GPU instancing).
+**Action:** Always use a `MaterialPropertyBlock` (via `GetPropertyBlock` and `SetPropertyBlock`) with cached property IDs (`Shader.PropertyToID`) for per-renderer shader modifications to prevent material cloning and eliminate GC allocations.
+
+## 2026-06-09 - Material Allocation via Renderer.material
+**Learning:** Accessing `Renderer.material` at runtime in Unity instantiates a material clone on the managed heap, which causes unexpected GC allocations and breaks draw call batching (SRP/GPU instancing).
+**Action:** Always utilize a `MaterialPropertyBlock` (via `GetPropertyBlock` and `SetPropertyBlock`) with cached property IDs to modify per-renderer shader properties without allocating new material instances.
+## 2024-06-09 - [MaterialPropertyBlock for Renderer Shader Modifications]
+**Learning:** Accessing `Renderer.material` at runtime instantiates a material clone on the heap, generating GC allocations and breaking draw call batching (SRP/GPU instancing).
+**Action:** Always use a `MaterialPropertyBlock` (via `GetPropertyBlock` and `SetPropertyBlock`) with cached property IDs (`Shader.PropertyToID`) for per-renderer shader modifications to prevent allocations and preserve instancing.
+## 2026-06-10 - [Renderer.material GC Allocation]
+**Learning:** In Unity, accessing `Renderer.material` at runtime instantiates a material clone on the heap, generating GC allocations and breaking draw call batching (SRP/GPU instancing).
+**Action:** Always use a `MaterialPropertyBlock` (via `GetPropertyBlock` and `SetPropertyBlock`) with cached property IDs (`Shader.PropertyToID`) for per-renderer shader modifications.
+
+## 2024-06-03 - MaterialPropertyBlock for Zero-Allocation Fades
+**Learning:** In `Cinematic_IntoTheVoid.cs`, passing `renderer.material` to an async fading routine instantiates a material clone on the heap, causing unnecessary GC allocations and breaking draw call batching (SRP/GPU instancing).
+**Action:** Always pass the `Renderer` instead of `Material` to coroutines/async tasks and use a `MaterialPropertyBlock` (`GetPropertyBlock` and `SetPropertyBlock`) to manipulate shader properties over time without allocating new materials.
+## 2024-06-03 - MaterialPropertyBlock for Renderer Material Access
+**Learning:** Accessing `Renderer.material` at runtime instantiates a material clone on the heap, generating GC allocations and breaking draw call batching (SRP/GPU instancing).
+**Action:** Always use a `MaterialPropertyBlock` (via `GetPropertyBlock` and `SetPropertyBlock`) with cached property IDs (`Shader.PropertyToID`) for per-renderer shader modifications.
+## 2026-06-12 - Prevent Material Instantiation via MaterialPropertyBlock
+**Learning:** In Unity, accessing `Renderer.material` at runtime instantiates a material clone on the heap, generating GC allocations and breaking draw call batching (SRP/GPU instancing).
+**Action:** Always use a `MaterialPropertyBlock` (via `GetPropertyBlock` and `SetPropertyBlock`) with cached property IDs (`Shader.PropertyToID`) for per-renderer shader modifications.
+## 2024-05-31 - Renderer.material GC Allocation
+**Learning:** Accessing `Renderer.material` at runtime instantiates a material clone on the heap, generating GC allocations and breaking draw call batching (SRP/GPU instancing).
+**Action:** Always use a `MaterialPropertyBlock` (via `GetPropertyBlock` and `SetPropertyBlock`) with cached property IDs (`Shader.PropertyToID`) for per-renderer shader modifications.
+## 2024-06-14 - Unity Material Allocation Overhead
+**Learning:** Accessing `Renderer.material` at runtime instantiates a material clone on the heap, generating GC allocations and breaking draw call batching (SRP/GPU instancing).
+**Action:** Always use a `MaterialPropertyBlock` (via `GetPropertyBlock` and `SetPropertyBlock`) with cached property IDs (`Shader.PropertyToID`) for per-renderer shader modifications.
 
 ## 2026-06-14 - Renderer.material Allocation Anti-Pattern
 **Learning:** Accessing `Renderer.material` at runtime instantiates a material clone on the heap, generating GC allocations and breaking draw call batching (SRP/GPU instancing).
@@ -465,3 +551,7 @@
 ## 2025-02-14 - MaterialPropertyBlock Zero-Allocation Tweening
 **Learning:** Accessing `Renderer.material` during animations (like alpha decay tweens) silently instantiates a material clone on the heap, causing recurring GC allocations and permanently breaking draw call batching (SRP/GPU instancing) for that renderer.
 **Action:** Always use `MaterialPropertyBlock` with `renderer.GetPropertyBlock()` and `renderer.SetPropertyBlock()` when modifying per-instance shader values at runtime, caching property IDs (`Shader.PropertyToID`) for maximum efficiency.
+
+## 2026-06-19 - Consolidate Redundant Input Checks
+**Learning:** In Unity, redundant `Input` checks (e.g., repeatedly calling `Input.anyKeyDown`) inside `Update()` loops introduce unnecessary C#/C++ native boundary crossings, which increases CPU overhead and can cause micro-stutters.
+**Action:** Eliminate duplicate execution paths to reduce CPU overhead per frame, ensuring native-managed boundary crossings are minimized.

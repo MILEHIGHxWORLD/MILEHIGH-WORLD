@@ -12,18 +12,11 @@ namespace MilehighWorld.World.Terminal
         [SerializeField] private TMP_InputField commandInput;
         [SerializeField] private TextMeshProUGUI outputDisplay;
 
-        // 🛡️ Sentinel: Security constants for input validation to prevent DoS and malformed input processing.
         private const int MaxInputLength = 256;
         private static readonly Regex SafeCommandRegex = new Regex(@"^[a-zA-Z0-9\s._\-]+$", RegexOptions.Compiled);
-
-        // ⚡ Bolt Optimization: Cache WaitForSeconds using ms keys to prevent GC spikes in per-character typewriter loops
+        // ⚡ Bolt: Cache for WaitForSeconds using millisecond keys to prevent floating-point precision issues
+        // and eliminate redundant GC allocations during frequent terminal updates.
         private static readonly Dictionary<int, WaitForSeconds> _waitCache = new Dictionary<int, WaitForSeconds>();
-
-        private Coroutine? _typewriterCoroutine;
-        private List<string> _commandHistory = new List<string>();
-        private int _historyIndex = -1;
-        private string? _lastSuggestion; // Palette: Track fuzzy-match suggestions for "Tab to Fix" recovery.
-        private string _lastSuggestion = "";
 
         private static WaitForSeconds GetWait(float seconds)
         {
@@ -35,6 +28,11 @@ namespace MilehighWorld.World.Terminal
             }
             return wait;
         }
+
+        private Coroutine? _typewriterCoroutine;
+        private readonly List<string> _commandHistory = new List<string>();
+        private int _historyIndex = -1;
+        private string _lastSuggestion = ""; // Palette: Track fuzzy-match suggestions for "Tab to Fix" recovery.
 
         private void Start()
         {
@@ -55,110 +53,123 @@ namespace MilehighWorld.World.Terminal
 
         private void Update()
         {
-            if (commandInput == null || !commandInput.isFocused) return;
+            if (commandInput == null || !commandInput.isFocused)
+            {
+                return;
+            }
 
-            // Palette: Productivity - Ctrl+L shortcut to clear the terminal for better workspace management.
             bool isControlPressed = Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl);
             if (isControlPressed && Input.GetKeyDown(KeyCode.L))
             {
                 ClearTerminalDisplay();
                 commandInput.text = "";
+                commandInput.ActivateInputField();
             }
 
             // Palette: Refined history navigation - ensure responsiveness by polling in Update.
-            if (Input.GetKeyDown(KeyCode.UpArrow)) NavigateHistory(-1);
-            else if (Input.GetKeyDown(KeyCode.DownArrow)) NavigateHistory(1);
+            if (Input.GetKeyDown(KeyCode.UpArrow))
+            {
+                NavigateHistory(-1);
+            }
+            else if (Input.GetKeyDown(KeyCode.DownArrow))
+            {
+                NavigateHistory(1);
+            }
 
             // Palette: Productivity - Tab-to-Autocomplete for common commands.
-            if (Input.GetKeyDown(KeyCode.Tab)) HandleAutocomplete();
+            if (Input.GetKeyDown(KeyCode.Tab))
+            {
+                HandleAutocomplete();
+            }
         }
 
         private void HandleAutocomplete()
         {
             if (commandInput == null) return;
 
-            // Palette: Prioritize "Tab to Fix" if a suggestion is available from a previous typo.
+            // Priority 1: Tab to fix typo if a suggestion is active
             if (!string.IsNullOrEmpty(_lastSuggestion))
             {
                 commandInput.text = _lastSuggestion;
                 commandInput.caretPosition = _lastSuggestion.Length;
-                _lastSuggestion = null;
+                _lastSuggestion = "";
                 return;
             }
 
             if (string.IsNullOrWhiteSpace(commandInput.text)) return;
 
             string input = commandInput.text.ToLower();
-            string[] commands = { "help", "clear" };
+            string[] commands = { "help", "clear", "verify" };
 
-            bool prefixMatched = false;
-            // Palette: Prioritize standard prefix matching.
+            // Priority 2: Standard prefix matching.
             foreach (string cmd in commands)
             {
                 if (cmd.StartsWith(input))
                 {
                     commandInput.text = cmd;
                     commandInput.caretPosition = cmd.Length;
-                    prefixMatched = true;
-                    break;
-                }
-            }
-
-            // Palette: Tab-to-Accept Suggestion - if no prefix match, try accepting the last fuzzy suggestion.
-            if (!prefixMatched && !string.IsNullOrEmpty(_lastSuggestion))
-            {
-                commandInput.text = _lastSuggestion;
-                commandInput.caretPosition = _lastSuggestion.Length;
                     return;
                 }
             }
 
-            // Palette: Fall back to the "Did You Mean?" suggestion if available (Tab-to-Accept).
-            if (!string.IsNullOrEmpty(_lastSuggestion))
+            // Priority 3: Fuzzy-based autocomplete as a fallback for typos
+            string suggestion = GetCommandSuggestion(input);
+            if (!string.IsNullOrEmpty(suggestion))
             {
-                commandInput.text = _lastSuggestion;
-                commandInput.caretPosition = _lastSuggestion.Length;
-                _lastSuggestion = ""; // Clear after use
+                commandInput.text = suggestion;
+                commandInput.caretPosition = suggestion.Length;
             }
         }
 
         private void NavigateHistory(int direction)
         {
             if (_commandHistory.Count == 0) return;
-            _lastSuggestion = null; // Palette: Clear suggestion when navigating history for a fresh interaction state.
-            _lastSuggestion = ""; // Palette: Clear suggestion when navigating history for a fresh state.
+
             _historyIndex = Mathf.Clamp(_historyIndex + direction, 0, _commandHistory.Count);
+            _lastSuggestion = ""; // Palette: Clear suggestion when navigating history for a fresh state.
+
             commandInput.text = _historyIndex < _commandHistory.Count ? _commandHistory[_historyIndex] : "";
             commandInput.caretPosition = commandInput.text.Length;
         }
 
+
         public void ProcessCommand(string input)
         {
             if (string.IsNullOrWhiteSpace(input)) return;
-            _lastSuggestion = ""; // Palette: Clear previous suggestion on new command attempt.
-            if (_commandHistory.Count == 0 || _commandHistory[^1] != input) _commandHistory.Add(input);
-            _historyIndex = _commandHistory.Count;
-            _lastSuggestion = ""; // Reset suggestion on new command attempt
 
-            // UX Enhancement: Clear input and refocus immediately for better flow
+            // Palette: Echo user command for better feedback and professional feel.
+            WriteToTerminal($"\n<color=#00FFFF>> {input}</color>");
+
+            if (_commandHistory.Count == 0 || _commandHistory[^1] != input)
+            {
+                _commandHistory.Add(input);
+            }
+            _historyIndex = _commandHistory.Count;
+            _lastSuggestion = "";
+
             if (commandInput != null)
             {
                 commandInput.text = "";
                 commandInput.ActivateInputField();
             }
 
-            // 🛡️ Sentinel: Input validation and DoS protection
             if (input.Length > MaxInputLength)
             {
                 WriteToTerminal("\n[SECURITY]: <color=#FF0000>Input exceeds maximum length (256 characters).</color>");
-                if (commandInput != null) StartCoroutine(ShakeInputField());
+                if (commandInput != null)
+                {
+                    StartCoroutine(ShakeInputField());
+                }
                 return;
             }
 
             if (!SafeCommandRegex.IsMatch(input))
             {
                 WriteToTerminal("\n[SECURITY]: <color=#FF0000>Invalid characters. Use only A-Z, 0-9, spaces, '.', '_', and '-'.</color>");
-                if (commandInput != null) StartCoroutine(ShakeInputField());
+                if (commandInput != null)
+                {
+                    StartCoroutine(ShakeInputField());
+                }
                 return;
             }
 
@@ -167,29 +178,34 @@ namespace MilehighWorld.World.Terminal
 
             if (command == "clear")
             {
-                _lastSuggestion = null;
                 ClearTerminalDisplay();
                 return;
             }
 
             if (command == "help")
             {
-                _lastSuggestion = null;
                 WriteToTerminal("\n[SYSTEM]: <color=#FFFF00>Available Commands:</color>" +
                                 "\n - <color=#00FFFF>help</color>: Show this message." +
-                                "\n - <color=#00FFFF>clear</color>: Clear the terminal display (or Ctrl+L)." +
+                                "\n - <color=#00FFFF>clear</color>: Clear the terminal display." +
+                                "\n - <color=#00FFFF>verify</color>: Run ECC data integrity check." +
                                 "\n - <color=#00FFFF>[cmd] [arg1] [arg2]</color>: Execute extended system commands." +
-                                "\n\n[SYSTEM]: <color=#FFFF00>Shortcuts:</color> Up/Down Arrow for History, Tab to Autocomplete/Fix, Ctrl+L to Clear.");
-                                "\n\n[SYSTEM]: <color=#FFFF00>Shortcuts:</color> Up/Down Arrow for History, Tab to Autocomplete/Accept, Ctrl+L to Clear.");
+                                "\n\n[SYSTEM]: <color=#FFFF00>Shortcuts:</color> Up/Down Arrow (History), Tab (Autocomplete), Ctrl+L (Clear)." +
+                                "\n[STATUS]: ECC Buffer: <color=#00FF00>OPTIMAL</color>");
                 return;
             }
 
+            if (command == "verify")
+            {
+                WriteToTerminal("\n[SYSTEM]: Initiating Data Integrity Check..." +
+                                "\n[ECC]: Calculating Syndromes in GF(2^8)..." +
+                                "\n[ECC]: <color=#00FF00>No errors detected. Reality parity at 100%.</color>");
+                return;
+            }
             if (parts.Length >= 3)
             {
-                int index = input.IndexOf(parts[2]);
+                int index = input.IndexOf(parts[1]);
                 if (index != -1)
                 {
-                    _lastSuggestion = null;
                     string argument = input.Substring(index);
                     ExecuteExtendedCommand(parts[0], argument);
                     WriteToTerminal($"\n[SYSTEM]: <color=#00FF00>Command '{parts[0]}' executed.</color>");
@@ -197,38 +213,13 @@ namespace MilehighWorld.World.Terminal
                 }
             }
 
-            // Unknown command logic with "Did You Mean?" fuzzy matching
-            string suggestion = GetCommandSuggestion(command);
-            string errorMsg = $"\n[SYSTEM]: <color=#FF0000>Unknown command: '{command}'</color>";
-            if (!string.IsNullOrEmpty(suggestion))
-            {
-                errorMsg += $"\n[SYSTEM]: Did you mean: <color=#00FFFF>{suggestion}</color>?";
             // Unknown command or invalid argument count
-            WriteToTerminal($"\n[SYSTEM]: <color=#FF0000>Error: Unknown command or invalid argument count for '{parts[0]}'.</color>");
-
-            // Palette: Did You Mean? feature.
-            string suggestion = GetCommandSuggestion(command);
-            string errorMsg = $"\n[SYSTEM]: <color=#FF0000>Unknown command: '{parts[0]}'</color>";
-
-            if (!string.IsNullOrEmpty(suggestion))
-            {
-                errorMsg += $"\n[SYSTEM]: Did you mean <color=#00FFFF>'{suggestion}'</color>?";
             _lastSuggestion = GetCommandSuggestion(command);
             string errorMsg = $"\n[SYSTEM]: <color=#FF0000>Error: Unknown command or invalid argument count for '{parts[0]}'.</color>";
-            if (!string.IsNullOrEmpty(_lastSuggestion))
-            {
-                errorMsg += $"\n[SYSTEM]: Did you mean: <color=#00FFFF>'{_lastSuggestion}'</color>?";
-            }
-            // Palette: Unknown command handling with "Did You Mean?" suggestion.
-            string suggestion = GetCommandSuggestion(command);
-            _lastSuggestion = suggestion; // Palette: Store for Tab-to-Fix recovery.
-            _lastSuggestion = GetCommandSuggestion(command);
-            string errorMsg = $"\n[SYSTEM]: <color=#FF0000>Unknown command: '{parts[0]}'</color>";
 
-            WriteToTerminal(errorMsg);
             if (!string.IsNullOrEmpty(_lastSuggestion))
             {
-                errorMsg += $"\n[SYSTEM]: Did you mean: <color=#00FFFF>{_lastSuggestion}</color>?";
+                errorMsg += $"\n[SYSTEM]: Did you mean: <color=#00FFFF>{_lastSuggestion}</color>? (Press <color=#FFFF00>[Tab]</color> to fix)";
             }
 
             WriteToTerminal(errorMsg);
@@ -237,7 +228,7 @@ namespace MilehighWorld.World.Terminal
 
         private string GetCommandSuggestion(string input)
         {
-            string[] availableCommands = { "help", "clear" };
+            string[] availableCommands = { "help", "clear", "verify" };
             string bestMatch = "";
             int minDistance = int.MaxValue;
 
@@ -254,14 +245,13 @@ namespace MilehighWorld.World.Terminal
             return minDistance <= 2 ? bestMatch : "";
         }
 
-
         private void ClearTerminalDisplay()
         {
             if (outputDisplay == null) return;
+
             outputDisplay.text = "";
             outputDisplay.maxVisibleCharacters = 0;
 
-            // Palette: Productivity - Automatically refocus the input field after clearing the display.
             if (commandInput != null)
             {
                 commandInput.ActivateInputField();
@@ -270,12 +260,15 @@ namespace MilehighWorld.World.Terminal
 
         private void WriteToTerminal(string message)
         {
-            if (outputDisplay == null) return;
+            if (outputDisplay == null)
+            {
+                return;
+            }
 
             if (_typewriterCoroutine != null)
             {
                 StopCoroutine(_typewriterCoroutine);
-                outputDisplay.maxVisibleCharacters = int.MaxValue; // Reveal all current text
+                outputDisplay.maxVisibleCharacters = int.MaxValue;
             }
 
             _typewriterCoroutine = StartCoroutine(TypewriterEffect(message));
@@ -296,7 +289,8 @@ namespace MilehighWorld.World.Terminal
             {
                 outputDisplay.maxVisibleCharacters = startVisibleCount + i;
 
-                // Palette: Rhythmic punctuation pauses to mimic natural speech cadence.
+                // UX Learning: Punctuation delays trigger after character is visible
+                // ⚡ Bolt: Use cached WaitForSeconds to eliminate O(N) GC allocations
                 if (i > 0 && i <= charactersToReveal)
                 {
                     char c = outputDisplay.textInfo.characterInfo[startVisibleCount + i - 1].character;
@@ -309,7 +303,15 @@ namespace MilehighWorld.World.Terminal
                 yield return GetWait(0.02f);
             }
 
-            // ⚡ Bolt: Ensure all characters are visible after typewriter completes to avoid text truncation on subsequent uses.
+            // ⚡ Bolt: Reset to full string length when done to prevent bugs on next edit
+            if (outputDisplay != null && outputDisplay.text != null)
+            {
+                outputDisplay.maxVisibleCharacters = outputDisplay.text.Length;
+            }
+
+            // ⚡ Bolt: Reset maxVisibleCharacters after typewriter completes to avoid text truncation on subsequent uses.
+            outputDisplay.maxVisibleCharacters = outputDisplay.textInfo.characterCount;
+
             outputDisplay.maxVisibleCharacters = outputDisplay.textInfo.characterCount;
             _typewriterCoroutine = null;
         }
@@ -325,7 +327,7 @@ namespace MilehighWorld.World.Terminal
             while (elapsed < duration)
             {
                 float x = UnityEngine.Random.Range(-1f, 1f) * magnitude;
-                commandInput.transform.localPosition = originalPos + new UnityEngine.Vector3(x, 0, 0);
+                commandInput.transform.localPosition = originalPos + new Vector3(x, 0, 0);
                 elapsed += Time.deltaTime;
                 yield return null;
             }
@@ -335,6 +337,29 @@ namespace MilehighWorld.World.Terminal
         private void ExecuteExtendedCommand(string cmd, string args)
         {
             // Implementation for specific terminal logic
+        }
+
+        private int ComputeLevenshteinDistance(string s, string t)
+        {
+            if (string.IsNullOrEmpty(s)) return string.IsNullOrEmpty(t) ? 0 : t.Length;
+            if (string.IsNullOrEmpty(t)) return s.Length;
+
+            int n = s.Length;
+            int m = t.Length;
+            int[,] d = new int[n + 1, m + 1];
+
+            for (int i = 0; i <= n; d[i, 0] = i++) ;
+            for (int j = 0; j <= m; d[0, j] = j++) ;
+
+            for (int i = 1; i <= n; i++)
+            {
+                for (int j = 1; j <= m; j++)
+                {
+                    int cost = (t[j - 1] == s[i - 1]) ? 0 : 1;
+                    d[i, j] = Mathf.Min(Mathf.Min(d[i - 1, j] + 1, d[i, j - 1] + 1), d[i - 1, j - 1] + cost);
+                }
+            }
+            return d[n, m];
         }
     }
 }

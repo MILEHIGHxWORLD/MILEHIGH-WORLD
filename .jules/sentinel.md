@@ -250,10 +250,31 @@
 **Vulnerability:** The `CombatManager` singleton was missing from the `_protectedManagers` blocklist in `SceneDirector.cs`.
 **Learning:** Any new core manager or singleton must be explicitly added to the IDOR blocklists to prevent external data from manipulating its state via `GameObject.Find`.
 **Prevention:** Maintain a comprehensive list of all critical singletons and ensure they are all included in the `_protectedManagers` blocklist.
+
+## 2026-05-19 - Hardcoded Salt in XOR Obfuscation
+
+**Vulnerability:** Weak Cryptography / Hardcoded Salt in `CampaignManager.cs`. The use of a static, hardcoded string literal as a fallback XOR salt made data obfuscation trivial to reverse through static analysis.
+
+**Learning:** Relying on hardcoded secrets within source code for any form of cryptographic or obfuscation operation is a major security risk. Even if the goal is only "obfuscation", a hardcoded key provides zero security against a motivated attacker.
+
+**Prevention:** Always derive keys or salts from environment-specific or application-specific metadata if a true unique identifier (like `deviceUniqueIdentifier`) is unavailable. Avoid string literals for sensitive values.
 ## 2024-05-19 - Missing Managers in IDOR Blocklist
 **Vulnerability:** Several critical core managers (GameManager, BackendSyncService) were missing from the `_protectedManagers` blocklist in `SceneDirector.cs`, exposing them to unauthorized interaction and potential IDOR vulnerabilities.
 **Learning:** Hardcoded blocklists for dynamic core systems are prone to omitting newly added or less prominent singleton managers, leaving gaps in IDOR protection.
 **Prevention:** Ensure all critical singletons and core managers are explicitly included in the `_protectedManagers` HashSet blocklist within `SceneDirector.cs` to block unauthorized external access via `GameObject.Find`.
+## 2024-05-27 - Missing IDOR Protection for RealitySyncEngine
+**Vulnerability:** The `RealitySyncEngine` singleton was missing from the `_protectedManagers` blocklist in `SceneDirector.cs`.
+**Learning:** Any new core manager or singleton must be explicitly added to the IDOR blocklists to prevent external data from manipulating its state via `GameObject.Find`.
+**Prevention:** Maintain a comprehensive list of all critical singletons and ensure they are all included in the `_protectedManagers` blocklist.
+
+## 2024-05-26 - Missing RealitySyncEngine in IDOR Blocklist
+**Vulnerability:** The `RealitySyncEngine` singleton was missing from the `_protectedManagers` blocklist in `SceneDirector.cs`.
+**Learning:** New or lesser-known critical managers are often missed when manually maintaining IDOR blocklists, leaving them exposed to unauthorized manipulation via external data lookups (`GameObject.Find`).
+**Prevention:** Maintain a comprehensive list of all critical singletons and ensure they are all strictly included in the `_protectedManagers` blocklist.
+## 2026-05-25 - Prevent IDOR on RealitySyncEngine
+**Vulnerability:** Insecure Direct Object Reference (IDOR) allows unauthorized modification of `RealitySyncEngine` via `GameObject.Find` in `SceneDirector.ApplyInteraction`.
+**Learning:** Newly created core managers and singletons are not automatically protected from external interaction systems, exposing critical state (like reality synchronization) to manipulation.
+**Prevention:** Always add new core manager classes to the `_protectedManagers` blocklist in `SceneDirector.cs` when implementing them.
 ## 2024-05-21 - Missing IDOR Protection for RealitySyncEngine
 **Vulnerability:** The `RealitySyncEngine` core manager was missing from the `_protectedManagers` blocklist in `SceneDirector.cs`, allowing unauthorized external modification via object interactions (Insecure Direct Object Reference).
 **Learning:** Core singleton managers that govern critical game state (like RealitySyncEngine) must be explicitly protected against arbitrary `GameObject.Find` resolution in interaction handlers.
@@ -267,6 +288,27 @@
 **Vulnerability:** The introduction of new core systems like `TimelineSimulationEngine` and `VitisAIBridge` creates new targets for IDOR attacks if not explicitly protected in the scene-wide lookup blocklist.
 **Learning:** Every architectural addition that acts as a singleton or core manager must be immediately registered with the security boundary layer (`SceneDirector.cs`) to maintain the integrity of the simulation.
 **Prevention:** Strictly enforce the inclusion of all new core managers in the `_protectedManagers` HashSet to block unauthorized external access via `GameObject.Find`.
+## 2024-06-07 - IDOR Vulnerability in SceneDirector Protected Managers
+**Vulnerability:** Critical singletons and core managers (HarmonicTerrainEngine, BicameralBattleEngine) were missing from the _protectedManagers blocklist in SceneDirector.cs.
+**Learning:** Hardcoded, manually maintained blocklists are prone to omissions as new core engines are added, enabling Insecure Direct Object Reference (IDOR).
+**Prevention:** Consider implementing an attribute-based system (e.g., [ProtectedManager]) and dynamically populating the blocklist via reflection.
+## 2026-06-08 - Insecure Direct Object Reference (IDOR) via GameObject.Find
+**Vulnerability:** Core singleton managers could be accessed and manipulated via unauthorized GameObject.Find paths due to a malformed blocklist in SceneDirector.cs.
+**Learning:** SceneDirector.cs parses arbitrary strings to locate and modify objects. A syntax error and missing entries in the blocklist failed to protect critical managers from IDOR.
+**Prevention:** Always maintain a well-formatted blocklist for sensitive game objects and run compilation checks to ensure HashSet initializers do not contain syntax errors.
+## 2026-06-09 - IDOR Vulnerability via GameObject.Find
+
+**Vulnerability:** A missing comma in the _protectedManagers HashSet initialization caused silent C# compilation failures, potentially leaving the blocklist broken.
+**Learning:** The syntax error was overlooked because the custom Python validation script does not compile C# code.
+**Prevention:** Always manually verify C# syntax correctness. Ensure all critical singletons and core managers are explicitly included in the _protectedManagers HashSet to block unauthorized external access via GameObject.Find.
+## 2026-06-10 - Malformed HashSet Breaking IDOR Blocklist
+**Vulnerability:** A C# syntax error (missing comma) in the `_protectedManagers` HashSet in `SceneDirector.cs` broke the compilation/evaluation of the blocklist, allowing unauthorized IDOR access to core managers.
+**Learning:** Security blocklists must be syntax-checked and validated. A simple syntax error in a hardcoded list can silently fail or break the entire defense-in-depth layer if not caught by compilation or tests.
+**Prevention:** Ensure C# syntax correctness in critical security blocklists and include unit tests that explicitly verify the blocklist contains the expected managers.
+## 2026-06-11 - IDOR Protection Failure due to C# Syntax Error
+**Vulnerability:** A malformed HashSet missing commas in the SceneDirector blocklist failed to compile, leaving critical singletons unprotected from Insecure Direct Object Reference (IDOR) attacks via GameObject.Find.
+**Learning:** Security blocklists implemented as static C# collections can fail completely if they contain syntax errors (like missing commas when merging lists), neutralizing the defense.
+**Prevention:** Always verify C# syntax correctness manually or via strict build pipelines, as simple compilation errors can silently break security features if not caught.
 ## 2026-06-15 - IDOR Blocklist Syntax Error Fixed
 **Vulnerability:** A malformed _protectedManagers HashSet in SceneDirector.cs contained missing commas and duplicate entries, which would break the IDOR blocklist and potentially expose core managers (like GameManager, RealitySyncEngine, and CombatManager) to unauthorized external access via GameObject.Find.
 **Learning:** Hardcoded security blocklists are prone to human error during manual merges or updates, leading to invalid C# syntax that breaks the security mechanism entirely.
