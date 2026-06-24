@@ -181,7 +181,3 @@
 ## 2026-06-17 - [Tab-to-Accept for Forgiving CLI Interfaces]
 **Learning:** Providing fuzzy-match command suggestions is only half the battle; allowing users to immediately accept those suggestions with a familiar key (like Tab) completes the loop of a forgiving interface. This "Tab-to-Accept" pattern drastically reduces the cognitive load of correcting minor typos and makes terminal-style micro-interactions feel remarkably fluid and responsive.
 **Action:** Always pair "Did You Mean?" suggestions with a quick-acceptance mechanic (like Tab) to minimize user friction in command-line interfaces.
-
-## 2026-07-25 - [Proactive CLI Guidance with Tab-on-Empty]
-**Learning:** In terminal interfaces, the Tab key is instinctively used for assistance. Providing a list of available commands when Tab is pressed on an empty input field offers immediate guidance without requiring the user to explicitly type "help". This pattern significantly improves discoverability for new users and reduces the cognitive load of remembering command names.
-**Action:** Implement 'Tab-on-Empty' command listing in CLI-style interfaces to bridge the gap between "stuck" and "productive".
