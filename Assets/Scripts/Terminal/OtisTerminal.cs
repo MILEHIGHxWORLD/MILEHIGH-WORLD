@@ -41,6 +41,19 @@ namespace MilehighWorld.World.Terminal
                 outputDisplay.text = "";
                 WriteToTerminal("[SYSTEM]: OTIS Terminal Online. Type 'help' for commands.");
             }
+
+            // Palette: Micro-UX - Set helpful placeholder text if none exists.
+            if (commandInput != null && commandInput.placeholder != null)
+            {
+                var placeholderText = commandInput.placeholder.GetComponent<TextMeshProUGUI>();
+                if (placeholderText != null && string.IsNullOrEmpty(placeholderText.text))
+                {
+                    placeholderText.text = "Enter command... Type 'help' for info.";
+                }
+            }
+
+            // Palette: Micro-UX - Initialize history index to the end of the (initially empty) list.
+            _historyIndex = 0;
         }
 
         private void OnEnable()
@@ -81,6 +94,19 @@ namespace MilehighWorld.World.Terminal
             {
                 HandleAutocomplete();
             }
+
+            // Palette: Micro-UX - Escape to clear or unfocus.
+            if (Input.GetKeyDown(KeyCode.Escape))
+            {
+                if (!string.IsNullOrEmpty(commandInput.text))
+                {
+                    commandInput.text = "";
+                }
+                else
+                {
+                    commandInput.DeactivateInputField();
+                }
+            }
         }
 
         private void HandleAutocomplete()
@@ -96,7 +122,12 @@ namespace MilehighWorld.World.Terminal
                 return;
             }
 
-            if (string.IsNullOrWhiteSpace(commandInput.text)) return;
+            if (string.IsNullOrWhiteSpace(commandInput.text))
+            {
+                // Palette: Guidance - If Tab is pressed on empty input, show available commands.
+                WriteToTerminal("\n[SYSTEM]: Available commands: <color=#00FFFF>help, clear, verify</color>.");
+                return;
+            }
 
             string input = commandInput.text.ToLower();
             string[] commands = { "help", "clear", "verify" };
@@ -125,7 +156,16 @@ namespace MilehighWorld.World.Terminal
         {
             if (_commandHistory.Count == 0) return;
 
-            _historyIndex = Mathf.Clamp(_historyIndex + direction, 0, _commandHistory.Count);
+            // Palette: Fix - If we are at the end (new input) and press 'Up', go to the last command.
+            if (_historyIndex == _commandHistory.Count && direction < 0)
+            {
+                _historyIndex = _commandHistory.Count - 1;
+            }
+            else
+            {
+                _historyIndex = Mathf.Clamp(_historyIndex + direction, 0, _commandHistory.Count);
+            }
+
             _lastSuggestion = ""; // Palette: Clear suggestion when navigating history for a fresh state.
 
             commandInput.text = _historyIndex < _commandHistory.Count ? _commandHistory[_historyIndex] : "";
