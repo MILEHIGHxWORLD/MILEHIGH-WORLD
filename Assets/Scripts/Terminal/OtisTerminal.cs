@@ -33,6 +33,7 @@ namespace MilehighWorld.World.Terminal
         private readonly List<string> _commandHistory = new List<string>();
         private int _historyIndex = -1;
         private string _lastSuggestion = ""; // Palette: Track fuzzy-match suggestions for "Tab to Fix" recovery.
+        private string _currentInputBuffer = ""; // Palette: Save unsubmitted text when navigating history.
 
         private void Start()
         {
@@ -123,12 +124,20 @@ namespace MilehighWorld.World.Terminal
 
         private void NavigateHistory(int direction)
         {
-            if (_commandHistory.Count == 0) return;
+            if (_commandHistory.Count == 0 || commandInput == null) return;
+
+            // Palette: Save current input if we are at the end of history (the "new" line).
+            if (_historyIndex >= _commandHistory.Count || _historyIndex == -1)
+            {
+                _currentInputBuffer = commandInput.text;
+                // If starting from -1 (fresh), initialize to history end so first "Up" works.
+                if (_historyIndex == -1) _historyIndex = _commandHistory.Count;
+            }
 
             _historyIndex = Mathf.Clamp(_historyIndex + direction, 0, _commandHistory.Count);
             _lastSuggestion = ""; // Palette: Clear suggestion when navigating history for a fresh state.
 
-            commandInput.text = _historyIndex < _commandHistory.Count ? _commandHistory[_historyIndex] : "";
+            commandInput.text = _historyIndex < _commandHistory.Count ? _commandHistory[_historyIndex] : _currentInputBuffer;
             commandInput.caretPosition = commandInput.text.Length;
         }
 
@@ -146,6 +155,7 @@ namespace MilehighWorld.World.Terminal
             }
             _historyIndex = _commandHistory.Count;
             _lastSuggestion = "";
+            _currentInputBuffer = ""; // Palette: Clear buffer on successful submission.
 
             if (commandInput != null)
             {
