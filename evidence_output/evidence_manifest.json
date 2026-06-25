@@ -1,0 +1,14 @@
+[
+  {
+    "control_id": "CC6.1-02",
+    "collected_at": "2026-06-25T23:30:04.206049+00:00",
+    "status": "collected",
+    "artifact": "evidence_output/CC6.1-02_access_review.json"
+  },
+  {
+    "control_id": "CC8.1-01",
+    "collected_at": "2026-06-25T23:30:04.208538+00:00",
+    "count": 2,
+    "artifact": "evidence_output/CC8.1-01_changes.json"
+  }
+]
