@@ -32,6 +32,7 @@ namespace MilehighWorld.World.Terminal
         private Coroutine? _typewriterCoroutine;
         private readonly List<string> _commandHistory = new List<string>();
         private int _historyIndex = -1;
+        private string _currentInputBuffer = ""; // Palette: Persistent buffer for unsubmitted text during history navigation.
         private string _lastSuggestion = ""; // Palette: Track fuzzy-match suggestions for "Tab to Fix" recovery.
 
         private void Start()
@@ -53,6 +54,15 @@ namespace MilehighWorld.World.Terminal
 
         private void Update()
         {
+            // Palette: Global focus - activate input when typing starts, ignoring mouse clicks.
+            if (commandInput != null && !commandInput.isFocused && Input.anyKeyDown)
+            {
+                if (!Input.GetMouseButton(0) && !Input.GetMouseButton(1) && !Input.GetMouseButton(2))
+                {
+                    commandInput.ActivateInputField();
+                }
+            }
+
             if (commandInput == null || !commandInput.isFocused)
             {
                 return;
@@ -99,7 +109,7 @@ namespace MilehighWorld.World.Terminal
             if (string.IsNullOrWhiteSpace(commandInput.text)) return;
 
             string input = commandInput.text.ToLower();
-            string[] commands = { "help", "clear", "verify" };
+            string[] commands = { "help", "clear", "cls", "verify" };
 
             // Priority 2: Standard prefix matching.
             foreach (string cmd in commands)
@@ -125,10 +135,25 @@ namespace MilehighWorld.World.Terminal
         {
             if (_commandHistory.Count == 0) return;
 
+            // Palette: Save unsubmitted text before moving away from the "new command" line.
+            if (_historyIndex == _commandHistory.Count && direction < 0)
+            {
+                _currentInputBuffer = commandInput.text;
+            }
+
             _historyIndex = Mathf.Clamp(_historyIndex + direction, 0, _commandHistory.Count);
             _lastSuggestion = ""; // Palette: Clear suggestion when navigating history for a fresh state.
 
-            commandInput.text = _historyIndex < _commandHistory.Count ? _commandHistory[_historyIndex] : "";
+            // Palette: Restore unsubmitted text when returning to the "new command" line.
+            if (_historyIndex < _commandHistory.Count)
+            {
+                commandInput.text = _commandHistory[_historyIndex];
+            }
+            else
+            {
+                commandInput.text = _currentInputBuffer;
+            }
+
             commandInput.caretPosition = commandInput.text.Length;
         }
 
@@ -145,6 +170,7 @@ namespace MilehighWorld.World.Terminal
                 _commandHistory.Add(input);
             }
             _historyIndex = _commandHistory.Count;
+            _currentInputBuffer = ""; // Palette: Reset persistent buffer upon successful submission.
             _lastSuggestion = "";
 
             if (commandInput != null)
@@ -176,7 +202,7 @@ namespace MilehighWorld.World.Terminal
             string[] parts = input.Trim().Split(' ');
             string command = parts[0].ToLower();
 
-            if (command == "clear")
+            if (command == "clear" || command == "cls")
             {
                 ClearTerminalDisplay();
                 return;
@@ -186,7 +212,7 @@ namespace MilehighWorld.World.Terminal
             {
                 WriteToTerminal("\n[SYSTEM]: <color=#FFFF00>Available Commands:</color>" +
                                 "\n - <color=#00FFFF>help</color>: Show this message." +
-                                "\n - <color=#00FFFF>clear</color>: Clear the terminal display." +
+                                "\n - <color=#00FFFF>clear/cls</color>: Clear the terminal display." +
                                 "\n - <color=#00FFFF>verify</color>: Run ECC data integrity check." +
                                 "\n - <color=#00FFFF>[cmd] [arg1] [arg2]</color>: Execute extended system commands." +
                                 "\n\n[SYSTEM]: <color=#FFFF00>Shortcuts:</color> Up/Down Arrow (History), Tab (Autocomplete), Ctrl+L (Clear)." +
@@ -228,7 +254,7 @@ namespace MilehighWorld.World.Terminal
 
         private string GetCommandSuggestion(string input)
         {
-            string[] availableCommands = { "help", "clear", "verify" };
+            string[] availableCommands = { "help", "clear", "cls", "verify" };
             string bestMatch = "";
             int minDistance = int.MaxValue;
 
@@ -310,8 +336,6 @@ namespace MilehighWorld.World.Terminal
             }
 
             // ⚡ Bolt: Reset maxVisibleCharacters after typewriter completes to avoid text truncation on subsequent uses.
-            outputDisplay.maxVisibleCharacters = outputDisplay.textInfo.characterCount;
-
             outputDisplay.maxVisibleCharacters = outputDisplay.textInfo.characterCount;
             _typewriterCoroutine = null;
         }
