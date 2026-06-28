@@ -85,6 +85,10 @@
 ## 2026-03-27 - [Layout-Stable Rhythmic Typewriter with Look-Ahead]
 **Learning:** Pre-appending completion cues (like '▽') to the full text and using 'maxVisibleCharacters' for reveal ensures layout stability and prevents word-wrap jumping. Incorporating look-ahead whitespace checks for punctuation allows for natural rhythmic pauses (e.g. 15x delay for sentence ends) while correctly ignoring periods in technical names (e.g. 'Sky.ix').
 **Action:** Always pre-calculate dialogue layout with all cues present and use look-ahead logic for context-aware rhythmic pacing in typewriter effects.
+
+## 2026-07-15 - [Productive Terminal UX with Buffer Preservation]
+**Learning:** Forgiving terminal interfaces (like `OtisTerminal.cs`) benefit from "Global Focus" (focusing input on any key press) to minimize friction. Crucially, preserving the unsubmitted input buffer when navigating command history—and restoring it when returning to the "new" line—prevents data loss and feels significantly more professional. Pairing these with standard aliases (like `cls`) and clearing shortcuts (Escape) creates a cohesive, high-quality CLI experience.
+**Action:** Always implement input buffer preservation for history navigation and use "Global Focus" guards (avoiding mouse buttons) for immediate terminal engagement.
 ## 2026-06-16 - [Fuzzy Command Matching for Terminal Usability]
 **Learning:** In terminal-style interfaces, users often make typos. Implementing a "Did you mean?" feature using Levenshtein distance (with a threshold of 2) significantly reduces frustration by guiding users toward valid commands without being overly intrusive.
 **Action:** Always include fuzzy matching/suggestions for command-line inputs to improve error recovery and discoverability.
