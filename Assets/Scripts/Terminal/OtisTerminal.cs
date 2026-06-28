@@ -33,6 +33,7 @@ namespace MilehighWorld.World.Terminal
         private readonly List<string> _commandHistory = new List<string>();
         private int _historyIndex = -1;
         private string _lastSuggestion = ""; // Palette: Track fuzzy-match suggestions for "Tab to Fix" recovery.
+        private string _currentInputBuffer = ""; // Palette: Save unsubmitted text when navigating history.
 
         private void Start()
         {
@@ -53,10 +54,15 @@ namespace MilehighWorld.World.Terminal
 
         private void Update()
         {
-            if (commandInput == null || !commandInput.isFocused)
+            if (commandInput == null) return;
+
+            // Palette: Global Focus - Start typing immediately.
+            if (!commandInput.isFocused && Input.anyKeyDown && !Input.GetMouseButtonDown(0) && !Input.GetMouseButtonDown(1) && !Input.GetMouseButtonDown(2))
             {
-                return;
+                commandInput.ActivateInputField();
             }
+
+            if (!commandInput.isFocused) return;
 
             bool isControlPressed = Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl);
             if (isControlPressed && Input.GetKeyDown(KeyCode.L))
@@ -74,6 +80,13 @@ namespace MilehighWorld.World.Terminal
             else if (Input.GetKeyDown(KeyCode.DownArrow))
             {
                 NavigateHistory(1);
+            }
+
+            // Palette: Productivity - Escape to quickly clear the current line.
+            if (Input.GetKeyDown(KeyCode.Escape))
+            {
+                commandInput.text = "";
+                _lastSuggestion = "";
             }
 
             // Palette: Productivity - Tab-to-Autocomplete for common commands.
@@ -99,7 +112,7 @@ namespace MilehighWorld.World.Terminal
             if (string.IsNullOrWhiteSpace(commandInput.text)) return;
 
             string input = commandInput.text.ToLower();
-            string[] commands = { "help", "clear", "verify" };
+            string[] commands = { "help", "clear", "cls", "verify" };
 
             // Priority 2: Standard prefix matching.
             foreach (string cmd in commands)
@@ -125,10 +138,24 @@ namespace MilehighWorld.World.Terminal
         {
             if (_commandHistory.Count == 0) return;
 
+            // Palette: Save unsubmitted text when navigating away from the new command line.
+            if (_historyIndex == _commandHistory.Count)
+            {
+                _currentInputBuffer = commandInput.text;
+            }
+
             _historyIndex = Mathf.Clamp(_historyIndex + direction, 0, _commandHistory.Count);
             _lastSuggestion = ""; // Palette: Clear suggestion when navigating history for a fresh state.
 
-            commandInput.text = _historyIndex < _commandHistory.Count ? _commandHistory[_historyIndex] : "";
+            if (_historyIndex < _commandHistory.Count)
+            {
+                commandInput.text = _commandHistory[_historyIndex];
+            }
+            else
+            {
+                // Restore saved buffer when returning to the new command line.
+                commandInput.text = _currentInputBuffer;
+            }
             commandInput.caretPosition = commandInput.text.Length;
         }
 
@@ -146,6 +173,7 @@ namespace MilehighWorld.World.Terminal
             }
             _historyIndex = _commandHistory.Count;
             _lastSuggestion = "";
+            _currentInputBuffer = "";
 
             if (commandInput != null)
             {
@@ -176,7 +204,7 @@ namespace MilehighWorld.World.Terminal
             string[] parts = input.Trim().Split(' ');
             string command = parts[0].ToLower();
 
-            if (command == "clear")
+            if (command == "clear" || command == "cls")
             {
                 ClearTerminalDisplay();
                 return;
@@ -186,10 +214,10 @@ namespace MilehighWorld.World.Terminal
             {
                 WriteToTerminal("\n[SYSTEM]: <color=#FFFF00>Available Commands:</color>" +
                                 "\n - <color=#00FFFF>help</color>: Show this message." +
-                                "\n - <color=#00FFFF>clear</color>: Clear the terminal display." +
+                                "\n - <color=#00FFFF>clear / cls</color>: Clear the terminal display." +
                                 "\n - <color=#00FFFF>verify</color>: Run ECC data integrity check." +
                                 "\n - <color=#00FFFF>[cmd] [arg1] [arg2]</color>: Execute extended system commands." +
-                                "\n\n[SYSTEM]: <color=#FFFF00>Shortcuts:</color> Up/Down Arrow (History), Tab (Autocomplete), Ctrl+L (Clear)." +
+                                "\n\n[SYSTEM]: <color=#FFFF00>Shortcuts:</color> Up/Down Arrow (History), Tab (Autocomplete), Ctrl+L (Clear), Esc (Clear Line)." +
                                 "\n[STATUS]: ECC Buffer: <color=#00FF00>OPTIMAL</color>");
                 return;
             }
@@ -228,7 +256,7 @@ namespace MilehighWorld.World.Terminal
 
         private string GetCommandSuggestion(string input)
         {
-            string[] availableCommands = { "help", "clear", "verify" };
+            string[] availableCommands = { "help", "clear", "cls", "verify" };
             string bestMatch = "";
             int minDistance = int.MaxValue;
 
@@ -303,16 +331,11 @@ namespace MilehighWorld.World.Terminal
                 yield return GetWait(0.02f);
             }
 
-            // ⚡ Bolt: Reset to full string length when done to prevent bugs on next edit
-            if (outputDisplay != null && outputDisplay.text != null)
-            {
-                outputDisplay.maxVisibleCharacters = outputDisplay.text.Length;
-            }
-
             // ⚡ Bolt: Reset maxVisibleCharacters after typewriter completes to avoid text truncation on subsequent uses.
-            outputDisplay.maxVisibleCharacters = outputDisplay.textInfo.characterCount;
-
-            outputDisplay.maxVisibleCharacters = outputDisplay.textInfo.characterCount;
+            if (outputDisplay != null)
+            {
+                outputDisplay.maxVisibleCharacters = outputDisplay.textInfo.characterCount;
+            }
             _typewriterCoroutine = null;
         }
 
