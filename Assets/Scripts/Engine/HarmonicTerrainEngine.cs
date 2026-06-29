@@ -274,6 +274,23 @@ namespace MilehighWorld.Engine
         private readonly object _queueLock = new object();
         private readonly StructuralSolver _structuralSolver = new StructuralSolver();
 
+        // ⚡ Bolt: Cache for WaitForSeconds using millisecond keys to prevent floating-point precision issues
+        // What: Replaced new WaitForSeconds() with a cached GetWait() lookup.
+        // Why: new WaitForSeconds() instantiates an object on the heap, generating GC allocations every yield.
+        // Impact: Eliminates recurring GC allocations and reduces GC pressure during engine execution.
+        private static readonly Dictionary<int, WaitForSeconds> _waitCache = new Dictionary<int, WaitForSeconds>();
+
+        private static WaitForSeconds GetWait(float seconds)
+        {
+            int ms = Mathf.RoundToInt(seconds * 1000f);
+            if (!_waitCache.TryGetValue(ms, out var wait))
+            {
+                wait = new WaitForSeconds(seconds);
+                _waitCache[ms] = wait;
+            }
+            return wait;
+        }
+
         private void Start()
         {
             Debug.Log("Starting MILEHIGH-WORLD Layered Logical Generation Engine...");
@@ -284,11 +301,11 @@ namespace MilehighWorld.Engine
         {
             Debug.Log("\n[Engine] Player spawned at Origin. Requesting local sectors...");
             RequestChunksAround(0, 0, 2);
-            yield return new WaitForSeconds(0.5f);
+            yield return GetWait(0.5f);
 
             Debug.Log("\n[Engine] Player traveling East. Streaming new sectors...");
             RequestChunksAround(10, 0, 2);
-            yield return new WaitForSeconds(0.5f);
+            yield return GetWait(0.5f);
 
             Debug.Log("\nShutting down engine...");
         }
