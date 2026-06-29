@@ -10,22 +10,32 @@ namespace UnityEngine
         public string name;
         public GameObject gameObject;
         public Transform transform;
+        public virtual int GetInstanceID() => 0;
         public static void Destroy(Object obj) {}
         public static void DontDestroyOnLoad(Object obj) {}
         public static T FindAnyObjectByType<T>() where T : Object { return null; }
+        public static T Instantiate<T>(T original, Transform parent) where T : Object { return null; }
         public static Object Instantiate(Object original, Vector3 position, Quaternion rotation) { return null; }
+        public static T[] FindObjectsByType<T>(FindObjectsSortMode sort) where T : Object => new T[0];
+        public static void DestroyImmediate(Object obj) {}
     }
+    public enum FindObjectsSortMode { None }
     public class GameObject : Object {
         public GameObject(string name) {}
         public T AddComponent<T>() where T : MonoBehaviour { return null; }
+        public T GetComponent<T>() where T : class { return null; }
+        public static GameObject Find(string name) => null;
     }
     public class Transform : Object {
         public Vector3 position;
+        public Vector3 localScale;
     }
     public struct Vector3 {
         public float x, y, z;
-        public static Vector3 operator +(Vector3 a, Vector3 b) => new Vector3();
-        public static Vector3 operator *(Vector3 a, float b) => new Vector3();
+        public Vector3(float x, float y, float z) { this.x = x; this.y = y; this.z = z; }
+        public static Vector3 one => new Vector3(1, 1, 1);
+        public static Vector3 operator +(Vector3 a, Vector3 b) => new Vector3(a.x+b.x, a.y+b.y, a.z+b.z);
+        public static Vector3 operator *(Vector3 a, float b) => new Vector3(a.x*b, a.y*b, a.z*b);
     }
     public struct Quaternion {
         public static Quaternion identity => new Quaternion();
@@ -38,7 +48,9 @@ namespace UnityEngine
         public static void LogError(object message) {}
         public static void LogWarning(object message) {}
     }
-    public class ScriptableObject : Object {}
+    public class ScriptableObject : Object {
+        public static T CreateInstance<T>() where T : ScriptableObject => null;
+    }
     public class DefaultExecutionOrderAttribute : Attribute {
         public DefaultExecutionOrderAttribute(int order) {}
     }
@@ -52,6 +64,12 @@ namespace UnityEngine
     public class SerializeField : Attribute {}
     public class HeaderAttribute : Attribute {
         public HeaderAttribute(string header) {}
+    }
+    public class TooltipAttribute : Attribute {
+        public TooltipAttribute(string tooltip) {}
+    }
+    public class RangeAttribute : Attribute {
+        public RangeAttribute(float min, float max) {}
     }
     public static class Mathf {
         public static float Clamp01(float value) => 0;
@@ -122,6 +140,10 @@ namespace UnityEngine.Networking
     public class UnityWebRequestAsyncOperation {
         public bool isDone;
     }
+}
+
+namespace UnityEngine.SceneManagement {
+    public static class SceneManager {}
 }
 
 namespace MilehighWorld.Core {
