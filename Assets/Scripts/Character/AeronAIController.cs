@@ -12,7 +12,7 @@ namespace MilehighWorld.Characters
 
         public override void ExecuteBehavior()
         {
-            // AerialCombat(false, false, 0);
+            AerialCombat(false, false, 0);
         }
 
         public void AerialCombat(bool isFlappingArms, bool thrustersActive, float distanceToSolarBarrier)
