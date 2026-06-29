@@ -204,10 +204,7 @@ namespace MilehighWorld.Systems.Agency
 
         private string GetPlayerVitalsAndStance(RuntimeCharacterData playerData)
         {
-            // RuntimeCharacterData is a struct, null check removed or replaced with default check
-            {
-                return "Unknown";
-            }
+            // RuntimeCharacterData is a struct, so we just return the vitals.
             return $"Health: {playerData.HealthPercentage:P0}, TechAlignment: {playerData.TechAlignment}, MagenActive: {playerData.HasMagenActive}";
         }
     }
