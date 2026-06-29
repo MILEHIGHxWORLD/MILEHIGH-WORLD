@@ -12,7 +12,7 @@ namespace MilehighWorld.Characters
 
         public override void ExecuteBehavior()
         {
-            // ProcessDreamscape("stable", 0);
+            ProcessDreamscape("stable", 0);
         }
 
         public void ProcessDreamscape(string geometryState, int parityFails)
