@@ -11,7 +11,7 @@ namespace MilehighWorld.Characters
     {
         private Renderer _renderer = null!;
         private static readonly int GlitchIntensityId = Shader.PropertyToID("_GlitchIntensity");
-        private static MaterialPropertyBlock _propertyBlock = null!;
+        private static MaterialPropertyBlock? _propertyBlock;
 
         // ⚡ Bolt: Cache for WaitForSeconds using millisecond keys to prevent floating-point precision issues
         // and eliminate redundant GC allocations during coroutine execution.
@@ -42,10 +42,7 @@ namespace MilehighWorld.Characters
         public async System.Threading.Tasks.Task TriggerEnemyGlitchAsync()
         {
             // ⚡ Bolt: Use cached renderer to avoid expensive GetComponent calls.
-            if (_renderer == null)
-            {
-                return;
-            }
+            if (_renderer == null) return;
 
             // ⚡ Bolt: Use MaterialPropertyBlock to prevent material instantiation and preserve draw call batching.
             if (_propertyBlock == null)
@@ -60,13 +57,8 @@ namespace MilehighWorld.Characters
             // ⚡ Bolt: Non-blocking asynchronous delay for reset.
             await System.Threading.Tasks.Task.Delay(200);
 
-            if (_renderer != null)
+            if (_renderer != null && _propertyBlock != null)
             {
-                if (_propertyBlock == null)
-                {
-                    _propertyBlock = new MaterialPropertyBlock();
-                }
-
                 _renderer.GetPropertyBlock(_propertyBlock);
                 _propertyBlock.SetFloat(GlitchIntensityId, 0f);
                 _renderer.SetPropertyBlock(_propertyBlock);
