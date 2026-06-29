@@ -10,6 +10,8 @@ namespace MilehighWorld.Core
         private static AlliancePowerManager? _instance;
         public static AlliancePowerManager Instance => _instance!;
 
+        public float CurrentPowerLevel { get; private set; }
+
         private void Awake()
         {
             if (_instance == null)
@@ -24,7 +26,16 @@ namespace MilehighWorld.Core
 
         public void SetPowerLevel(float level)
         {
+            CurrentPowerLevel = level;
             Debug.Log($"Power level set to {level}");
+        }
+
+        /// <summary>
+        /// Resets the singleton instance. Use only for testing.
+        /// </summary>
+        public static void ResetInstanceForTesting()
+        {
+            _instance = null;
         }
     }
 }
