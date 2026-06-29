@@ -37,6 +37,15 @@ namespace Milehigh.World.CoreLogic
         /// </summary>
         public void EvaluateSystemTension(double calculatedTension)
         {
+            // SECURITY: Explicit NaN check to prevent threshold bypass via double.NaN comparisons
+            if (double.IsNaN(calculatedTension))
+            {
+                Debug.LogWarning("[Security] NaN tension detected. Forcing structural fracture for fail-secure state.");
+                IsRealityFractured = true;
+                BreakGeometryStability();
+                return;
+            }
+
             if (calculatedTension > RealityConstants.AbsoluteTensionBase)
             {
                 IsRealityFractured = true;
