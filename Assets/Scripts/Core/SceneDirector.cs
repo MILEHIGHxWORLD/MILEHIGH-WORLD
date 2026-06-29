@@ -193,7 +193,6 @@ namespace MilehighWorld.Core
             if (_objectCache.TryGetValue(objectName, out GameObject? obj))
             {
                 // ⚡ Bolt: Check for valid object. Re-fetch if the object was destroyed.
-                if (obj != null) return obj;
                 if (obj != null)
                 {
                     return obj;
@@ -220,7 +219,6 @@ namespace MilehighWorld.Core
             {
                 // ⚡ Bolt: Robust negative caching for static prefabs
                 if (System.Object.ReferenceEquals(prefab, null)) return null;
-                if (prefab != null) return prefab;
                 if (prefab != null)
                 {
                     return prefab;
@@ -246,18 +244,11 @@ namespace MilehighWorld.Core
                 // ⚡ Bolt: Robust negative caching for components
                 if (System.Object.ReferenceEquals(controller, null)) return null;
                 if (controller != null) return controller;
-                if (System.Object.ReferenceEquals(controller, null) || controller != null) return controller;
             }
 
             // ⚡ Bolt: Cache missing components as null to prevent repeated GetComponent overhead
             controller = characterObj.GetComponent<CharacterControllerBase>();
             _controllerCache[id] = controller;
-
-            controller = characterObj.GetComponent<CharacterControllerBase>();
-            if (controller != null)
-            {
-                _controllerCache[id] = controller;
-            }
             return controller;
         }
     }

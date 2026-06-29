@@ -20,7 +20,7 @@ namespace MilehighWorld.Systems.Agency
             DIALOGUE_CHOICE
         }
 
-        public ActionType ActionType;
+        public ActionType actionType;
         public string TargetId = "";
         public bool RequiresVisualValidation;
         public string CurrentDimension = "";
@@ -93,7 +93,7 @@ namespace MilehighWorld.Systems.Agency
             var payload = new ActionResolutionRequestPayload
             {
                 playerId = "Player_01",
-                actionType = context.ActionType.ToString(),
+                actionType = context.actionType.ToString(),
                 targetId = context.TargetId,
                 currentDimension = context.CurrentDimension,
                 isTargetVoidCorrupted = context.IsTargetVoidCorrupted,
@@ -131,7 +131,7 @@ namespace MilehighWorld.Systems.Agency
 
                 if (req.result == UnityWebRequest.Result.Success)
                 {
-                    ActionResolutionResponse resolution = JsonUtility.FromJson<ActionResolutionResponse>(req.downloadHandler.text);
+                    ActionResolutionResponse resolution = JsonUtility.FromJson<ActionResolutionResponse>(((DownloadHandlerBuffer)req.downloadHandler).text);
                     EnactResolutionInGame(resolution);
                 }
                 else
@@ -204,10 +204,7 @@ namespace MilehighWorld.Systems.Agency
 
         private string GetPlayerVitalsAndStance(RuntimeCharacterData playerData)
         {
-            if (playerData == null)
-            {
-                return "Unknown";
-            }
+            // RuntimeCharacterData is a struct, so we just return the vitals.
             return $"Health: {playerData.HealthPercentage:P0}, TechAlignment: {playerData.TechAlignment}, MagenActive: {playerData.HasMagenActive}";
         }
     }
