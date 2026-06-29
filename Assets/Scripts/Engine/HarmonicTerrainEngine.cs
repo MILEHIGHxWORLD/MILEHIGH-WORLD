@@ -264,6 +264,23 @@ namespace MilehighWorld.Engine
 
     public class HarmonicTerrainEngine : MonoBehaviour
     {
+        // ⚡ Bolt: Cache for WaitForSeconds using millisecond keys to prevent floating-point precision issues
+        // What: Replaced new WaitForSeconds with a cached dictionary lookup.
+        // Why: Instantiating new WaitForSeconds inside generation loops causes recurring GC allocations and heap fragmentation.
+        // Impact: Eliminates O(N) GC allocations per chunk request cycle in the terrain engine.
+        private static readonly System.Collections.Generic.Dictionary<int, WaitForSeconds> _waitCache = new System.Collections.Generic.Dictionary<int, WaitForSeconds>();
+
+        private static WaitForSeconds GetWait(float seconds)
+        {
+            int msKey = Mathf.RoundToInt(seconds * 1000f);
+            if (!_waitCache.TryGetValue(msKey, out var wait))
+            {
+                wait = new WaitForSeconds(seconds);
+                _waitCache[msKey] = wait;
+            }
+            return wait;
+        }
+
         public const int CHUNK_SIZE = 16;
         private static readonly float[] NINE_CORE_FREQUENCIES = {
             174.0f, 285.0f, 396.0f, 417.0f, 528.0f, 639.0f, 741.0f, 852.0f, 963.0f
@@ -284,11 +301,11 @@ namespace MilehighWorld.Engine
         {
             Debug.Log("\n[Engine] Player spawned at Origin. Requesting local sectors...");
             RequestChunksAround(0, 0, 2);
-            yield return new WaitForSeconds(0.5f);
+            yield return GetWait(0.5f);
 
             Debug.Log("\n[Engine] Player traveling East. Streaming new sectors...");
             RequestChunksAround(10, 0, 2);
-            yield return new WaitForSeconds(0.5f);
+            yield return GetWait(0.5f);
 
             Debug.Log("\nShutting down engine...");
         }
