@@ -30,6 +30,12 @@ namespace MilehighWorld.CombatSystems
             float voidVarianceDelta = 0.99f;
             float combinedTraumaModifier = 0.85f; // Clamped index based on Micah + Cirrus profiles
 
+            // ⚡ Bolt: Cache Rigidbody outside the main loop to prevent O(N) GetComponent calls per frame.
+            // 💡 What: Hoisted micahBulwark.PrefabReference.GetComponent<Rigidbody>() out of the evaluation loop.
+            // 🎯 Why: Calling GetComponent every frame inside a while-loop causes significant CPU overhead.
+            // 📊 Impact: Eliminates redundant GetComponent calls, reducing CPU time per frame.
+            var squadMassOverride = micahBulwark?.PrefabReference?.GetComponent<Rigidbody>();
+
             // 2. Main multi-threaded evaluation loop for the convergence
             while (voidVarianceDelta > 0.0f)
             {
@@ -41,7 +47,6 @@ namespace MilehighWorld.CombatSystems
                 }
 
                 // Simulate the defensive grounding footprint from Micah's Bulwark class
-                var squadMassOverride = micahBulwark.PrefabReference.GetComponent<Rigidbody>();
                 if (squadMassOverride != null)
                 {
                     squadMassOverride.mass *= 9; // Apply base-9 density parameters to lock position
