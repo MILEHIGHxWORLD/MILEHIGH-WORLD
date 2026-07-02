@@ -63,16 +63,6 @@ namespace MilehighWorld.World.Terminal
             {
                 ClearTerminalDisplay();
                 commandInput.text = "";
-                _historyIndex = _commandHistory.Count;
-                commandInput.ActivateInputField();
-            }
-
-            // Palette: Escape key to clear line and reset state
-            if (Input.GetKeyDown(KeyCode.Escape))
-            {
-                commandInput.text = "";
-                _lastSuggestion = "";
-                _historyIndex = _commandHistory.Count;
                 commandInput.ActivateInputField();
             }
 
@@ -199,7 +189,7 @@ namespace MilehighWorld.World.Terminal
                                 "\n - <color=#00FFFF>clear</color>: Clear the terminal display." +
                                 "\n - <color=#00FFFF>verify</color>: Run ECC data integrity check." +
                                 "\n - <color=#00FFFF>[cmd] [arg1] [arg2]</color>: Execute extended system commands." +
-                                "\n\n[SYSTEM]: <color=#FFFF00>Shortcuts:</color> Up/Down Arrow (History), Tab (Autocomplete), Ctrl+L (Clear), Esc (Clear Line)." +
+                                "\n\n[SYSTEM]: <color=#FFFF00>Shortcuts:</color> Up/Down Arrow (History), Tab (Autocomplete), Ctrl+L (Clear)." +
                                 "\n[STATUS]: ECC Buffer: <color=#00FF00>OPTIMAL</color>");
                 return;
             }
@@ -304,18 +294,10 @@ namespace MilehighWorld.World.Terminal
                 if (i > 0 && i <= charactersToReveal)
                 {
                     char c = outputDisplay.textInfo.characterInfo[startVisibleCount + i - 1].character;
-
-                    // Palette: Look-ahead to skip pauses for technical names (e.g., Sky.ix)
-                    bool isEndOfMessage = (startVisibleCount + i >= endVisibleCount);
-                    bool followedByWhitespace = !isEndOfMessage && char.IsWhiteSpace(outputDisplay.textInfo.characterInfo[startVisibleCount + i].character);
-
-                    if (isEndOfMessage || followedByWhitespace)
-                    {
-                        if (c == '.' || c == ':' || c == '!')
-                            yield return GetWait(0.15f);
-                        else if (c == ',')
-                            yield return GetWait(0.08f);
-                    }
+                    if (c == '.' || c == ':' || c == '!')
+                        yield return GetWait(0.15f);
+                    else if (c == ',')
+                        yield return GetWait(0.08f);
                 }
 
                 yield return GetWait(0.02f);
@@ -328,6 +310,8 @@ namespace MilehighWorld.World.Terminal
             }
 
             // ⚡ Bolt: Reset maxVisibleCharacters after typewriter completes to avoid text truncation on subsequent uses.
+            outputDisplay.maxVisibleCharacters = outputDisplay.textInfo.characterCount;
+
             outputDisplay.maxVisibleCharacters = outputDisplay.textInfo.characterCount;
             _typewriterCoroutine = null;
         }
