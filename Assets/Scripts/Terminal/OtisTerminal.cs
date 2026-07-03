@@ -36,6 +36,11 @@ namespace MilehighWorld.World.Terminal
 
         private void Start()
         {
+            if (commandInput != null)
+            {
+                commandInput.characterLimit = MaxInputLength;
+            }
+
             if (outputDisplay != null)
             {
                 outputDisplay.text = "";
@@ -80,6 +85,15 @@ namespace MilehighWorld.World.Terminal
             if (Input.GetKeyDown(KeyCode.Tab))
             {
                 HandleAutocomplete();
+            }
+
+            // Palette: Escape key clears current line and resets history index for a fresh start.
+            if (Input.GetKeyDown(KeyCode.Escape))
+            {
+                commandInput.text = "";
+                _lastSuggestion = "";
+                _historyIndex = _commandHistory.Count;
+                commandInput.ActivateInputField();
             }
         }
 
@@ -189,7 +203,7 @@ namespace MilehighWorld.World.Terminal
                                 "\n - <color=#00FFFF>clear</color>: Clear the terminal display." +
                                 "\n - <color=#00FFFF>verify</color>: Run ECC data integrity check." +
                                 "\n - <color=#00FFFF>[cmd] [arg1] [arg2]</color>: Execute extended system commands." +
-                                "\n\n[SYSTEM]: <color=#FFFF00>Shortcuts:</color> Up/Down Arrow (History), Tab (Autocomplete), Ctrl+L (Clear)." +
+                                "\n\n[SYSTEM]: <color=#FFFF00>Shortcuts:</color> <color=#00FFFF>Up/Down Arrow (History)</color>, <color=#00FFFF>Tab (Autocomplete/Fix)</color>, <color=#00FFFF>Ctrl+L (Clear Output)</color>, <color=#00FFFF>Esc (Clear Line)</color>." +
                                 "\n[STATUS]: ECC Buffer: <color=#00FF00>OPTIMAL</color>");
                 return;
             }
@@ -310,8 +324,6 @@ namespace MilehighWorld.World.Terminal
             }
 
             // ⚡ Bolt: Reset maxVisibleCharacters after typewriter completes to avoid text truncation on subsequent uses.
-            outputDisplay.maxVisibleCharacters = outputDisplay.textInfo.characterCount;
-
             outputDisplay.maxVisibleCharacters = outputDisplay.textInfo.characterCount;
             _typewriterCoroutine = null;
         }
