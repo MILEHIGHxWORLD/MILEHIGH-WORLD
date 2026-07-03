@@ -203,7 +203,7 @@ namespace MilehighWorld.World.Terminal
                                 "\n - <color=#00FFFF>clear</color>: Clear the terminal display." +
                                 "\n - <color=#00FFFF>verify</color>: Run ECC data integrity check." +
                                 "\n - <color=#00FFFF>[cmd] [arg1] [arg2]</color>: Execute extended system commands." +
-                                "\n\n[SYSTEM]: <color=#FFFF00>Shortcuts:</color> Up/Down Arrow (History), <color=#00FFFF>Tab (Autocomplete/Fix)</color>, <color=#00FFFF>Ctrl+L (Clear Output)</color>, <color=#00FFFF>Esc (Clear Line)</color>." +
+                                "\n\n[SYSTEM]: <color=#FFFF00>Shortcuts:</color> <color=#00FFFF>Up/Down Arrow (History)</color>, <color=#00FFFF>Tab (Autocomplete/Fix)</color>, <color=#00FFFF>Ctrl+L (Clear Output)</color>, <color=#00FFFF>Esc (Clear Line)</color>." +
                                 "\n[STATUS]: ECC Buffer: <color=#00FF00>OPTIMAL</color>");
                 return;
             }
