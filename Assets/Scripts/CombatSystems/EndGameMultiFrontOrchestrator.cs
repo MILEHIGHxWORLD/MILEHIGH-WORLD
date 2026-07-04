@@ -29,6 +29,14 @@ namespace MilehighWorld.CombatSystems
 
             float voidVarianceDelta = 0.99f;
             float combinedTraumaModifier = 0.85f; // Clamped index based on Micah + Cirrus profiles
+            // ⚡ Bolt Optimization: Hoisted GetComponent, Dictionary lookups, and Shader.PropertyToID outside the loop.
+            // 💡 What: Cached rigedbody and string-based dictionary/shader lookups before the while loop.
+            // 🎯 Why: Executing dictionary lookups (GetAlly), GetComponent, and string-based property updates inside an async frame-bound loop causes significant per-frame CPU and string hashing overhead due to native/managed boundary crossings.
+            // 📊 Impact: Eliminates O(N) traversals and string hashing overhead per frame, reducing GC pressure and micro-stutters during the final convergence sequence.
+            var squadMassOverride = micahBulwark.PrefabReference.GetComponent<Rigidbody>();
+            var reverie = director.GetAlly("Reverie");
+            int voidPulseRateId = Shader.PropertyToID("_VoidPulseRate");
+            int emissiveIntensityId = Shader.PropertyToID("_EmissiveIntensity");
 
             // 2. Main multi-threaded evaluation loop for the convergence
             while (voidVarianceDelta > 0.0f)
@@ -41,14 +49,12 @@ namespace MilehighWorld.CombatSystems
                 }
 
                 // Simulate the defensive grounding footprint from Micah's Bulwark class
-                var squadMassOverride = micahBulwark.PrefabReference.GetComponent<Rigidbody>();
                 if (squadMassOverride != null)
                 {
                     squadMassOverride.mass *= 9; // Apply base-9 density parameters to lock position
                 }
 
                 // Process the 1000 Fox Parade / Arcane Symphony visual degradation tracking
-                var reverie = director.GetAlly("Reverie");
                 if (reverie != null)
                 {
                     reverie.UseAbility("Arcane Symphony");
@@ -64,13 +70,14 @@ namespace MilehighWorld.CombatSystems
                 // Real-time update to HDRP custom material instances via property IDs
                 if (hyperrealisticPlatformMat != null)
                 {
-                    hyperrealisticPlatformMat.SetFloat("_VoidPulseRate", voidVarianceDelta);
-                    hyperrealisticPlatformMat.SetFloat("_EmissiveIntensity", voidVarianceDelta * 4.5f);
+                    hyperrealisticPlatformMat.SetFloat(voidPulseRateId, voidVarianceDelta);
+                    hyperrealisticPlatformMat.SetFloat(emissiveIntensityId, voidVarianceDelta * 4.5f);
                 }
 
                 // Yield main execution thread back to Unity script scheduler every frame
                 await Task.Yield();
             }
+
 
             // 3. Force 180-Degree Physical Inversion on the core Onalym database node
             await EntityRotation.ApplyPhaseShift(180f);
