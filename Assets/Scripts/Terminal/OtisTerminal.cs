@@ -31,11 +31,13 @@ namespace MilehighWorld.World.Terminal
 
         private Coroutine? _typewriterCoroutine;
         private readonly List<string> _commandHistory = new List<string>();
-        private int _historyIndex = -1;
+        private int _historyIndex = 0;
+        private string _inputBuffer = ""; // Palette: Store current input when navigating history.
         private string _lastSuggestion = ""; // Palette: Track fuzzy-match suggestions for "Tab to Fix" recovery.
 
         private void Start()
         {
+            _historyIndex = _commandHistory.Count;
             if (outputDisplay != null)
             {
                 outputDisplay.text = "";
@@ -63,7 +65,17 @@ namespace MilehighWorld.World.Terminal
             {
                 ClearTerminalDisplay();
                 commandInput.text = "";
+                _historyIndex = _commandHistory.Count;
                 commandInput.ActivateInputField();
+            }
+
+            // Palette: Escape to clear current line and reset history state.
+            if (Input.GetKeyDown(KeyCode.Escape) && !string.IsNullOrEmpty(commandInput.text))
+            {
+                commandInput.text = "";
+                _historyIndex = _commandHistory.Count;
+                _inputBuffer = "";
+                _lastSuggestion = "";
             }
 
             // Palette: Refined history navigation - ensure responsiveness by polling in Update.
@@ -123,12 +135,29 @@ namespace MilehighWorld.World.Terminal
 
         private void NavigateHistory(int direction)
         {
-            if (_commandHistory.Count == 0) return;
+            if (_commandHistory.Count == 0 || commandInput == null) return;
 
-            _historyIndex = Mathf.Clamp(_historyIndex + direction, 0, _commandHistory.Count);
+            // Palette: Save current input if we're moving from the 'new command' line into history.
+            if (_historyIndex == _commandHistory.Count && direction < 0)
+            {
+                _inputBuffer = commandInput.text;
+            }
+
+            int newIndex = Mathf.Clamp(_historyIndex + direction, 0, _commandHistory.Count);
+            if (newIndex == _historyIndex) return;
+
+            _historyIndex = newIndex;
             _lastSuggestion = ""; // Palette: Clear suggestion when navigating history for a fresh state.
 
-            commandInput.text = _historyIndex < _commandHistory.Count ? _commandHistory[_historyIndex] : "";
+            if (_historyIndex < _commandHistory.Count)
+            {
+                commandInput.text = _commandHistory[_historyIndex];
+            }
+            else
+            {
+                // Restore the buffered text when returning to the bottom.
+                commandInput.text = _inputBuffer;
+            }
             commandInput.caretPosition = commandInput.text.Length;
         }
 
@@ -289,15 +318,22 @@ namespace MilehighWorld.World.Terminal
             {
                 outputDisplay.maxVisibleCharacters = startVisibleCount + i;
 
-                // UX Learning: Punctuation delays trigger after character is visible
-                // ⚡ Bolt: Use cached WaitForSeconds to eliminate O(N) GC allocations
+                // UX Learning: Punctuation delays trigger after character is visible.
+                // Palette: Only pause if punctuation is followed by whitespace or is the last character.
                 if (i > 0 && i <= charactersToReveal)
                 {
-                    char c = outputDisplay.textInfo.characterInfo[startVisibleCount + i - 1].character;
-                    if (c == '.' || c == ':' || c == '!')
-                        yield return GetWait(0.15f);
-                    else if (c == ',')
-                        yield return GetWait(0.08f);
+                    int currentCharIndex = startVisibleCount + i - 1;
+                    char c = outputDisplay.textInfo.characterInfo[currentCharIndex].character;
+                    bool isLastChar = (i == charactersToReveal);
+                    bool followedByWhitespace = !isLastChar && char.IsWhiteSpace(outputDisplay.textInfo.characterInfo[currentCharIndex + 1].character);
+
+                    if (isLastChar || followedByWhitespace)
+                    {
+                        if (c == '.' || c == ':' || c == '!')
+                            yield return GetWait(0.15f);
+                        else if (c == ',')
+                            yield return GetWait(0.08f);
+                    }
                 }
 
                 yield return GetWait(0.02f);
@@ -310,8 +346,6 @@ namespace MilehighWorld.World.Terminal
             }
 
             // ⚡ Bolt: Reset maxVisibleCharacters after typewriter completes to avoid text truncation on subsequent uses.
-            outputDisplay.maxVisibleCharacters = outputDisplay.textInfo.characterCount;
-
             outputDisplay.maxVisibleCharacters = outputDisplay.textInfo.characterCount;
             _typewriterCoroutine = null;
         }
