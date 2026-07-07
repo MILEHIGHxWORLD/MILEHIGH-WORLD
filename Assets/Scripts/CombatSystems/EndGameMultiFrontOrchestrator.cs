@@ -16,6 +16,10 @@ namespace MilehighWorld.CombatSystems
         [SerializeField] private Material hyperrealisticPlatformMat;
         [SerializeField] private GameObject onalymNexusGateway;
 
+        // Cached Shader Property IDs for zero-allocation performance
+        private static readonly int _voidPulseRateId = Shader.PropertyToID("_VoidPulseRate");
+        private static readonly int _emissiveIntensityId = Shader.PropertyToID("_EmissiveIntensity");
+
         public async Task CoordinateFinalNexusLockAsync(EncounterDirector director, LatticeSynchronizer synchronizer)
         {
             Debug.Log("<color=#E0BBE4>[SYSTEM]: multi_front_battle_loop initiated. Synchronizing thread data...</color>");
@@ -30,6 +34,14 @@ namespace MilehighWorld.CombatSystems
             float voidVarianceDelta = 0.99f;
             float combinedTraumaModifier = 0.85f; // Clamped index based on Micah + Cirrus profiles
 
+            // ⚡ Bolt: Hoisted expensive operations (GetComponent, GetAlly dictionary lookup) out of the frame-bound async loop to minimize per-frame CPU overhead.
+            Rigidbody squadMassOverride = null;
+            if (micahBulwark != null && micahBulwark.PrefabReference != null)
+            {
+                squadMassOverride = micahBulwark.PrefabReference.GetComponent<Rigidbody>();
+            }
+            var reverie = director.GetAlly("Reverie");
+
             // 2. Main multi-threaded evaluation loop for the convergence
             while (voidVarianceDelta > 0.0f)
             {
@@ -41,14 +53,12 @@ namespace MilehighWorld.CombatSystems
                 }
 
                 // Simulate the defensive grounding footprint from Micah's Bulwark class
-                var squadMassOverride = micahBulwark.PrefabReference.GetComponent<Rigidbody>();
                 if (squadMassOverride != null)
                 {
                     squadMassOverride.mass *= 9; // Apply base-9 density parameters to lock position
                 }
 
                 // Process the 1000 Fox Parade / Arcane Symphony visual degradation tracking
-                var reverie = director.GetAlly("Reverie");
                 if (reverie != null)
                 {
                     reverie.UseAbility("Arcane Symphony");
@@ -62,10 +72,11 @@ namespace MilehighWorld.CombatSystems
                 voidVarianceDelta -= 0.11f;
 
                 // Real-time update to HDRP custom material instances via property IDs
+                // ⚡ Bolt: Use cached property IDs instead of string hashing
                 if (hyperrealisticPlatformMat != null)
                 {
-                    hyperrealisticPlatformMat.SetFloat("_VoidPulseRate", voidVarianceDelta);
-                    hyperrealisticPlatformMat.SetFloat("_EmissiveIntensity", voidVarianceDelta * 4.5f);
+                    hyperrealisticPlatformMat.SetFloat(_voidPulseRateId, voidVarianceDelta);
+                    hyperrealisticPlatformMat.SetFloat(_emissiveIntensityId, voidVarianceDelta * 4.5f);
                 }
 
                 // Yield main execution thread back to Unity script scheduler every frame
