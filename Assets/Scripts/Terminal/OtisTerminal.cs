@@ -32,10 +32,12 @@ namespace MilehighWorld.World.Terminal
         private Coroutine? _typewriterCoroutine;
         private readonly List<string> _commandHistory = new List<string>();
         private int _historyIndex = -1;
+        private string _inputBuffer = ""; // Palette: Preserve unsent text during history navigation.
         private string _lastSuggestion = ""; // Palette: Track fuzzy-match suggestions for "Tab to Fix" recovery.
 
         private void Start()
         {
+            _historyIndex = _commandHistory.Count;
             if (outputDisplay != null)
             {
                 outputDisplay.text = "";
@@ -81,6 +83,18 @@ namespace MilehighWorld.World.Terminal
             {
                 HandleAutocomplete();
             }
+
+            // Palette: Accessibility - Escape to clear line and reset history state.
+            if (Input.GetKeyDown(KeyCode.Escape))
+            {
+                if (!string.IsNullOrEmpty(commandInput.text))
+                {
+                    commandInput.text = "";
+                    _lastSuggestion = "";
+                    _inputBuffer = "";
+                    _historyIndex = _commandHistory.Count;
+                }
+            }
         }
 
         private void HandleAutocomplete()
@@ -125,10 +139,19 @@ namespace MilehighWorld.World.Terminal
         {
             if (_commandHistory.Count == 0) return;
 
-            _historyIndex = Mathf.Clamp(_historyIndex + direction, 0, _commandHistory.Count);
+            // Palette: Save current input when starting to navigate history from the bottom.
+            if (_historyIndex == _commandHistory.Count && direction < 0)
+            {
+                _inputBuffer = commandInput.text;
+            }
+
+            int nextIndex = Mathf.Clamp(_historyIndex + direction, 0, _commandHistory.Count);
+            if (nextIndex == _historyIndex) return;
+
+            _historyIndex = nextIndex;
             _lastSuggestion = ""; // Palette: Clear suggestion when navigating history for a fresh state.
 
-            commandInput.text = _historyIndex < _commandHistory.Count ? _commandHistory[_historyIndex] : "";
+            commandInput.text = _historyIndex < _commandHistory.Count ? _commandHistory[_historyIndex] : _inputBuffer;
             commandInput.caretPosition = commandInput.text.Length;
         }
 
@@ -185,11 +208,11 @@ namespace MilehighWorld.World.Terminal
             if (command == "help")
             {
                 WriteToTerminal("\n[SYSTEM]: <color=#FFFF00>Available Commands:</color>" +
-                                "\n - <color=#00FFFF>help</color>: Show this message." +
-                                "\n - <color=#00FFFF>clear</color>: Clear the terminal display." +
+                                "\n - <color=#00FFFF>help</color>  : Show this message." +
+                                "\n - <color=#00FFFF>clear</color> : Clear the terminal display." +
                                 "\n - <color=#00FFFF>verify</color>: Run ECC data integrity check." +
-                                "\n - <color=#00FFFF>[cmd] [arg1] [arg2]</color>: Execute extended system commands." +
-                                "\n\n[SYSTEM]: <color=#FFFF00>Shortcuts:</color> Up/Down Arrow (History), Tab (Autocomplete), Ctrl+L (Clear)." +
+                                "\n - <color=#00FFFF>[cmd] [arg1] [arg2]</color>: Execute extended commands." +
+                                "\n\n[SYSTEM]: <color=#FFFF00>Shortcuts:</color> ↑/↓ (History), Tab (Autocomplete/Fix), Ctrl+L (Clear), Esc (Reset Line)." +
                                 "\n[STATUS]: ECC Buffer: <color=#00FF00>OPTIMAL</color>");
                 return;
             }
@@ -303,16 +326,11 @@ namespace MilehighWorld.World.Terminal
                 yield return GetWait(0.02f);
             }
 
-            // ⚡ Bolt: Reset to full string length when done to prevent bugs on next edit
-            if (outputDisplay != null && outputDisplay.text != null)
-            {
-                outputDisplay.maxVisibleCharacters = outputDisplay.text.Length;
-            }
-
             // ⚡ Bolt: Reset maxVisibleCharacters after typewriter completes to avoid text truncation on subsequent uses.
-            outputDisplay.maxVisibleCharacters = outputDisplay.textInfo.characterCount;
-
-            outputDisplay.maxVisibleCharacters = outputDisplay.textInfo.characterCount;
+            if (outputDisplay != null)
+            {
+                outputDisplay.maxVisibleCharacters = outputDisplay.textInfo.characterCount;
+            }
             _typewriterCoroutine = null;
         }
 
