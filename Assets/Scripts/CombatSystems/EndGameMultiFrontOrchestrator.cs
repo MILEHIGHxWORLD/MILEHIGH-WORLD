@@ -30,6 +30,14 @@ namespace MilehighWorld.CombatSystems
             float voidVarianceDelta = 0.99f;
             float combinedTraumaModifier = 0.85f; // Clamped index based on Micah + Cirrus profiles
 
+            // ⚡ Bolt Optimization
+            // 💡 What: Cached Shader.PropertyToID outside the frame-bound loop.
+            // 🎯 Why: Calling SetFloat with string parameters inside an async while loop (await Task.Yield()) causes significant per-frame string hashing overhead and native/managed boundary crossings.
+            // 📊 Impact: Eliminates redundant string hashing per frame, reducing CPU overhead during the multi-front battle sequence.
+            // 🔬 Measurement: Profile CPU usage on EndGameMultiFrontOrchestrator.CoordinateFinalNexusLockAsync; observe reduction in Shader.PropertyToID overhead.
+            int voidPulseRateId = Shader.PropertyToID("_VoidPulseRate");
+            int emissiveIntensityId = Shader.PropertyToID("_EmissiveIntensity");
+
             // 2. Main multi-threaded evaluation loop for the convergence
             while (voidVarianceDelta > 0.0f)
             {
@@ -64,8 +72,8 @@ namespace MilehighWorld.CombatSystems
                 // Real-time update to HDRP custom material instances via property IDs
                 if (hyperrealisticPlatformMat != null)
                 {
-                    hyperrealisticPlatformMat.SetFloat("_VoidPulseRate", voidVarianceDelta);
-                    hyperrealisticPlatformMat.SetFloat("_EmissiveIntensity", voidVarianceDelta * 4.5f);
+                    hyperrealisticPlatformMat.SetFloat(voidPulseRateId, voidVarianceDelta);
+                    hyperrealisticPlatformMat.SetFloat(emissiveIntensityId, voidVarianceDelta * 4.5f);
                 }
 
                 // Yield main execution thread back to Unity script scheduler every frame
