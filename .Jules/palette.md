@@ -82,6 +82,10 @@
 **Learning:** Pacing in dialogue-heavy cinematics is significantly improved by distinguishing between sentence endings (long pause), ellipses (medium pause), and mid-word periods (no pause, e.g., 'Sky.ix'). Furthermore, color-coding progress indicators (like the '▽' cue) to match the speaker's theme strengthens the visual association between the narrative content and the character, reducing cognitive load for the player.
 **Action:** Implement look-ahead/look-behind logic for punctuation to refine pacing, and use speaker-specific colors for interactive UI cues via TMP rich text tags.
 
+## 2026-07-15 - [Terminal History Preservation and Escape UX]
+**Learning:** In terminal-style interfaces, users expect their unsubmitted text to be preserved when navigating into history. Implementing an 'input buffer' to save current text before moving to history and restoring it when returning to the bottom significantly improves user flow. Additionally, providing a dedicated 'Escape' shortcut for clearing the current line (distinct from 'Ctrl+L' for clearing output) aligns with standard CLI behavior and enhances keyboard productivity.
+**Action:** Always implement a transient input buffer for history navigation and distinguish between line-clearing (Esc) and output-clearing (Ctrl+L) shortcuts.
+
 ## 2026-03-27 - [Layout-Stable Rhythmic Typewriter with Look-Ahead]
 **Learning:** Pre-appending completion cues (like '▽') to the full text and using 'maxVisibleCharacters' for reveal ensures layout stability and prevents word-wrap jumping. Incorporating look-ahead whitespace checks for punctuation allows for natural rhythmic pauses (e.g. 15x delay for sentence ends) while correctly ignoring periods in technical names (e.g. 'Sky.ix').
 **Action:** Always pre-calculate dialogue layout with all cues present and use look-ahead logic for context-aware rhythmic pacing in typewriter effects.
