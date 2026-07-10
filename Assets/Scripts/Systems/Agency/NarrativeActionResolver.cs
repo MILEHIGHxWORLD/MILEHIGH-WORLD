@@ -111,6 +111,10 @@ namespace MilehighWorld.Systems.Agency
                 req.downloadHandler = new DownloadHandlerBuffer();
                 req.SetRequestHeader("Content-Type", "application/json");
 
+                // 🛡️ Sentinel: Ensure API requests include an Authorization header using a Bearer token sourced from the MILEHIGH_API_TOKEN environment variable.
+                string apiToken = Environment.GetEnvironmentVariable("MILEHIGH_API_TOKEN") ?? string.Empty;
+                req.SetRequestHeader("Authorization", $"Bearer {apiToken}");
+
                 // BOLT: Conservation of Nine - Yield if needed
                 if (Time.frameCount % 9 == 0)
                 {
