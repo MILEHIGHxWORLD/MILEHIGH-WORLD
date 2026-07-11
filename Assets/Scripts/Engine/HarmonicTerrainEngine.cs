@@ -120,6 +120,9 @@ namespace MilehighWorld.Engine
             _adjacencyRules[(int)TileType.Plaza, (int)TileType.Wall] = true;
         }
 
+        private static readonly int[] _dx = { 0, 0, -1, 1 };
+        private static readonly int[] _dz = { -1, 1, 0, 0 };
+
         public void CollapseChunkLayout(TerrainChunk chunk)
         {
             int size = HarmonicTerrainEngine.CHUNK_SIZE;
@@ -137,16 +140,18 @@ namespace MilehighWorld.Engine
             while (FindLowestEntropy(wfcGrid, out int nextX, out int nextZ))
             {
                 int idx = nextZ * size + nextX;
-                List<TileType> options = new List<TileType>();
+
+                // ⚡ Bolt: Replaced List<TileType> allocation with deterministic first-available lookup to eliminate GC.
+                TileType selected = TileType.Empty;
                 for (int t = 0; t < (int)TileType.Count; t++)
                 {
                     if (wfcGrid[idx].Possibilities[t])
                     {
-                        options.Add((TileType)t);
+                        selected = (TileType)t;
+                        break;
                     }
                 }
 
-                TileType selected = options.Count > 0 ? options[0] : TileType.Empty;
                 wfcGrid[idx].FinalTile = selected;
                 wfcGrid[idx].Collapsed = true;
                 for (int t = 0; t < (int)TileType.Count; t++)
@@ -167,7 +172,9 @@ namespace MilehighWorld.Engine
         {
             int size = HarmonicTerrainEngine.CHUNK_SIZE;
             int minEntropy = (int)TileType.Count + 1;
-            List<int> candidates = new List<int>();
+
+            // ⚡ Bolt: Replaced List<int> candidates with a simple single-variable tracker to avoid allocations.
+            int chosenIdx = -1;
 
             for (int i = 0; i < grid.Length; i++)
             {
@@ -179,22 +186,16 @@ namespace MilehighWorld.Engine
                 if (entropy < minEntropy)
                 {
                     minEntropy = entropy;
-                    candidates.Clear();
-                    candidates.Add(i);
-                }
-                else if (entropy == minEntropy)
-                {
-                    candidates.Add(i);
+                    chosenIdx = i;
                 }
             }
 
-            if (candidates.Count == 0)
+            if (chosenIdx == -1)
             {
                 outX = outZ = -1;
                 return false;
             }
 
-            int chosenIdx = candidates[0];
             outX = chosenIdx % size;
             outZ = chosenIdx / size;
             return true;
@@ -206,9 +207,7 @@ namespace MilehighWorld.Engine
             Queue<Vector2Int> propagationQueue = new Queue<Vector2Int>();
             propagationQueue.Enqueue(new Vector2Int(startX, startZ));
 
-            int[] dx = { 0, 0, -1, 1 };
-            int[] dz = { -1, 1, 0, 0 };
-
+            // ⚡ Bolt: Use pre-allocated static readonly _dx and _dz arrays instead of allocating per-method.
             while (propagationQueue.Count > 0)
             {
                 Vector2Int curr = propagationQueue.Dequeue();
@@ -216,8 +215,8 @@ namespace MilehighWorld.Engine
 
                 for (int i = 0; i < 4; i++)
                 {
-                    int nx = curr.x + dx[i];
-                    int nz = curr.y + dz[i];
+                    int nx = curr.x + _dx[i];
+                    int nz = curr.y + _dz[i];
 
                     if (nx >= 0 && nx < size && nz >= 0 && nz < size)
                     {
