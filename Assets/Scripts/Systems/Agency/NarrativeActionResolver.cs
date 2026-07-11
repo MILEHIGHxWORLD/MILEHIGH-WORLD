@@ -111,6 +111,17 @@ namespace MilehighWorld.Systems.Agency
                 req.downloadHandler = new DownloadHandlerBuffer();
                 req.SetRequestHeader("Content-Type", "application/json");
 
+                // SENTINEL: Ensure API requests include Authorization header
+                string apiToken = Environment.GetEnvironmentVariable("MILEHIGH_API_TOKEN") ?? string.Empty;
+                if (!string.IsNullOrEmpty(apiToken))
+                {
+                    req.SetRequestHeader("Authorization", $"Bearer {apiToken}");
+                }
+                else
+                {
+                    Debug.LogWarning("[SENTINEL] MILEHIGH_API_TOKEN is not set. Request may lack authentication.");
+                }
+
                 // BOLT: Conservation of Nine - Yield if needed
                 if (Time.frameCount % 9 == 0)
                 {
