@@ -33,6 +33,7 @@ namespace MilehighWorld.World.Terminal
         private readonly List<string> _commandHistory = new List<string>();
         private int _historyIndex = -1;
         private string _lastSuggestion = ""; // Palette: Track fuzzy-match suggestions for "Tab to Fix" recovery.
+        private string _inputBuffer = ""; // Palette: Preserve unsent text during history navigation.
 
         private void Start()
         {
@@ -63,6 +64,16 @@ namespace MilehighWorld.World.Terminal
             {
                 ClearTerminalDisplay();
                 commandInput.text = "";
+                commandInput.ActivateInputField();
+            }
+
+            // Palette: Escape shortcut to clear the current line and reset history state.
+            if (Input.GetKeyDown(KeyCode.Escape))
+            {
+                commandInput.text = "";
+                _historyIndex = _commandHistory.Count;
+                _lastSuggestion = "";
+                _inputBuffer = "";
                 commandInput.ActivateInputField();
             }
 
@@ -125,10 +136,28 @@ namespace MilehighWorld.World.Terminal
         {
             if (_commandHistory.Count == 0) return;
 
-            _historyIndex = Mathf.Clamp(_historyIndex + direction, 0, _commandHistory.Count);
+            int newIndex = Mathf.Clamp(_historyIndex + direction, 0, _commandHistory.Count);
+            if (newIndex == _historyIndex) return;
+
+            // Palette: If moving away from the current "live" line, save the unsent text.
+            if (_historyIndex == _commandHistory.Count && direction == -1)
+            {
+                _inputBuffer = commandInput.text;
+            }
+
+            _historyIndex = newIndex;
             _lastSuggestion = ""; // Palette: Clear suggestion when navigating history for a fresh state.
 
-            commandInput.text = _historyIndex < _commandHistory.Count ? _commandHistory[_historyIndex] : "";
+            if (_historyIndex < _commandHistory.Count)
+            {
+                commandInput.text = _commandHistory[_historyIndex];
+            }
+            else
+            {
+                // Palette: Restore the unsent text when returning to the bottom.
+                commandInput.text = _inputBuffer;
+            }
+
             commandInput.caretPosition = commandInput.text.Length;
         }
 
