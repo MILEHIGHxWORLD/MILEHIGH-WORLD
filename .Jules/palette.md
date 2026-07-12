@@ -181,3 +181,7 @@
 ## 2026-06-17 - [Tab-to-Accept for Forgiving CLI Interfaces]
 **Learning:** Providing fuzzy-match command suggestions is only half the battle; allowing users to immediately accept those suggestions with a familiar key (like Tab) completes the loop of a forgiving interface. This "Tab-to-Accept" pattern drastically reduces the cognitive load of correcting minor typos and makes terminal-style micro-interactions feel remarkably fluid and responsive.
 **Action:** Always pair "Did You Mean?" suggestions with a quick-acceptance mechanic (like Tab) to minimize user friction in command-line interfaces.
+
+## 2026-07-15 - [Terminal History Persistence and Escape Recovery]
+**Learning:** In terminal-style UIs, users expect currently typed but unsent text to be preserved when navigating into command history. Implementing a transient input buffer to store this text and restoring it when returning to the "new line" prevents data loss and frustration. Additionally, a dedicated 'Escape' shortcut to clear the current line and reset history focus provides a standard, efficient recovery path for power users.
+**Action:** Always implement an unsent-text buffer for history navigation and an 'Escape' clear-line shortcut in CLI-inspired micro-interactions.
