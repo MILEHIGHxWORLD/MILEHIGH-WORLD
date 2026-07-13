@@ -33,6 +33,7 @@ namespace MilehighWorld.World.Terminal
         private readonly List<string> _commandHistory = new List<string>();
         private int _historyIndex = -1;
         private string _lastSuggestion = ""; // Palette: Track fuzzy-match suggestions for "Tab to Fix" recovery.
+        private string _inputBuffer = ""; // Palette: Preserve unsent text during history navigation.
 
         private void Start()
         {
@@ -63,7 +64,17 @@ namespace MilehighWorld.World.Terminal
             {
                 ClearTerminalDisplay();
                 commandInput.text = "";
+                _historyIndex = _commandHistory.Count;
                 commandInput.ActivateInputField();
+            }
+
+            // Palette: Escape key - Clear current line and reset history state.
+            if (Input.GetKeyDown(KeyCode.Escape) && !string.IsNullOrEmpty(commandInput.text))
+            {
+                commandInput.text = "";
+                _inputBuffer = "";
+                _lastSuggestion = "";
+                _historyIndex = _commandHistory.Count;
             }
 
             // Palette: Refined history navigation - ensure responsiveness by polling in Update.
@@ -125,10 +136,17 @@ namespace MilehighWorld.World.Terminal
         {
             if (_commandHistory.Count == 0) return;
 
+            // Palette: Preserve unsent current line text before navigating into history.
+            if (_historyIndex == _commandHistory.Count && direction < 0)
+            {
+                _inputBuffer = commandInput.text;
+            }
+
             _historyIndex = Mathf.Clamp(_historyIndex + direction, 0, _commandHistory.Count);
             _lastSuggestion = ""; // Palette: Clear suggestion when navigating history for a fresh state.
 
-            commandInput.text = _historyIndex < _commandHistory.Count ? _commandHistory[_historyIndex] : "";
+            // Palette: Restore text from history or the saved input buffer.
+            commandInput.text = _historyIndex < _commandHistory.Count ? _commandHistory[_historyIndex] : _inputBuffer;
             commandInput.caretPosition = commandInput.text.Length;
         }
 
@@ -303,16 +321,11 @@ namespace MilehighWorld.World.Terminal
                 yield return GetWait(0.02f);
             }
 
-            // ⚡ Bolt: Reset to full string length when done to prevent bugs on next edit
-            if (outputDisplay != null && outputDisplay.text != null)
-            {
-                outputDisplay.maxVisibleCharacters = outputDisplay.text.Length;
-            }
-
             // ⚡ Bolt: Reset maxVisibleCharacters after typewriter completes to avoid text truncation on subsequent uses.
-            outputDisplay.maxVisibleCharacters = outputDisplay.textInfo.characterCount;
-
-            outputDisplay.maxVisibleCharacters = outputDisplay.textInfo.characterCount;
+            if (outputDisplay != null)
+            {
+                outputDisplay.maxVisibleCharacters = outputDisplay.textInfo.characterCount;
+            }
             _typewriterCoroutine = null;
         }
 
