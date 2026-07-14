@@ -181,3 +181,11 @@
 ## 2026-06-17 - [Tab-to-Accept for Forgiving CLI Interfaces]
 **Learning:** Providing fuzzy-match command suggestions is only half the battle; allowing users to immediately accept those suggestions with a familiar key (like Tab) completes the loop of a forgiving interface. This "Tab-to-Accept" pattern drastically reduces the cognitive load of correcting minor typos and makes terminal-style micro-interactions feel remarkably fluid and responsive.
 **Action:** Always pair "Did You Mean?" suggestions with a quick-acceptance mechanic (like Tab) to minimize user friction in command-line interfaces.
+
+## 2026-07-15 - [Terminal History Buffering and Escape Lifecycle]
+**Learning:** In terminal-style UIs, history navigation (Up/Down) feels significantly more "native" and forgiving when the current unsent draft is preserved in a transient buffer and restored when the user returns to the end of the history list. Additionally, supporting the 'Escape' key for instant line clearing aligns with user expectations from professional CLI environments.
+**Action:** Implement 'inputBuffer' logic for history navigation and include 'Escape' as a standard productivity shortcut in all terminal-style micro-interactions.
+
+## 2026-07-15 - [Safe Unity UI Refactoring and Cache Lifecycle]
+**Learning:** When performing major structural consolidations of Unity UI scripts, it is critical to verify the initialization lifecycle of cached objects like 'MaterialPropertyBlock'. Ensuring these are initialized (e.g., via null-checks in 'Start' or lazy-initialization) prevents 'NullReferenceException' during runtime sequences, especially when those sequences are triggered asynchronously.
+**Action:** Always use lazy-initialization or explicit 'Start' setup for non-serialized cache objects (like 'MaterialPropertyBlock') during UI refactors.
