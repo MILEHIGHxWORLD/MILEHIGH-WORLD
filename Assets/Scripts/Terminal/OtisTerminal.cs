@@ -33,9 +33,12 @@ namespace MilehighWorld.World.Terminal
         private readonly List<string> _commandHistory = new List<string>();
         private int _historyIndex = -1;
         private string _lastSuggestion = ""; // Palette: Track fuzzy-match suggestions for "Tab to Fix" recovery.
+        private string _inputBuffer = ""; // Palette: Store unsubmitted text during history browsing.
 
         private void Start()
         {
+            _historyIndex = _commandHistory.Count;
+
             if (outputDisplay != null)
             {
                 outputDisplay.text = "";
@@ -62,8 +65,16 @@ namespace MilehighWorld.World.Terminal
             if (isControlPressed && Input.GetKeyDown(KeyCode.L))
             {
                 ClearTerminalDisplay();
-                commandInput.text = "";
+                _historyIndex = _commandHistory.Count;
                 commandInput.ActivateInputField();
+            }
+
+            if (Input.GetKeyDown(KeyCode.Escape) && !string.IsNullOrEmpty(commandInput.text))
+            {
+                commandInput.text = "";
+                _lastSuggestion = "";
+                _inputBuffer = "";
+                _historyIndex = _commandHistory.Count;
             }
 
             // Palette: Refined history navigation - ensure responsiveness by polling in Update.
@@ -125,10 +136,20 @@ namespace MilehighWorld.World.Terminal
         {
             if (_commandHistory.Count == 0) return;
 
+            int prevIndex = _historyIndex;
             _historyIndex = Mathf.Clamp(_historyIndex + direction, 0, _commandHistory.Count);
+
+            if (prevIndex == _historyIndex) return;
+
+            // Save current unsubmitted text if we're moving from the bottom into history.
+            if (prevIndex == _commandHistory.Count)
+            {
+                _inputBuffer = commandInput.text;
+            }
+
             _lastSuggestion = ""; // Palette: Clear suggestion when navigating history for a fresh state.
 
-            commandInput.text = _historyIndex < _commandHistory.Count ? _commandHistory[_historyIndex] : "";
+            commandInput.text = _historyIndex < _commandHistory.Count ? _commandHistory[_historyIndex] : _inputBuffer;
             commandInput.caretPosition = commandInput.text.Length;
         }
 
@@ -145,6 +166,7 @@ namespace MilehighWorld.World.Terminal
                 _commandHistory.Add(input);
             }
             _historyIndex = _commandHistory.Count;
+            _inputBuffer = "";
             _lastSuggestion = "";
 
             if (commandInput != null)
@@ -189,7 +211,7 @@ namespace MilehighWorld.World.Terminal
                                 "\n - <color=#00FFFF>clear</color>: Clear the terminal display." +
                                 "\n - <color=#00FFFF>verify</color>: Run ECC data integrity check." +
                                 "\n - <color=#00FFFF>[cmd] [arg1] [arg2]</color>: Execute extended system commands." +
-                                "\n\n[SYSTEM]: <color=#FFFF00>Shortcuts:</color> Up/Down Arrow (History), Tab (Autocomplete), Ctrl+L (Clear)." +
+                                "\n\n[SYSTEM]: <color=#FFFF00>Shortcuts:</color> Up/Down Arrow (History), Tab (Autocomplete), Ctrl+L (Clear), Esc (Clear Line)." +
                                 "\n[STATUS]: ECC Buffer: <color=#00FF00>OPTIMAL</color>");
                 return;
             }
@@ -303,15 +325,7 @@ namespace MilehighWorld.World.Terminal
                 yield return GetWait(0.02f);
             }
 
-            // ⚡ Bolt: Reset to full string length when done to prevent bugs on next edit
-            if (outputDisplay != null && outputDisplay.text != null)
-            {
-                outputDisplay.maxVisibleCharacters = outputDisplay.text.Length;
-            }
-
             // ⚡ Bolt: Reset maxVisibleCharacters after typewriter completes to avoid text truncation on subsequent uses.
-            outputDisplay.maxVisibleCharacters = outputDisplay.textInfo.characterCount;
-
             outputDisplay.maxVisibleCharacters = outputDisplay.textInfo.characterCount;
             _typewriterCoroutine = null;
         }
