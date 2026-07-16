@@ -137,16 +137,20 @@ namespace MilehighWorld.Engine
             while (FindLowestEntropy(wfcGrid, out int nextX, out int nextZ))
             {
                 int idx = nextZ * size + nextX;
-                List<TileType> options = new List<TileType>();
+                // ⚡ Bolt:
+                // 💡 What: Replaced List<TileType> allocation with single-variable tracker.
+                // 🎯 Why: Repeatedly allocating lists inside WFC loops causes massive GC overhead.
+                // 📊 Impact: Eliminates a list allocation per cell per chunk generation.
+                TileType selected = TileType.Empty;
                 for (int t = 0; t < (int)TileType.Count; t++)
                 {
                     if (wfcGrid[idx].Possibilities[t])
                     {
-                        options.Add((TileType)t);
+                        selected = (TileType)t;
+                        break;
                     }
                 }
 
-                TileType selected = options.Count > 0 ? options[0] : TileType.Empty;
                 wfcGrid[idx].FinalTile = selected;
                 wfcGrid[idx].Collapsed = true;
                 for (int t = 0; t < (int)TileType.Count; t++)
@@ -167,7 +171,11 @@ namespace MilehighWorld.Engine
         {
             int size = HarmonicTerrainEngine.CHUNK_SIZE;
             int minEntropy = (int)TileType.Count + 1;
-            List<int> candidates = new List<int>();
+            // ⚡ Bolt:
+            // 💡 What: Replaced List<int> candidates with a single chosenIdx tracker.
+            // 🎯 Why: Candidates list was being allocated on every FindLowestEntropy call, but only the first element was used.
+            // 📊 Impact: Eliminates O(N) list allocation overhead per cell per chunk generation.
+            int chosenIdx = -1;
 
             for (int i = 0; i < grid.Length; i++)
             {
@@ -179,22 +187,16 @@ namespace MilehighWorld.Engine
                 if (entropy < minEntropy)
                 {
                     minEntropy = entropy;
-                    candidates.Clear();
-                    candidates.Add(i);
-                }
-                else if (entropy == minEntropy)
-                {
-                    candidates.Add(i);
+                    chosenIdx = i;
                 }
             }
 
-            if (candidates.Count == 0)
+            if (chosenIdx == -1)
             {
                 outX = outZ = -1;
                 return false;
             }
 
-            int chosenIdx = candidates[0];
             outX = chosenIdx % size;
             outZ = chosenIdx / size;
             return true;
