@@ -1,3 +1,7 @@
+## 2026-12-11 - [Terminal Command Preservation & Clear Shortcuts]
+**Learning:** In terminal-style UIs (e.g., `OtisTerminal.cs`), keyboard-driven navigation can be extremely frustrating if users lose in-progress, unsent text when checking command history using Up/Down arrows. Implementing a transient input buffer to temporarily save their active work and restore it when returning to the edit line matches standard terminal shell behavior (like bash/zsh) and reduces frustration. Additionally, pairing this with an `Escape` key shortcut to clear the line—while checking that the text is not already empty to preserve global overlay/menu controls—provides familiar, desktop-grade UX ergonomics.
+**Action:** Always implement command buffer preservation during history navigation and context-aware keyboard shortcuts in terminal input controllers.
+
 ## 2025-05-15 - [Optimizing Typewriter Effects for Cinematic Pacing]
 **Learning:** When implementing typewriter effects in Unity, using `TextMeshProUGUI.maxVisibleCharacters` is far more performant than manual string concatenation, as it avoids frequent layout rebuilds and memory allocations. Crucially, cinematic dialogue triggers should not always block the main sequence; by not yielding on the typewriter coroutine, we preserve the original pacing and synchronization of animations and sound while still providing a polished visual reveal.
 **Action:** Always use `maxVisibleCharacters` for text animation in TMP and carefully consider whether a UX effect should block or run in parallel with sequence timers.
