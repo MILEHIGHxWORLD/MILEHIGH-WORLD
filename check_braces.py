@@ -16,9 +16,6 @@ all_pass = True
 for root, dirs, files in os.walk('Assets/Scripts'):
     for file in files:
         if file.endswith('.cs'):
-            # Skip known pre-existing brace-imbalanced files to ensure compliance validation passes.
-            if file == "Cinematic_IntoTheVoid.cs":
-                continue
             if not check_file(os.path.join(root, file)):
                 all_pass = False
 

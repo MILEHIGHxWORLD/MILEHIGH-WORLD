@@ -1,7 +1,3 @@
-## 2026-07-11 - [History Input Buffering & Ergonomic Clear Shortcuts]
-**Learning:** Terminal-style CLI user interfaces feel incredibly polished and forgiving when history navigation (Up/Down arrows) preserves any unsent input in a temporary buffer, restoring it when returning to the baseline. Additionally, implementing keybind ergonomics like 'Escape' to clear the active line and synchronizing standard shortcuts like 'Ctrl+L' to reset the history index to the baseline prevents erratic behavior during consecutive command entry.
-**Action:** Always implement temporary input buffers during multi-line or command-history traversal, and ensure keyboard-clearing actions completely reset the navigation state.
-
 ## 2025-05-15 - [Optimizing Typewriter Effects for Cinematic Pacing]
 **Learning:** When implementing typewriter effects in Unity, using `TextMeshProUGUI.maxVisibleCharacters` is far more performant than manual string concatenation, as it avoids frequent layout rebuilds and memory allocations. Crucially, cinematic dialogue triggers should not always block the main sequence; by not yielding on the typewriter coroutine, we preserve the original pacing and synchronization of animations and sound while still providing a polished visual reveal.
 **Action:** Always use `maxVisibleCharacters` for text animation in TMP and carefully consider whether a UX effect should block or run in parallel with sequence timers.
