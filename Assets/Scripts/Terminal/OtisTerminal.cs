@@ -33,9 +33,11 @@ namespace MilehighWorld.World.Terminal
         private readonly List<string> _commandHistory = new List<string>();
         private int _historyIndex = -1;
         private string _lastSuggestion = ""; // Palette: Track fuzzy-match suggestions for "Tab to Fix" recovery.
+        private string _inputBuffer = ""; // Palette: Temporary buffer to preserve current unsent input during history navigation.
 
         private void Start()
         {
+            _historyIndex = _commandHistory.Count;
             if (outputDisplay != null)
             {
                 outputDisplay.text = "";
@@ -58,10 +60,26 @@ namespace MilehighWorld.World.Terminal
                 return;
             }
 
+            // Palette: Escape clears line and resets history navigation if not already empty.
+            if (Input.GetKeyDown(KeyCode.Escape))
+            {
+                if (!string.IsNullOrEmpty(commandInput.text))
+                {
+                    commandInput.text = "";
+                    _inputBuffer = "";
+                    _historyIndex = _commandHistory.Count;
+                    _lastSuggestion = "";
+                    commandInput.ActivateInputField();
+                }
+            }
+
             bool isControlPressed = Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl);
             if (isControlPressed && Input.GetKeyDown(KeyCode.L))
             {
                 ClearTerminalDisplay();
+                _historyIndex = _commandHistory.Count;
+                _inputBuffer = "";
+                _lastSuggestion = "";
                 commandInput.text = "";
                 commandInput.ActivateInputField();
             }
@@ -125,10 +143,19 @@ namespace MilehighWorld.World.Terminal
         {
             if (_commandHistory.Count == 0) return;
 
-            _historyIndex = Mathf.Clamp(_historyIndex + direction, 0, _commandHistory.Count);
+            int newIndex = Mathf.Clamp(_historyIndex + direction, 0, _commandHistory.Count);
+            if (newIndex == _historyIndex) return;
+
+            // Save current line before navigating into history
+            if (_historyIndex == _commandHistory.Count)
+            {
+                _inputBuffer = commandInput.text;
+            }
+
+            _historyIndex = newIndex;
             _lastSuggestion = ""; // Palette: Clear suggestion when navigating history for a fresh state.
 
-            commandInput.text = _historyIndex < _commandHistory.Count ? _commandHistory[_historyIndex] : "";
+            commandInput.text = _historyIndex < _commandHistory.Count ? _commandHistory[_historyIndex] : _inputBuffer;
             commandInput.caretPosition = commandInput.text.Length;
         }
 
