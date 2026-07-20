@@ -33,6 +33,7 @@ namespace MilehighWorld.World.Terminal
         private readonly List<string> _commandHistory = new List<string>();
         private int _historyIndex = -1;
         private string _lastSuggestion = ""; // Palette: Track fuzzy-match suggestions for "Tab to Fix" recovery.
+        private string _inputBuffer = ""; // Palette: Track the active unsent draft of input.
 
         private void Start()
         {
@@ -41,6 +42,7 @@ namespace MilehighWorld.World.Terminal
                 outputDisplay.text = "";
                 WriteToTerminal("[SYSTEM]: OTIS Terminal Online. Type 'help' for commands.");
             }
+            _historyIndex = _commandHistory.Count;
         }
 
         private void OnEnable()
@@ -62,8 +64,20 @@ namespace MilehighWorld.World.Terminal
             if (isControlPressed && Input.GetKeyDown(KeyCode.L))
             {
                 ClearTerminalDisplay();
-                commandInput.text = "";
+                _historyIndex = _commandHistory.Count;
                 commandInput.ActivateInputField();
+            }
+
+            if (Input.GetKeyDown(KeyCode.Escape))
+            {
+                if (!string.IsNullOrEmpty(commandInput.text))
+                {
+                    commandInput.text = "";
+                    _lastSuggestion = "";
+                    _inputBuffer = "";
+                    _historyIndex = _commandHistory.Count;
+                    commandInput.ActivateInputField();
+                }
             }
 
             // Palette: Refined history navigation - ensure responsiveness by polling in Update.
@@ -125,10 +139,19 @@ namespace MilehighWorld.World.Terminal
         {
             if (_commandHistory.Count == 0) return;
 
-            _historyIndex = Mathf.Clamp(_historyIndex + direction, 0, _commandHistory.Count);
+            int newIndex = Mathf.Clamp(_historyIndex + direction, 0, _commandHistory.Count);
+            if (newIndex == _historyIndex) return;
+
+            // If leaving the bottom, save current draft input
+            if (_historyIndex == _commandHistory.Count)
+            {
+                _inputBuffer = commandInput.text;
+            }
+
+            _historyIndex = newIndex;
             _lastSuggestion = ""; // Palette: Clear suggestion when navigating history for a fresh state.
 
-            commandInput.text = _historyIndex < _commandHistory.Count ? _commandHistory[_historyIndex] : "";
+            commandInput.text = _historyIndex < _commandHistory.Count ? _commandHistory[_historyIndex] : _inputBuffer;
             commandInput.caretPosition = commandInput.text.Length;
         }
 
@@ -146,6 +169,7 @@ namespace MilehighWorld.World.Terminal
             }
             _historyIndex = _commandHistory.Count;
             _lastSuggestion = "";
+            _inputBuffer = "";
 
             if (commandInput != null)
             {
@@ -189,7 +213,7 @@ namespace MilehighWorld.World.Terminal
                                 "\n - <color=#00FFFF>clear</color>: Clear the terminal display." +
                                 "\n - <color=#00FFFF>verify</color>: Run ECC data integrity check." +
                                 "\n - <color=#00FFFF>[cmd] [arg1] [arg2]</color>: Execute extended system commands." +
-                                "\n\n[SYSTEM]: <color=#FFFF00>Shortcuts:</color> Up/Down Arrow (History), Tab (Autocomplete), Ctrl+L (Clear)." +
+                                "\n\n[SYSTEM]: <color=#FFFF00>Shortcuts:</color> Up/Down Arrow (History), Tab (Autocomplete/Fix), Ctrl+L (Clear Output), Esc (Clear Line)." +
                                 "\n[STATUS]: ECC Buffer: <color=#00FF00>OPTIMAL</color>");
                 return;
             }
