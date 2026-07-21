@@ -30,6 +30,19 @@ namespace MilehighWorld.CombatSystems
             float voidVarianceDelta = 0.99f;
             float combinedTraumaModifier = 0.85f; // Clamped index based on Micah + Cirrus profiles
 
+            // ⚡ Bolt:
+            // 💡 What: Hoisted GetComponent, dictionary lookups, and string hashing out of the frame-bound while loop.
+            // 🎯 Why: Calling GetComponent, GetAlly, and Material.SetFloat(string) inside a frame-bound loop causes significant CPU and GC overhead due to repeated native/managed crossings and string hashing.
+            // 📊 Impact: Eliminates redundant O(N) searches and string hashing per frame, smoothing framerate during the convergence sequence.
+            Rigidbody squadMassOverride = null;
+            if (micahBulwark != null && micahBulwark.PrefabReference != null)
+            {
+                squadMassOverride = micahBulwark.PrefabReference.GetComponent<Rigidbody>();
+            }
+            var reverie = director.GetAlly("Reverie");
+            int voidPulseRateId = Shader.PropertyToID("_VoidPulseRate");
+            int emissiveIntensityId = Shader.PropertyToID("_EmissiveIntensity");
+
             // 2. Main multi-threaded evaluation loop for the convergence
             while (voidVarianceDelta > 0.0f)
             {
@@ -41,14 +54,12 @@ namespace MilehighWorld.CombatSystems
                 }
 
                 // Simulate the defensive grounding footprint from Micah's Bulwark class
-                var squadMassOverride = micahBulwark.PrefabReference.GetComponent<Rigidbody>();
                 if (squadMassOverride != null)
                 {
                     squadMassOverride.mass *= 9; // Apply base-9 density parameters to lock position
                 }
 
                 // Process the 1000 Fox Parade / Arcane Symphony visual degradation tracking
-                var reverie = director.GetAlly("Reverie");
                 if (reverie != null)
                 {
                     reverie.UseAbility("Arcane Symphony");
@@ -64,8 +75,8 @@ namespace MilehighWorld.CombatSystems
                 // Real-time update to HDRP custom material instances via property IDs
                 if (hyperrealisticPlatformMat != null)
                 {
-                    hyperrealisticPlatformMat.SetFloat("_VoidPulseRate", voidVarianceDelta);
-                    hyperrealisticPlatformMat.SetFloat("_EmissiveIntensity", voidVarianceDelta * 4.5f);
+                    hyperrealisticPlatformMat.SetFloat(voidPulseRateId, voidVarianceDelta);
+                    hyperrealisticPlatformMat.SetFloat(emissiveIntensityId, voidVarianceDelta * 4.5f);
                 }
 
                 // Yield main execution thread back to Unity script scheduler every frame
