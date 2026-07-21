@@ -33,9 +33,11 @@ namespace MilehighWorld.World.Terminal
         private readonly List<string> _commandHistory = new List<string>();
         private int _historyIndex = -1;
         private string _lastSuggestion = ""; // Palette: Track fuzzy-match suggestions for "Tab to Fix" recovery.
+        private string _inputBuffer = ""; // Palette: Retain unsent current line input during history navigation.
 
         private void Start()
         {
+            _historyIndex = _commandHistory.Count;
             if (outputDisplay != null)
             {
                 outputDisplay.text = "";
@@ -81,6 +83,19 @@ namespace MilehighWorld.World.Terminal
             {
                 HandleAutocomplete();
             }
+
+            // Palette: Clear input/suggestions and restore focus on Escape if input is not empty.
+            if (Input.GetKeyDown(KeyCode.Escape))
+            {
+                if (!string.IsNullOrEmpty(commandInput.text))
+                {
+                    commandInput.text = "";
+                    _lastSuggestion = "";
+                    _inputBuffer = "";
+                    _historyIndex = _commandHistory.Count;
+                    commandInput.ActivateInputField();
+                }
+            }
         }
 
         private void HandleAutocomplete()
@@ -125,10 +140,26 @@ namespace MilehighWorld.World.Terminal
         {
             if (_commandHistory.Count == 0) return;
 
-            _historyIndex = Mathf.Clamp(_historyIndex + direction, 0, _commandHistory.Count);
+            int nextIndex = Mathf.Clamp(_historyIndex + direction, 0, _commandHistory.Count);
+            if (nextIndex == _historyIndex) return;
+
+            if (_historyIndex == _commandHistory.Count)
+            {
+                _inputBuffer = commandInput.text;
+            }
+
+            _historyIndex = nextIndex;
             _lastSuggestion = ""; // Palette: Clear suggestion when navigating history for a fresh state.
 
-            commandInput.text = _historyIndex < _commandHistory.Count ? _commandHistory[_historyIndex] : "";
+            if (_historyIndex < _commandHistory.Count)
+            {
+                commandInput.text = _commandHistory[_historyIndex];
+            }
+            else
+            {
+                commandInput.text = _inputBuffer;
+            }
+
             commandInput.caretPosition = commandInput.text.Length;
         }
 
@@ -146,6 +177,7 @@ namespace MilehighWorld.World.Terminal
             }
             _historyIndex = _commandHistory.Count;
             _lastSuggestion = "";
+            _inputBuffer = "";
 
             if (commandInput != null)
             {
