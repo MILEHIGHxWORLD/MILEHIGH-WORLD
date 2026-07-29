@@ -33,6 +33,7 @@ namespace MilehighWorld.World.Terminal
         private readonly List<string> _commandHistory = new List<string>();
         private int _historyIndex = -1;
         private string _lastSuggestion = ""; // Palette: Track fuzzy-match suggestions for "Tab to Fix" recovery.
+        private string _inputBuffer = ""; // Palette: Temporary buffer to preserve draft text during history navigation.
 
         private void Start()
         {
@@ -41,6 +42,7 @@ namespace MilehighWorld.World.Terminal
                 outputDisplay.text = "";
                 WriteToTerminal("[SYSTEM]: OTIS Terminal Online. Type 'help' for commands.");
             }
+            _historyIndex = _commandHistory.Count; // Palette: Set history index to count for immediate upward navigation.
         }
 
         private void OnEnable()
@@ -62,8 +64,20 @@ namespace MilehighWorld.World.Terminal
             if (isControlPressed && Input.GetKeyDown(KeyCode.L))
             {
                 ClearTerminalDisplay();
-                commandInput.text = "";
+                _historyIndex = _commandHistory.Count; // Palette: Reset history index to allow immediate navigation from end of list.
                 commandInput.ActivateInputField();
+            }
+
+            // Palette: Escape shortcut to clear line and reset transient states (only if not empty).
+            if (Input.GetKeyDown(KeyCode.Escape))
+            {
+                if (!string.IsNullOrEmpty(commandInput.text))
+                {
+                    commandInput.text = "";
+                    _lastSuggestion = "";
+                    _inputBuffer = "";
+                    _historyIndex = _commandHistory.Count;
+                }
             }
 
             // Palette: Refined history navigation - ensure responsiveness by polling in Update.
@@ -125,10 +139,18 @@ namespace MilehighWorld.World.Terminal
         {
             if (_commandHistory.Count == 0) return;
 
-            _historyIndex = Mathf.Clamp(_historyIndex + direction, 0, _commandHistory.Count);
+            int nextIndex = Mathf.Clamp(_historyIndex + direction, 0, _commandHistory.Count);
+            if (nextIndex == _historyIndex) return; // Palette: Prevent premature buffer loss on boundary navigation.
+
+            if (_historyIndex == _commandHistory.Count)
+            {
+                _inputBuffer = commandInput.text;
+            }
+
+            _historyIndex = nextIndex;
             _lastSuggestion = ""; // Palette: Clear suggestion when navigating history for a fresh state.
 
-            commandInput.text = _historyIndex < _commandHistory.Count ? _commandHistory[_historyIndex] : "";
+            commandInput.text = _historyIndex < _commandHistory.Count ? _commandHistory[_historyIndex] : _inputBuffer;
             commandInput.caretPosition = commandInput.text.Length;
         }
 
@@ -146,6 +168,7 @@ namespace MilehighWorld.World.Terminal
             }
             _historyIndex = _commandHistory.Count;
             _lastSuggestion = "";
+            _inputBuffer = ""; // Palette: Reset persistent buffer upon submission.
 
             if (commandInput != null)
             {
