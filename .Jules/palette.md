@@ -1,3 +1,7 @@
+## 2026-06-26 - [Terminal History Draft Buffer & Shortcut Synchronization]
+**Learning:** Terminal-style UIs feel significantly more robust and fluid when command history browsing preserves the user's unsubmitted draft text in a transient `_inputBuffer`. Restoring this draft upon returning to the bottom of the history list, and ensuring that boundaries do not trigger premature loss, mimics professional shell behavior. Furthermore, synchronizing shortcuts (Ctrl+L and Escape) to reset the history index ensures consistency, while preserving typed drafts during Ctrl+L display clears provides a pleasant, power-user focused productivity gain.
+**Action:** Always employ a draft buffer for command-line history and synchronize clear shortcuts to reset index states while keeping active input.
+
 ## 2025-05-15 - [Optimizing Typewriter Effects for Cinematic Pacing]
 **Learning:** When implementing typewriter effects in Unity, using `TextMeshProUGUI.maxVisibleCharacters` is far more performant than manual string concatenation, as it avoids frequent layout rebuilds and memory allocations. Crucially, cinematic dialogue triggers should not always block the main sequence; by not yielding on the typewriter coroutine, we preserve the original pacing and synchronization of animations and sound while still providing a polished visual reveal.
 **Action:** Always use `maxVisibleCharacters` for text animation in TMP and carefully consider whether a UX effect should block or run in parallel with sequence timers.
