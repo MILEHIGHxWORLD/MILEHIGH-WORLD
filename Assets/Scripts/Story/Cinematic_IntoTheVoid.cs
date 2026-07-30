@@ -293,34 +293,12 @@ namespace MilehighWorld.Cinematics
         {
             if (_sharedPropertyBlock == null) _sharedPropertyBlock = new MaterialPropertyBlock();
 
-        // ⚡ Bolt: Use MaterialPropertyBlock to prevent material cloning on the heap and GC allocations,
-        // preserving draw call batching (GPU instancing/SRP batcher).
+        // ⚡ Bolt Optimization
+        // 💡 What: Replaced direct Material.SetFloat with MaterialPropertyBlock usage.
+        // 🎯 Why: Accessing targetRenderer.material instantiates a clone of the material on the heap, breaking GPU instancing and causing GC allocations.
+        // 📊 Impact: Eliminates O(1) Material allocation per character decay sequence, preserving draw call batching and reducing GC pressure.
         private async Task TweenAlphaDecayAsync(Renderer renderer, float duration)
         {
-            if (renderer == null) return;
-
-            if (_propertyBlock == null)
-            {
-                _propertyBlock = new MaterialPropertyBlock();
-            }
-        private async Task TweenAlphaDecayAsync(Renderer targetRenderer, float duration)
-        {
-            if (targetRenderer == null) return;
-
-            // ⚡ Bolt Optimization
-            // 💡 What: Replaced direct Material.SetFloat with MaterialPropertyBlock usage.
-            // 🎯 Why: Accessing targetRenderer.material instantiates a clone of the material on the heap, breaking GPU instancing and causing GC allocations.
-            // 📊 Impact: Eliminates O(1) Material allocation per character decay sequence, preserving draw call batching and reducing GC pressure.
-            var propBlock = new MaterialPropertyBlock();
-        // Bolt Optimization: Replaced Renderer.material with MaterialPropertyBlock to prevent GC allocation and preserve GPU instancing.
-        private async Task TweenAlphaDecayAsync(Renderer renderer, float duration)
-        {
-        private async Task TweenAlphaDecayAsync(Renderer renderer, float duration)
-        {
-            if (mat == null)
-            {
-                return;
-            }
             if (renderer == null) return;
 
             var propBlock = new MaterialPropertyBlock();
@@ -330,26 +308,9 @@ namespace MilehighWorld.Cinematics
                 elapsed += Time.deltaTime;
                 float alpha = Mathf.Lerp(1f, 0f, elapsed / duration);
 
-                // ⚡ Bolt: Use MaterialPropertyBlock to prevent material instantiation and preserve draw call batching.
-                renderer.GetPropertyBlock(_propertyBlock);
-                _propertyBlock.SetFloat(baseColorAlphaId, alpha);
-                renderer.SetPropertyBlock(_propertyBlock);
-                // ⚡ Bolt: Use MaterialPropertyBlock to prevent material cloning and preserve draw call batching.
-                renderer.GetPropertyBlock(_sharedPropertyBlock);
-                _sharedPropertyBlock.SetFloat(baseColorAlphaId, alpha);
-                renderer.SetPropertyBlock(_sharedPropertyBlock);
-                renderer.GetPropertyBlock(_propertyBlock);
-                _propertyBlock.SetFloat(baseColorAlphaId, alpha);
-                renderer.SetPropertyBlock(_propertyBlock);
-                targetRenderer.GetPropertyBlock(propBlock);
-                propBlock.SetFloat(baseColorAlphaId, alpha);
-                targetRenderer.SetPropertyBlock(propBlock);
                 renderer.GetPropertyBlock(propBlock);
                 propBlock.SetFloat(baseColorAlphaId, alpha);
                 renderer.SetPropertyBlock(propBlock);
-                renderer.GetPropertyBlock(_alphaPropBlock);
-                _alphaPropBlock.SetFloat(baseColorAlphaId, alpha);
-                renderer.SetPropertyBlock(_alphaPropBlock);
 
                 await Task.Yield();
             }
