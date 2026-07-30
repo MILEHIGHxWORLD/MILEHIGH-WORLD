@@ -555,3 +555,6 @@
 ## 2026-06-19 - Consolidate Redundant Input Checks
 **Learning:** In Unity, redundant `Input` checks (e.g., repeatedly calling `Input.anyKeyDown`) inside `Update()` loops introduce unnecessary C#/C++ native boundary crossings, which increases CPU overhead and can cause micro-stutters.
 **Action:** Eliminate duplicate execution paths to reduce CPU overhead per frame, ensuring native-managed boundary crossings are minimized.
+## 2026-07-30 - Consolidate Redundant Alpha Tweens
+**Learning:** In `Cinematic_IntoTheVoid.cs`, code rot led to multiple duplicated and broken implementations of `TweenAlphaDecayAsync`, with multiple redundant `MaterialPropertyBlock` lookups running inside the same tween loop. This redundant work wastes CPU cycles and makes the code brittle.
+**Action:** Consolidate repeated implementations and eliminate redundant per-frame calculations within `while` loops.
