@@ -33,9 +33,11 @@ namespace MilehighWorld.World.Terminal
         private readonly List<string> _commandHistory = new List<string>();
         private int _historyIndex = -1;
         private string _lastSuggestion = ""; // Palette: Track fuzzy-match suggestions for "Tab to Fix" recovery.
+        private string _inputBuffer = ""; // Palette: Save unsent draft text during history navigation.
 
         private void Start()
         {
+            _historyIndex = _commandHistory.Count; // Palette: Immediate upward history navigation.
             if (outputDisplay != null)
             {
                 outputDisplay.text = "";
@@ -62,8 +64,19 @@ namespace MilehighWorld.World.Terminal
             if (isControlPressed && Input.GetKeyDown(KeyCode.L))
             {
                 ClearTerminalDisplay();
-                commandInput.text = "";
+                _historyIndex = _commandHistory.Count; // Palette: Reset history pointer on Ctrl+L.
                 commandInput.ActivateInputField();
+            }
+
+            if (Input.GetKeyDown(KeyCode.Escape))
+            {
+                if (!string.IsNullOrEmpty(commandInput.text))
+                {
+                    commandInput.text = "";
+                    _lastSuggestion = "";
+                    _inputBuffer = "";
+                    _historyIndex = _commandHistory.Count; // Palette: Synchronized reset on Esc clear.
+                }
             }
 
             // Palette: Refined history navigation - ensure responsiveness by polling in Update.
@@ -125,10 +138,26 @@ namespace MilehighWorld.World.Terminal
         {
             if (_commandHistory.Count == 0) return;
 
-            _historyIndex = Mathf.Clamp(_historyIndex + direction, 0, _commandHistory.Count);
+            int targetIndex = Mathf.Clamp(_historyIndex + direction, 0, _commandHistory.Count);
+            if (targetIndex == _historyIndex) return; // Palette: Prevent premature buffer loss if index didn't change.
+
+            // Save the unsent draft if leaving the current active line to navigate history
+            if (_historyIndex == _commandHistory.Count)
+            {
+                _inputBuffer = commandInput.text;
+            }
+
+            _historyIndex = targetIndex;
             _lastSuggestion = ""; // Palette: Clear suggestion when navigating history for a fresh state.
 
-            commandInput.text = _historyIndex < _commandHistory.Count ? _commandHistory[_historyIndex] : "";
+            if (_historyIndex < _commandHistory.Count)
+            {
+                commandInput.text = _commandHistory[_historyIndex];
+            }
+            else
+            {
+                commandInput.text = _inputBuffer; // Palette: Restore unsent draft on return to current line.
+            }
             commandInput.caretPosition = commandInput.text.Length;
         }
 
@@ -146,6 +175,7 @@ namespace MilehighWorld.World.Terminal
             }
             _historyIndex = _commandHistory.Count;
             _lastSuggestion = "";
+            _inputBuffer = ""; // Palette: Clear the unsent draft once command is processed.
 
             if (commandInput != null)
             {
