@@ -111,6 +111,12 @@ namespace MilehighWorld.Systems.Agency
                 req.downloadHandler = new DownloadHandlerBuffer();
                 req.SetRequestHeader("Content-Type", "application/json");
 
+                string apiToken = System.Environment.GetEnvironmentVariable("MILEHIGH_API_TOKEN");
+                if (!string.IsNullOrEmpty(apiToken))
+                {
+                    req.SetRequestHeader("Authorization", "Bearer " + apiToken);
+                }
+
                 // BOLT: Conservation of Nine - Yield if needed
                 if (Time.frameCount % 9 == 0)
                 {
