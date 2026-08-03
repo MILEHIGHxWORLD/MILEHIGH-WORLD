@@ -181,7 +181,3 @@
 ## 2026-06-17 - [Tab-to-Accept for Forgiving CLI Interfaces]
 **Learning:** Providing fuzzy-match command suggestions is only half the battle; allowing users to immediately accept those suggestions with a familiar key (like Tab) completes the loop of a forgiving interface. This "Tab-to-Accept" pattern drastically reduces the cognitive load of correcting minor typos and makes terminal-style micro-interactions feel remarkably fluid and responsive.
 **Action:** Always pair "Did You Mean?" suggestions with a quick-acceptance mechanic (like Tab) to minimize user friction in command-line interfaces.
-
-## 2026-06-26 - [Persistent CLI Input Draft Preservation and Selective Escape Dismissal]
-**Learning:** In terminal-driven micro-interactions, losing unsent command drafts during history navigation (Up/Down arrow keys) breaks user workflow. Using an ephemeral input buffer to preserve draft text when departing the current prompt, and restoring it upon return, ensures a fluid, professional CLI experience. Additionally, mapping Escape to clear the command input should be selective: consuming the keypress only when input exists prevents the action from colliding with global system elements like game-wide pause menus.
-**Action:** Implement draft buffers for CLI history systems and condition Escape key interception on a non-empty input state.
