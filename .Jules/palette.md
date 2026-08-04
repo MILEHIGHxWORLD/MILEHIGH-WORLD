@@ -181,3 +181,7 @@
 ## 2026-06-17 - [Tab-to-Accept for Forgiving CLI Interfaces]
 **Learning:** Providing fuzzy-match command suggestions is only half the battle; allowing users to immediately accept those suggestions with a familiar key (like Tab) completes the loop of a forgiving interface. This "Tab-to-Accept" pattern drastically reduces the cognitive load of correcting minor typos and makes terminal-style micro-interactions feel remarkably fluid and responsive.
 **Action:** Always pair "Did You Mean?" suggestions with a quick-acceptance mechanic (like Tab) to minimize user friction in command-line interfaces.
+
+## 2026-07-24 - [Terminal History Draft Buffer and Scoped Escape Clear]
+**Learning:** In-game terminal navigation can feel frustrating if the user's current draft input is lost when they press the Up arrow to inspect previous commands. Implementing a transient draft buffer (`_inputBuffer`) ensures that draft inputs are seamlessly preserved and restored when navigating back. Additionally, terminal-specific keyboard shortcuts like Escape should be conditionally scoped (e.g., only triggering when the input field has text) to avoid stealing focus or blocking global game UI mechanics like pause menus.
+**Action:** Always use a draft buffer to preserve unsent terminal inputs during history navigation, and conditionally scope local escape shortcut handlers to prevent global input interference.
