@@ -33,9 +33,11 @@ namespace MilehighWorld.World.Terminal
         private readonly List<string> _commandHistory = new List<string>();
         private int _historyIndex = -1;
         private string _lastSuggestion = ""; // Palette: Track fuzzy-match suggestions for "Tab to Fix" recovery.
+        private string _inputBuffer = ""; // Palette: Track unsent draft inputs during history navigation.
 
         private void Start()
         {
+            _historyIndex = _commandHistory.Count;
             if (outputDisplay != null)
             {
                 outputDisplay.text = "";
@@ -63,7 +65,23 @@ namespace MilehighWorld.World.Terminal
             {
                 ClearTerminalDisplay();
                 commandInput.text = "";
+                _lastSuggestion = "";
+                _inputBuffer = "";
+                _historyIndex = _commandHistory.Count;
                 commandInput.ActivateInputField();
+            }
+
+            // Palette: Escape clears the line and resets the history navigation state.
+            if (Input.GetKeyDown(KeyCode.Escape))
+            {
+                if (!string.IsNullOrEmpty(commandInput.text))
+                {
+                    commandInput.text = "";
+                    _lastSuggestion = "";
+                    _inputBuffer = "";
+                    _historyIndex = _commandHistory.Count;
+                    commandInput.ActivateInputField();
+                }
             }
 
             // Palette: Refined history navigation - ensure responsiveness by polling in Update.
@@ -125,10 +143,27 @@ namespace MilehighWorld.World.Terminal
         {
             if (_commandHistory.Count == 0) return;
 
-            _historyIndex = Mathf.Clamp(_historyIndex + direction, 0, _commandHistory.Count);
+            int nextIndex = Mathf.Clamp(_historyIndex + direction, 0, _commandHistory.Count);
+            if (nextIndex == _historyIndex) return; // Prevent premature buffer loss if index doesn't change
+
+            // If we are leaving the current (unsent) line, save it to the draft buffer
+            if (_historyIndex == _commandHistory.Count)
+            {
+                _inputBuffer = commandInput.text;
+            }
+
+            _historyIndex = nextIndex;
             _lastSuggestion = ""; // Palette: Clear suggestion when navigating history for a fresh state.
 
-            commandInput.text = _historyIndex < _commandHistory.Count ? _commandHistory[_historyIndex] : "";
+            if (_historyIndex < _commandHistory.Count)
+            {
+                commandInput.text = _commandHistory[_historyIndex];
+            }
+            else
+            {
+                commandInput.text = _inputBuffer;
+            }
+
             commandInput.caretPosition = commandInput.text.Length;
         }
 
@@ -146,6 +181,7 @@ namespace MilehighWorld.World.Terminal
             }
             _historyIndex = _commandHistory.Count;
             _lastSuggestion = "";
+            _inputBuffer = ""; // Palette: Clear draft buffer on submit.
 
             if (commandInput != null)
             {
@@ -189,7 +225,7 @@ namespace MilehighWorld.World.Terminal
                                 "\n - <color=#00FFFF>clear</color>: Clear the terminal display." +
                                 "\n - <color=#00FFFF>verify</color>: Run ECC data integrity check." +
                                 "\n - <color=#00FFFF>[cmd] [arg1] [arg2]</color>: Execute extended system commands." +
-                                "\n\n[SYSTEM]: <color=#FFFF00>Shortcuts:</color> Up/Down Arrow (History), Tab (Autocomplete), Ctrl+L (Clear)." +
+                                "\n\n[SYSTEM]: <color=#FFFF00>Shortcuts:</color> Up/Down Arrow (History), Tab (Autocomplete/Fix), Ctrl+L (Clear Output), Esc (Clear Line)." +
                                 "\n[STATUS]: ECC Buffer: <color=#00FF00>OPTIMAL</color>");
                 return;
             }
