@@ -14,9 +14,49 @@ namespace MilehighWorld.UI
         [SerializeField] private TMP_InputField terminalInput;
         [SerializeField] private TextMeshProUGUI terminalOutput;
 
+        private readonly System.Collections.Generic.List<string> _commandHistory = new System.Collections.Generic.List<string>();
+        private int _historyIndex = -1;
+
+        private void OnEnable()
+        {
+            if (terminalInput != null)
+            {
+                terminalInput.ActivateInputField();
+            }
+        }
+
+        private void Update()
+        {
+            if (terminalInput == null || !terminalInput.isFocused) return;
+
+            if (Input.GetKeyDown(KeyCode.UpArrow))
+            {
+                NavigateHistory(-1);
+            }
+            else if (Input.GetKeyDown(KeyCode.DownArrow))
+            {
+                NavigateHistory(1);
+            }
+        }
+
+        private void NavigateHistory(int direction)
+        {
+            if (_commandHistory.Count == 0) return;
+            _historyIndex = Mathf.Clamp(_historyIndex + direction, 0, _commandHistory.Count);
+            terminalInput.text = _historyIndex < _commandHistory.Count ? _commandHistory[_historyIndex] : "";
+            terminalInput.caretPosition = terminalInput.text.Length;
+        }
+
         public void OnSubmit(string input)
         {
             if (string.IsNullOrWhiteSpace(input)) return;
+
+            // Save to history list
+            if (_commandHistory.Count == 0 || _commandHistory[^1] != input)
+            {
+                _commandHistory.Add(input);
+            }
+            _historyIndex = _commandHistory.Count;
 
             // Add bounds checking to the terminal's input parsing
             int spaceIndex = input.IndexOf(' ');
@@ -31,6 +71,7 @@ namespace MilehighWorld.UI
             if (terminalInput != null)
             {
                 terminalInput.text = ""; // Clear input
+                terminalInput.ActivateInputField(); // Refocus input field for continuous typing
             }
         }
 
