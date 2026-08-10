@@ -1,3 +1,7 @@
+## 2026-06-18 - [Advanced Terminal Input Buffering & Escape Shortcuts]
+**Learning:** When developing terminal-style CLI inputs in Unity (using TMP_InputField), maintaining a transient unsent input buffer allows players to seamlessly navigate through command history (Up/Down arrow keys) and return back to their original typed text. Furthermore, implementing an Escape-key line-clear mechanic improves user speed, but must be gated by a non-empty text check to ensure it doesn't conflict with global game state handlers like pause menus.
+**Action:** Always pair command history navigation with an unsent buffer, and protect Escape-key shortcuts with content presence checks.
+
 ## 2025-05-15 - [Optimizing Typewriter Effects for Cinematic Pacing]
 **Learning:** When implementing typewriter effects in Unity, using `TextMeshProUGUI.maxVisibleCharacters` is far more performant than manual string concatenation, as it avoids frequent layout rebuilds and memory allocations. Crucially, cinematic dialogue triggers should not always block the main sequence; by not yielding on the typewriter coroutine, we preserve the original pacing and synchronization of animations and sound while still providing a polished visual reveal.
 **Action:** Always use `maxVisibleCharacters` for text animation in TMP and carefully consider whether a UX effect should block or run in parallel with sequence timers.
