@@ -181,3 +181,7 @@
 ## 2026-06-17 - [Tab-to-Accept for Forgiving CLI Interfaces]
 **Learning:** Providing fuzzy-match command suggestions is only half the battle; allowing users to immediately accept those suggestions with a familiar key (like Tab) completes the loop of a forgiving interface. This "Tab-to-Accept" pattern drastically reduces the cognitive load of correcting minor typos and makes terminal-style micro-interactions feel remarkably fluid and responsive.
 **Action:** Always pair "Did You Mean?" suggestions with a quick-acceptance mechanic (like Tab) to minimize user friction in command-line interfaces.
+
+## 2026-07-28 - [Terminal History Draft Buffer & Familiar CLI Shortcuts]
+**Learning:** High-fidelity replication of terminal/CLI environments in Unity benefits from persistent input buffering during history navigation (saving unsent typed drafts) and standard UX keyboard shortcuts (Ctrl+L to clear screen without losing input, Escape to clear active input). This reduces user input redundancy and provides a highly polished, familiar, and keyboard-accessible experience.
+**Action:** Use a dedicated input buffer field when implementing CLI-style history navigation to preserve draft state, and support standard keybindings while maintaining focus states.
