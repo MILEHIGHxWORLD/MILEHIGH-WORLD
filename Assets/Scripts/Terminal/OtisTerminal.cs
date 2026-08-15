@@ -81,6 +81,15 @@ namespace MilehighWorld.World.Terminal
             {
                 HandleAutocomplete();
             }
+
+            // Palette: Escape clears current line when non-empty without breaking global UI shortcuts when empty.
+            if (Input.GetKeyDown(KeyCode.Escape) && !string.IsNullOrEmpty(commandInput.text))
+            {
+                commandInput.text = "";
+                _lastSuggestion = "";
+                _historyIndex = _commandHistory.Count;
+                commandInput.ActivateInputField();
+            }
         }
 
         private void HandleAutocomplete()
@@ -189,7 +198,7 @@ namespace MilehighWorld.World.Terminal
                                 "\n - <color=#00FFFF>clear</color>: Clear the terminal display." +
                                 "\n - <color=#00FFFF>verify</color>: Run ECC data integrity check." +
                                 "\n - <color=#00FFFF>[cmd] [arg1] [arg2]</color>: Execute extended system commands." +
-                                "\n\n[SYSTEM]: <color=#FFFF00>Shortcuts:</color> Up/Down Arrow (History), Tab (Autocomplete), Ctrl+L (Clear)." +
+                                "\n\n[SYSTEM]: <color=#FFFF00>Shortcuts:</color> Up/Down Arrow (History), Tab (Autocomplete), Ctrl+L (Clear Output), Esc (Clear Line)." +
                                 "\n[STATUS]: ECC Buffer: <color=#00FF00>OPTIMAL</color>");
                 return;
             }
