@@ -66,14 +66,6 @@ namespace MilehighWorld.World.Terminal
                 commandInput.ActivateInputField();
             }
 
-            // Palette: Quick Escape - clear input line when Escape is pressed while active
-            if (Input.GetKeyDown(KeyCode.Escape) && !string.IsNullOrEmpty(commandInput.text))
-            {
-                commandInput.text = "";
-                _lastSuggestion = "";
-                _historyIndex = _commandHistory.Count;
-            }
-
             // Palette: Refined history navigation - ensure responsiveness by polling in Update.
             if (Input.GetKeyDown(KeyCode.UpArrow))
             {
@@ -197,7 +189,7 @@ namespace MilehighWorld.World.Terminal
                                 "\n - <color=#00FFFF>clear</color>: Clear the terminal display." +
                                 "\n - <color=#00FFFF>verify</color>: Run ECC data integrity check." +
                                 "\n - <color=#00FFFF>[cmd] [arg1] [arg2]</color>: Execute extended system commands." +
-                                "\n\n[SYSTEM]: <color=#FFFF00>Shortcuts:</color> Up/Down Arrow (History), Tab (Autocomplete), Ctrl+L (Clear Output), Esc (Clear Line)." +
+                                "\n\n[SYSTEM]: <color=#FFFF00>Shortcuts:</color> Up/Down Arrow (History), Tab (Autocomplete), Ctrl+L (Clear)." +
                                 "\n[STATUS]: ECC Buffer: <color=#00FF00>OPTIMAL</color>");
                 return;
             }
