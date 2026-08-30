@@ -181,3 +181,7 @@
 ## 2026-06-17 - [Tab-to-Accept for Forgiving CLI Interfaces]
 **Learning:** Providing fuzzy-match command suggestions is only half the battle; allowing users to immediately accept those suggestions with a familiar key (like Tab) completes the loop of a forgiving interface. This "Tab-to-Accept" pattern drastically reduces the cognitive load of correcting minor typos and makes terminal-style micro-interactions feel remarkably fluid and responsive.
 **Action:** Always pair "Did You Mean?" suggestions with a quick-acceptance mechanic (like Tab) to minimize user friction in command-line interfaces.
+
+## 2026-08-30 - [Esc Key Line Clearing and Synchronized Input Navigation]
+**Learning:** In terminal-style UIs (`OtisTerminal.cs`), providing an `Escape` key shortcut to instantly clear the active input line gives users rapid error-recovery capabilities without taking focus away from the input field or relying on backspace. To maintain UI state predictability, all clearing shortcuts (both `Ctrl+L` and `Esc`) must explicitly synchronize `_historyIndex` back to `_commandHistory.Count` and reset any transient fuzzy suggestion states.
+**Action:** Always sync command history indices and clear transient suggestion buffers when clearing input fields via keyboard shortcuts.
