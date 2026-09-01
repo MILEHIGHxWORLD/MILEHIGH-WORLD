@@ -181,3 +181,7 @@
 ## 2026-06-17 - [Tab-to-Accept for Forgiving CLI Interfaces]
 **Learning:** Providing fuzzy-match command suggestions is only half the battle; allowing users to immediately accept those suggestions with a familiar key (like Tab) completes the loop of a forgiving interface. This "Tab-to-Accept" pattern drastically reduces the cognitive load of correcting minor typos and makes terminal-style micro-interactions feel remarkably fluid and responsive.
 **Action:** Always pair "Did You Mean?" suggestions with a quick-acceptance mechanic (like Tab) to minimize user friction in command-line interfaces.
+
+## 2026-07-15 - [Line-Clear Escape Shortcut for CLI Inputs]
+**Learning:** In terminal UIs, implementing 'Escape' to clear the active input line and reset transient suggestions provides a familiar CLI shortcut while keeping history state synchronized. Intercepting Escape only when the input field is non-empty prevents collision with top-level system commands (e.g. pause menus).
+**Action:** Guard line-clearing Escape shortcuts behind non-empty input checks to maintain both power-user efficiency and global navigation integrity.
