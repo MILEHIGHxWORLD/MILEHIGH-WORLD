@@ -62,8 +62,16 @@ namespace MilehighWorld.World.Terminal
             if (isControlPressed && Input.GetKeyDown(KeyCode.L))
             {
                 ClearTerminalDisplay();
-                commandInput.text = "";
+                _historyIndex = _commandHistory.Count;
                 commandInput.ActivateInputField();
+            }
+
+            // Palette: Escape key clears current input line without losing focus or triggering global escape behavior.
+            if (Input.GetKeyDown(KeyCode.Escape) && !string.IsNullOrEmpty(commandInput.text))
+            {
+                commandInput.text = "";
+                _lastSuggestion = "";
+                _historyIndex = _commandHistory.Count;
             }
 
             // Palette: Refined history navigation - ensure responsiveness by polling in Update.
@@ -124,6 +132,11 @@ namespace MilehighWorld.World.Terminal
         private void NavigateHistory(int direction)
         {
             if (_commandHistory.Count == 0) return;
+
+            if (_historyIndex < 0 || _historyIndex > _commandHistory.Count)
+            {
+                _historyIndex = _commandHistory.Count;
+            }
 
             _historyIndex = Mathf.Clamp(_historyIndex + direction, 0, _commandHistory.Count);
             _lastSuggestion = ""; // Palette: Clear suggestion when navigating history for a fresh state.
@@ -189,7 +202,7 @@ namespace MilehighWorld.World.Terminal
                                 "\n - <color=#00FFFF>clear</color>: Clear the terminal display." +
                                 "\n - <color=#00FFFF>verify</color>: Run ECC data integrity check." +
                                 "\n - <color=#00FFFF>[cmd] [arg1] [arg2]</color>: Execute extended system commands." +
-                                "\n\n[SYSTEM]: <color=#FFFF00>Shortcuts:</color> Up/Down Arrow (History), Tab (Autocomplete), Ctrl+L (Clear)." +
+                                "\n\n[SYSTEM]: <color=#FFFF00>Shortcuts:</color> Up/Down Arrow (History), Tab (Autocomplete/Fix), Ctrl+L (Clear Output), Esc (Clear Line)." +
                                 "\n[STATUS]: ECC Buffer: <color=#00FF00>OPTIMAL</color>");
                 return;
             }
