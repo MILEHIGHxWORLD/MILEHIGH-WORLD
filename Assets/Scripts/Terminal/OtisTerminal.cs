@@ -69,11 +69,13 @@ namespace MilehighWorld.World.Terminal
             }
 
             // Palette: Escape key line clear shortcut for rapid input reset
+            // Palette: Escape clears current line input and resets suggestions without interrupting pause menu when empty.
             if (Input.GetKeyDown(KeyCode.Escape) && !string.IsNullOrEmpty(commandInput.text))
             {
                 commandInput.text = "";
                 _lastSuggestion = "";
                 _historyIndex = _commandHistory.Count;
+                commandInput.ActivateInputField();
             }
 
             // Palette: Refined history navigation - ensure responsiveness by polling in Update.
@@ -200,6 +202,7 @@ namespace MilehighWorld.World.Terminal
                                 "\n - <color=#00FFFF>verify</color>: Run ECC data integrity check." +
                                 "\n - <color=#00FFFF>[cmd] [arg1] [arg2]</color>: Execute extended system commands." +
                                 "\n\n[SYSTEM]: <color=#FFFF00>Shortcuts:</color> Up/Down Arrow (History), Tab (Autocomplete/Fix), Ctrl+L (Clear Output), Esc (Clear Line)." +
+                                "\n\n[SYSTEM]: <color=#FFFF00>Shortcuts:</color> Up/Down Arrow (History), Tab (Autocomplete), Ctrl+L (Clear Output), Esc (Clear Line)." +
                                 "\n[STATUS]: ECC Buffer: <color=#00FF00>OPTIMAL</color>");
                 return;
             }
