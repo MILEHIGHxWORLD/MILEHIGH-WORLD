@@ -68,6 +68,7 @@ namespace MilehighWorld.World.Terminal
                 commandInput.ActivateInputField();
             }
 
+            // Palette: Quick line clearing with Esc key
             // Palette: Escape key line clear shortcut for rapid input reset
             // Palette: Escape clears current line input and resets suggestions without interrupting pause menu when empty.
             if (Input.GetKeyDown(KeyCode.Escape) && !string.IsNullOrEmpty(commandInput.text))
