@@ -181,3 +181,7 @@
 ## 2026-06-17 - [Tab-to-Accept for Forgiving CLI Interfaces]
 **Learning:** Providing fuzzy-match command suggestions is only half the battle; allowing users to immediately accept those suggestions with a familiar key (like Tab) completes the loop of a forgiving interface. This "Tab-to-Accept" pattern drastically reduces the cognitive load of correcting minor typos and makes terminal-style micro-interactions feel remarkably fluid and responsive.
 **Action:** Always pair "Did You Mean?" suggestions with a quick-acceptance mechanic (like Tab) to minimize user friction in command-line interfaces.
+
+## 2026-07-28 - [Unsent Input Buffer Retention in Terminal Navigation]
+**Learning:** In terminal/CLI command line interfaces, when users type a partial command and use the Up Arrow to recall previous commands, losing their unsent draft creates friction. Preserving unsent input in a transient `_inputBuffer` when entering history navigation, and restoring it when navigating back down to the live line, provides a smooth and forgiving experience.
+**Action:** Always save unsent live line input into an input buffer when initiating history navigation and restore it when returning to the current input line.
