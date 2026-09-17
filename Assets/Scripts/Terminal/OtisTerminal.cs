@@ -202,7 +202,6 @@ namespace MilehighWorld.World.Terminal
                                 "\n - <color=#00FFFF>verify</color>: Run ECC data integrity check." +
                                 "\n - <color=#00FFFF>[cmd] [arg1] [arg2]</color>: Execute extended system commands." +
                                 "\n\n[SYSTEM]: <color=#FFFF00>Shortcuts:</color> Up/Down Arrow (History), Tab (Autocomplete/Fix), Ctrl+L (Clear Output), Esc (Clear Line)." +
-                                "\n\n[SYSTEM]: <color=#FFFF00>Shortcuts:</color> Up/Down Arrow (History), Tab (Autocomplete), Ctrl+L (Clear Output), Esc (Clear Line)." +
                                 "\n[STATUS]: ECC Buffer: <color=#00FF00>OPTIMAL</color>");
                 return;
             }
@@ -233,6 +232,10 @@ namespace MilehighWorld.World.Terminal
             if (!string.IsNullOrEmpty(_lastSuggestion))
             {
                 errorMsg += $"\n[SYSTEM]: Did you mean: <color=#00FFFF>{_lastSuggestion}</color>? (Press <color=#FFFF00>[Tab]</color> to fix)";
+            }
+            else
+            {
+                errorMsg += "\n[SYSTEM]: Type <color=#00FFFF>'help'</color> for a list of available commands.";
             }
 
             WriteToTerminal(errorMsg);

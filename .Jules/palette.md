@@ -181,3 +181,7 @@
 ## 2026-06-17 - [Tab-to-Accept for Forgiving CLI Interfaces]
 **Learning:** Providing fuzzy-match command suggestions is only half the battle; allowing users to immediately accept those suggestions with a familiar key (like Tab) completes the loop of a forgiving interface. This "Tab-to-Accept" pattern drastically reduces the cognitive load of correcting minor typos and makes terminal-style micro-interactions feel remarkably fluid and responsive.
 **Action:** Always pair "Did You Mean?" suggestions with a quick-acceptance mechanic (like Tab) to minimize user friction in command-line interfaces.
+
+## 2026-07-20 - [Actionable Fallbacks for Unrecognized Commands]
+**Learning:** When fuzzy matching yields no close suggestion for an unrecognized terminal command, presenting a dead-end error leaves users stranded. Appending an explicit, actionable fallback guidance tip (`Type 'help' for available commands.`) provides immediate recovery guidance and keeps the command-line experience forgiving and intuitive.
+**Action:** Always include an explicit fallback tip to help commands when fuzzy suggestions are not available in command-line interfaces.
