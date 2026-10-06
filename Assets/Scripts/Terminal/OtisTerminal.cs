@@ -33,6 +33,7 @@ namespace MilehighWorld.World.Terminal
         private readonly List<string> _commandHistory = new List<string>();
         private int _historyIndex = -1;
         private string _lastSuggestion = ""; // Palette: Track fuzzy-match suggestions for "Tab to Fix" recovery.
+        private string _inputBuffer = ""; // Palette: Preserve uncommitted draft input when entering history navigation.
 
         private void Start()
         {
@@ -64,6 +65,7 @@ namespace MilehighWorld.World.Terminal
                 ClearTerminalDisplay();
                 commandInput.text = "";
                 _lastSuggestion = "";
+                _inputBuffer = "";
                 _historyIndex = _commandHistory.Count;
                 commandInput.ActivateInputField();
             }
@@ -74,6 +76,7 @@ namespace MilehighWorld.World.Terminal
             {
                 commandInput.text = "";
                 _lastSuggestion = "";
+                _inputBuffer = "";
                 _historyIndex = _commandHistory.Count;
                 commandInput.ActivateInputField();
             }
@@ -137,11 +140,31 @@ namespace MilehighWorld.World.Terminal
         {
             if (_commandHistory.Count == 0) return;
 
-            _historyIndex = Mathf.Clamp(_historyIndex + direction, 0, _commandHistory.Count);
+            // Palette: Preserve unsent draft text when navigating up from the active command line.
+            if (_historyIndex == _commandHistory.Count && direction < 0 && commandInput != null)
+            {
+                _inputBuffer = commandInput.text;
+            }
+
+            int newIndex = Mathf.Clamp(_historyIndex + direction, 0, _commandHistory.Count);
+            if (newIndex == _historyIndex) return;
+
+            _historyIndex = newIndex;
             _lastSuggestion = ""; // Palette: Clear suggestion when navigating history for a fresh state.
 
-            commandInput.text = _historyIndex < _commandHistory.Count ? _commandHistory[_historyIndex] : "";
-            commandInput.caretPosition = commandInput.text.Length;
+            if (_historyIndex < _commandHistory.Count)
+            {
+                commandInput.text = _commandHistory[_historyIndex];
+            }
+            else
+            {
+                commandInput.text = _inputBuffer;
+            }
+
+            if (commandInput != null)
+            {
+                commandInput.caretPosition = commandInput.text.Length;
+            }
         }
 
 
@@ -158,6 +181,7 @@ namespace MilehighWorld.World.Terminal
             }
             _historyIndex = _commandHistory.Count;
             _lastSuggestion = "";
+            _inputBuffer = "";
 
             if (commandInput != null)
             {
@@ -202,7 +226,6 @@ namespace MilehighWorld.World.Terminal
                                 "\n - <color=#00FFFF>verify</color>: Run ECC data integrity check." +
                                 "\n - <color=#00FFFF>[cmd] [arg1] [arg2]</color>: Execute extended system commands." +
                                 "\n\n[SYSTEM]: <color=#FFFF00>Shortcuts:</color> Up/Down Arrow (History), Tab (Autocomplete/Fix), Ctrl+L (Clear Output), Esc (Clear Line)." +
-                                "\n\n[SYSTEM]: <color=#FFFF00>Shortcuts:</color> Up/Down Arrow (History), Tab (Autocomplete), Ctrl+L (Clear Output), Esc (Clear Line)." +
                                 "\n[STATUS]: ECC Buffer: <color=#00FF00>OPTIMAL</color>");
                 return;
             }
