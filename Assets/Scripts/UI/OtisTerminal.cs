@@ -31,6 +31,7 @@ namespace MilehighWorld.UI
             if (terminalInput != null)
             {
                 terminalInput.text = ""; // Clear input
+                terminalInput.ActivateInputField(); // Palette: Refocus input field for continuous interaction
             }
         }
 
