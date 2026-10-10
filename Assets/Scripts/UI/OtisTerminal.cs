@@ -31,6 +31,7 @@ namespace MilehighWorld.UI
             if (terminalInput != null)
             {
                 terminalInput.text = ""; // Clear input
+                terminalInput.ActivateInputField(); // Refocus input field for continuous typing
             }
         }
 
