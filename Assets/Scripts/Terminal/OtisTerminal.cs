@@ -33,7 +33,6 @@ namespace MilehighWorld.World.Terminal
         private readonly List<string> _commandHistory = new List<string>();
         private int _historyIndex = -1;
         private string _lastSuggestion = ""; // Palette: Track fuzzy-match suggestions for "Tab to Fix" recovery.
-        private string _inputBuffer = ""; // Palette: Preserve unsubmitted text when browsing command history.
 
         private void Start()
         {
@@ -106,7 +105,6 @@ namespace MilehighWorld.World.Terminal
                 commandInput.text = _lastSuggestion;
                 commandInput.caretPosition = _lastSuggestion.Length;
                 _lastSuggestion = "";
-                commandInput.ActivateInputField();
                 return;
             }
 
@@ -122,7 +120,6 @@ namespace MilehighWorld.World.Terminal
                 {
                     commandInput.text = cmd;
                     commandInput.caretPosition = cmd.Length;
-                    commandInput.ActivateInputField();
                     return;
                 }
             }
@@ -133,7 +130,6 @@ namespace MilehighWorld.World.Terminal
             {
                 commandInput.text = suggestion;
                 commandInput.caretPosition = suggestion.Length;
-                commandInput.ActivateInputField();
             }
         }
 
@@ -141,23 +137,11 @@ namespace MilehighWorld.World.Terminal
         {
             if (_commandHistory.Count == 0) return;
 
-            int newIndex = Mathf.Clamp(_historyIndex + direction, 0, _commandHistory.Count);
-            if (newIndex == _historyIndex) return;
-
-            if (_historyIndex == _commandHistory.Count)
-            {
-                _inputBuffer = commandInput != null ? commandInput.text : "";
-            }
-
-            _historyIndex = newIndex;
+            _historyIndex = Mathf.Clamp(_historyIndex + direction, 0, _commandHistory.Count);
             _lastSuggestion = ""; // Palette: Clear suggestion when navigating history for a fresh state.
 
-            if (commandInput != null)
-            {
-                commandInput.text = _historyIndex < _commandHistory.Count ? _commandHistory[_historyIndex] : _inputBuffer;
-                commandInput.caretPosition = commandInput.text.Length;
-                commandInput.ActivateInputField();
-            }
+            commandInput.text = _historyIndex < _commandHistory.Count ? _commandHistory[_historyIndex] : "";
+            commandInput.caretPosition = commandInput.text.Length;
         }
 
 
@@ -174,7 +158,6 @@ namespace MilehighWorld.World.Terminal
             }
             _historyIndex = _commandHistory.Count;
             _lastSuggestion = "";
-            _inputBuffer = "";
 
             if (commandInput != null)
             {
@@ -214,11 +197,12 @@ namespace MilehighWorld.World.Terminal
             if (command == "help")
             {
                 WriteToTerminal("\n[SYSTEM]: <color=#FFFF00>Available Commands:</color>" +
-                                "\n - <color=#00FFFF>help</color>   : Show this message." +
-                                "\n - <color=#00FFFF>clear</color>  : Clear the terminal display." +
-                                "\n - <color=#00FFFF>verify</color> : Run ECC data integrity check." +
+                                "\n - <color=#00FFFF>help</color>: Show this message." +
+                                "\n - <color=#00FFFF>clear</color>: Clear the terminal display." +
+                                "\n - <color=#00FFFF>verify</color>: Run ECC data integrity check." +
                                 "\n - <color=#00FFFF>[cmd] [arg1] [arg2]</color>: Execute extended system commands." +
                                 "\n\n[SYSTEM]: <color=#FFFF00>Shortcuts:</color> Up/Down Arrow (History), Tab (Autocomplete/Fix), Ctrl+L (Clear Output), Esc (Clear Line)." +
+                                "\n\n[SYSTEM]: <color=#FFFF00>Shortcuts:</color> Up/Down Arrow (History), Tab (Autocomplete), Ctrl+L (Clear Output), Esc (Clear Line)." +
                                 "\n[STATUS]: ECC Buffer: <color=#00FF00>OPTIMAL</color>");
                 return;
             }
