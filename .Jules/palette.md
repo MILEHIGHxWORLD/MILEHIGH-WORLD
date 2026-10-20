@@ -55,7 +55,7 @@
 **Action:** Use a persistent `skipRequested` flag that is only reset at the end of a skippable wait cycle, and implement lightweight scale animations for UI state changes.
 ## 2026-03-25 - [Rhythmic Typewriter and Speaker-Themed Feedback]
 **Learning:** Cinematic dialogue feels significantly more natural when the typewriter effect respects the rhythm of speech by distinguishing between sentence endings, mid-word punctuation (like "Sky.ix"), and ellipses. Furthermore, color-coding visual feedback cues (like the completion symbol '▽') to the speaker's theme provides a subtle but effective way to maintain character identity throughout the dialogue reveal.
-**Action:** Implement rhythmic look-ahead logic in typewriter effects to handle edge-case punctuation and use speaker-specific hex colors for UI completion indicators to improve visual cohesion.
+**Action:** Implement rhythmic pauses in typewriter effects and use consistent character-specific color palettes for speaker UI to enhance immersion and accessibility.
 ## 2026-03-25 - [Layout-Safe Cinematic Dialogue Reveal]
 **Learning:** Appending visual elements (like a completion cue '▽') to the end of a typewriter-revealed string can cause jarring layout shifts if the new character forces a line break or word wrap. By setting the final text (including the cue) at the beginning and using 'maxVisibleCharacters' to reveal it, the layout is pre-calculated and remains stable throughout the animation.
 **Action:** Pre-append completion cues and use 'maxVisibleCharacters' to ensure visual stability in all Unity text animations.
@@ -181,3 +181,7 @@
 ## 2026-06-17 - [Tab-to-Accept for Forgiving CLI Interfaces]
 **Learning:** Providing fuzzy-match command suggestions is only half the battle; allowing users to immediately accept those suggestions with a familiar key (like Tab) completes the loop of a forgiving interface. This "Tab-to-Accept" pattern drastically reduces the cognitive load of correcting minor typos and makes terminal-style micro-interactions feel remarkably fluid and responsive.
 **Action:** Always pair "Did You Mean?" suggestions with a quick-acceptance mechanic (like Tab) to minimize user friction in command-line interfaces.
+
+## 2025-03-20 - [Forgiving Terminal Interfaces: History Restoration & Empty Guidance]
+**Learning:** Enhancing terminal-style UIs with "shell-like" behaviors—such as restoring the currently typed buffer when navigating history and providing explicit guidance for empty inputs—drastically improves the user's sense of flow and competence. Additionally, standard keyboard shortcuts like Escape for clearing input provide a consistent experience for users accustomed to professional command-line environments.
+**Action:** Implement persistent input buffers for history navigation and proactive guidance for empty command states in all CLI-style components.
