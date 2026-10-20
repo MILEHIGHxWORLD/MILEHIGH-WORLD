@@ -27,6 +27,15 @@ namespace MilehighWorld.CombatSystems
             var cirrusDragon = director.GetAlly("Cirrus");
             var kingCyrusBoss = director.GetEnemy("KingCyrus");
 
+            // ⚡ Bolt:
+            // 💡 What: Hoisted dictionary lookup, GetComponent, and Shader.PropertyToID calls outside the loop.
+            // 🎯 Why: Executing these lookups inside a frame-bound async loop causes significant C#/C++ native boundary crossings and string hashing overhead.
+            // 📊 Impact: Eliminates redundant per-frame CPU overhead and GC allocations.
+            var reverie = director.GetAlly("Reverie");
+            var squadMassOverride = micahBulwark?.PrefabReference?.GetComponent<Rigidbody>();
+            int voidPulseRateId = Shader.PropertyToID("_VoidPulseRate");
+            int emissiveIntensityId = Shader.PropertyToID("_EmissiveIntensity");
+
             float voidVarianceDelta = 0.99f;
             float combinedTraumaModifier = 0.85f; // Clamped index based on Micah + Cirrus profiles
 
@@ -41,14 +50,12 @@ namespace MilehighWorld.CombatSystems
                 }
 
                 // Simulate the defensive grounding footprint from Micah's Bulwark class
-                var squadMassOverride = micahBulwark.PrefabReference.GetComponent<Rigidbody>();
                 if (squadMassOverride != null)
                 {
                     squadMassOverride.mass *= 9; // Apply base-9 density parameters to lock position
                 }
 
                 // Process the 1000 Fox Parade / Arcane Symphony visual degradation tracking
-                var reverie = director.GetAlly("Reverie");
                 if (reverie != null)
                 {
                     reverie.UseAbility("Arcane Symphony");
@@ -64,8 +71,8 @@ namespace MilehighWorld.CombatSystems
                 // Real-time update to HDRP custom material instances via property IDs
                 if (hyperrealisticPlatformMat != null)
                 {
-                    hyperrealisticPlatformMat.SetFloat("_VoidPulseRate", voidVarianceDelta);
-                    hyperrealisticPlatformMat.SetFloat("_EmissiveIntensity", voidVarianceDelta * 4.5f);
+                    hyperrealisticPlatformMat.SetFloat(voidPulseRateId, voidVarianceDelta);
+                    hyperrealisticPlatformMat.SetFloat(emissiveIntensityId, voidVarianceDelta * 4.5f);
                 }
 
                 // Yield main execution thread back to Unity script scheduler every frame
