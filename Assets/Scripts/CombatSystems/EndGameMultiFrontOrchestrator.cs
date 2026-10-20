@@ -16,6 +16,9 @@ namespace MilehighWorld.CombatSystems
         [SerializeField] private Material hyperrealisticPlatformMat;
         [SerializeField] private GameObject onalymNexusGateway;
 
+        private static readonly int VoidPulseRateId = Shader.PropertyToID("_VoidPulseRate");
+        private static readonly int EmissiveIntensityId = Shader.PropertyToID("_EmissiveIntensity");
+
         public async Task CoordinateFinalNexusLockAsync(EncounterDirector director, LatticeSynchronizer synchronizer)
         {
             Debug.Log("<color=#E0BBE4>[SYSTEM]: multi_front_battle_loop initiated. Synchronizing thread data...</color>");
@@ -30,6 +33,17 @@ namespace MilehighWorld.CombatSystems
             float voidVarianceDelta = 0.99f;
             float combinedTraumaModifier = 0.85f; // Clamped index based on Micah + Cirrus profiles
 
+            // ⚡ Bolt Optimization
+            // 💡 What: Hoisted GetComponent<Rigidbody>() and Shader.PropertyToID calls outside the frame-bound loop.
+            // 🎯 Why: Calling GetComponent and using string-based material property setters inside a while loop with Task.Yield() causes significant per-frame CPU overhead due to native/managed boundary crossings and string hashing.
+            // 📊 Impact: Eliminates redundant per-frame GetComponent allocations and string hashing, significantly reducing CPU overhead during the multi-front battle loop.
+            // 🔬 Measurement: Observe CPU profiler during EndGameMultiFrontOrchestrator convergence loop; native overhead and string hashing allocations should be zeroed.
+            Rigidbody? squadMassOverride = null;
+            if (micahBulwark != null && micahBulwark.PrefabReference != null)
+            {
+                squadMassOverride = micahBulwark.PrefabReference.GetComponent<Rigidbody>();
+            }
+
             // 2. Main multi-threaded evaluation loop for the convergence
             while (voidVarianceDelta > 0.0f)
             {
@@ -41,7 +55,6 @@ namespace MilehighWorld.CombatSystems
                 }
 
                 // Simulate the defensive grounding footprint from Micah's Bulwark class
-                var squadMassOverride = micahBulwark.PrefabReference.GetComponent<Rigidbody>();
                 if (squadMassOverride != null)
                 {
                     squadMassOverride.mass *= 9; // Apply base-9 density parameters to lock position
@@ -64,8 +77,8 @@ namespace MilehighWorld.CombatSystems
                 // Real-time update to HDRP custom material instances via property IDs
                 if (hyperrealisticPlatformMat != null)
                 {
-                    hyperrealisticPlatformMat.SetFloat("_VoidPulseRate", voidVarianceDelta);
-                    hyperrealisticPlatformMat.SetFloat("_EmissiveIntensity", voidVarianceDelta * 4.5f);
+                    hyperrealisticPlatformMat.SetFloat(VoidPulseRateId, voidVarianceDelta);
+                    hyperrealisticPlatformMat.SetFloat(EmissiveIntensityId, voidVarianceDelta * 4.5f);
                 }
 
                 // Yield main execution thread back to Unity script scheduler every frame
