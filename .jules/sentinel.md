@@ -326,3 +326,7 @@
 **Vulnerability:** The `_protectedManagers` HashSet in `SceneDirector.cs` contained missing commas and duplicate lists, causing a C# compilation failure and leaving IDOR protection broken.
 **Learning:** Hardcoded security lists are highly vulnerable to merge conflicts or copy-paste errors. When the C# file has syntax errors, the blocklist completely fails.
 **Prevention:** Always check C# files for basic syntax correctness, especially after merging or updating hardcoded security configurations.
+## 2026-07-28 - Missing Authentication on Narrative Action Resolver
+**Vulnerability:** The narrative action resolution endpoint in NarrativeActionResolver.cs was being called without an Authorization header, allowing unauthenticated access or failing securely on the backend.
+**Learning:** The client was not using the MILEHIGH_API_TOKEN environment variable for authenticating with api.milehigh.world.
+**Prevention:** Always source required API tokens securely from environment variables (e.g., System.Environment.GetEnvironmentVariable) and ensure they are included as Bearer tokens in UnityWebRequest headers.
