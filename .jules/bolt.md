@@ -555,3 +555,6 @@
 ## 2026-06-19 - Consolidate Redundant Input Checks
 **Learning:** In Unity, redundant `Input` checks (e.g., repeatedly calling `Input.anyKeyDown`) inside `Update()` loops introduce unnecessary C#/C++ native boundary crossings, which increases CPU overhead and can cause micro-stutters.
 **Action:** Eliminate duplicate execution paths to reduce CPU overhead per frame, ensuring native-managed boundary crossings are minimized.
+## 2026-07-23 - Async Loop Component and Property Caching
+**Learning:** Performing `GetComponent` and dictionary/string lookups (like `GetAlly` or `Material.SetFloat` with strings) inside an async `while` loop containing `await Task.Yield()` behaves exactly like per-frame `Update` overhead, causing significant CPU and GC thrashing.
+**Action:** Always treat `while (...) { ... await Task.Yield(); }` as a frame-bound loop and hoist expensive lookups (`GetComponent`, dictionary accesses, `Shader.PropertyToID`) outside of it.
