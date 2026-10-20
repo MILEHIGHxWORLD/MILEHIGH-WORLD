@@ -326,3 +326,7 @@
 **Vulnerability:** The `_protectedManagers` HashSet in `SceneDirector.cs` contained missing commas and duplicate lists, causing a C# compilation failure and leaving IDOR protection broken.
 **Learning:** Hardcoded security lists are highly vulnerable to merge conflicts or copy-paste errors. When the C# file has syntax errors, the blocklist completely fails.
 **Prevention:** Always check C# files for basic syntax correctness, especially after merging or updating hardcoded security configurations.
+## 2026-08-01 - Missing Authentication Header in NarrativeActionResolver
+**Vulnerability:** The narrative action resolution endpoint call in NarrativeActionResolver.cs was missing its required Authorization header, leading to unauthenticated requests to a sensitive API.
+**Learning:** UnityWebRequest does not automatically inherit environment credentials; they must be explicitly sourced via System.Environment.GetEnvironmentVariable and attached to the request headers.
+**Prevention:** Always verify that API requests to protected backend endpoints include explicitly attached Bearer tokens.
