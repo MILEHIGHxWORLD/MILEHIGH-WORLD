@@ -555,3 +555,7 @@
 ## 2026-06-19 - Consolidate Redundant Input Checks
 **Learning:** In Unity, redundant `Input` checks (e.g., repeatedly calling `Input.anyKeyDown`) inside `Update()` loops introduce unnecessary C#/C++ native boundary crossings, which increases CPU overhead and can cause micro-stutters.
 **Action:** Eliminate duplicate execution paths to reduce CPU overhead per frame, ensuring native-managed boundary crossings are minimized.
+
+## 2026-07-16 - Wave Function Collapse GC Overhead
+**Learning:** In asynchronous chunk generation algorithms like WFC, repeatedly allocating local collections (like `List<T>`) inside inner loops generates massive GC overhead, even if they are short-lived.
+**Action:** Replace dynamic list allocations with single-variable trackers in deterministic selection logic that only accesses the first element.
