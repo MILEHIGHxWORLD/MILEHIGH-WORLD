@@ -111,6 +111,13 @@ namespace MilehighWorld.Systems.Agency
                 req.downloadHandler = new DownloadHandlerBuffer();
                 req.SetRequestHeader("Content-Type", "application/json");
 
+                // 🛡️ Sentinel: Add missing authentication for backend resolution
+                string apiToken = System.Environment.GetEnvironmentVariable("MILEHIGH_API_TOKEN");
+                if (!string.IsNullOrEmpty(apiToken))
+                {
+                    req.SetRequestHeader("Authorization", "Bearer " + apiToken);
+                }
+
                 // BOLT: Conservation of Nine - Yield if needed
                 if (Time.frameCount % 9 == 0)
                 {
