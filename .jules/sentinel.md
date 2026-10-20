@@ -326,3 +326,7 @@
 **Vulnerability:** The `_protectedManagers` HashSet in `SceneDirector.cs` contained missing commas and duplicate lists, causing a C# compilation failure and leaving IDOR protection broken.
 **Learning:** Hardcoded security lists are highly vulnerable to merge conflicts or copy-paste errors. When the C# file has syntax errors, the blocklist completely fails.
 **Prevention:** Always check C# files for basic syntax correctness, especially after merging or updating hardcoded security configurations.
+## 2026-07-08 - Prevent IDOR on LatticeSynchronizer
+**Vulnerability:** Core manager LatticeSynchronizer was accessible via GameObject.Find, allowing potential Insecure Direct Object Reference (IDOR) manipulation.
+**Learning:** All critical singletons must be explicitly registered in the SceneDirector blocklist because SceneDirector relies on this blocklist to prevent unauthorized access via GameObject.Find.
+**Prevention:** Always verify that newly implemented singletons are added to the _protectedManagers HashSet in SceneDirector.cs.
