@@ -181,3 +181,7 @@
 ## 2026-06-17 - [Tab-to-Accept for Forgiving CLI Interfaces]
 **Learning:** Providing fuzzy-match command suggestions is only half the battle; allowing users to immediately accept those suggestions with a familiar key (like Tab) completes the loop of a forgiving interface. This "Tab-to-Accept" pattern drastically reduces the cognitive load of correcting minor typos and makes terminal-style micro-interactions feel remarkably fluid and responsive.
 **Action:** Always pair "Did You Mean?" suggestions with a quick-acceptance mechanic (like Tab) to minimize user friction in command-line interfaces.
+
+## 2026-07-11 - [Input Buffer and Context-Aware Terminal Navigation]
+**Learning:** Terminal interfaces in games feel exponentially more professional when they emulate the intuitive draft-preservation behavior of modern command-line shells (like bash/zsh). Specifically, storing a transient '_inputBuffer' of currently typed unsent text when navigating into history (Up Arrow) and restoring it when returning to the bottom line (Down Arrow) prevents user frustration and preserves focus. Pair this with programmatic placeholder text dynamically emphasizing autocomplete keys (like '[Tab]') to maximize shortcut discoverability without UI clutter.
+**Action:** Always implement transient input buffers for history-enabled text fields to preserve edit states, and use programmatic placeholder hints to guide shortcuts.
