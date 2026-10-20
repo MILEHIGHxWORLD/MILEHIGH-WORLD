@@ -137,16 +137,16 @@ namespace MilehighWorld.Engine
             while (FindLowestEntropy(wfcGrid, out int nextX, out int nextZ))
             {
                 int idx = nextZ * size + nextX;
-                List<TileType> options = new List<TileType>();
+                // ⚡ Bolt: Eliminate dynamic list allocation for options. Track first available tile type directly.
+                TileType selected = TileType.Empty;
                 for (int t = 0; t < (int)TileType.Count; t++)
                 {
                     if (wfcGrid[idx].Possibilities[t])
                     {
-                        options.Add((TileType)t);
+                        selected = (TileType)t;
+                        break;
                     }
                 }
-
-                TileType selected = options.Count > 0 ? options[0] : TileType.Empty;
                 wfcGrid[idx].FinalTile = selected;
                 wfcGrid[idx].Collapsed = true;
                 for (int t = 0; t < (int)TileType.Count; t++)
@@ -167,7 +167,8 @@ namespace MilehighWorld.Engine
         {
             int size = HarmonicTerrainEngine.CHUNK_SIZE;
             int minEntropy = (int)TileType.Count + 1;
-            List<int> candidates = new List<int>();
+            // ⚡ Bolt: Eliminate dynamic list allocation. Track the best candidate index directly since we only need the first one.
+            int bestIdx = -1;
 
             for (int i = 0; i < grid.Length; i++)
             {
@@ -179,22 +180,17 @@ namespace MilehighWorld.Engine
                 if (entropy < minEntropy)
                 {
                     minEntropy = entropy;
-                    candidates.Clear();
-                    candidates.Add(i);
-                }
-                else if (entropy == minEntropy)
-                {
-                    candidates.Add(i);
+                    bestIdx = i;
                 }
             }
 
-            if (candidates.Count == 0)
+            if (bestIdx == -1)
             {
                 outX = outZ = -1;
                 return false;
             }
 
-            int chosenIdx = candidates[0];
+            int chosenIdx = bestIdx;
             outX = chosenIdx % size;
             outZ = chosenIdx / size;
             return true;
