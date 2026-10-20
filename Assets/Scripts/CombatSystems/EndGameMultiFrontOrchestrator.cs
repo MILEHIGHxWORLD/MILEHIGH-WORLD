@@ -30,6 +30,10 @@ namespace MilehighWorld.CombatSystems
             float voidVarianceDelta = 0.99f;
             float combinedTraumaModifier = 0.85f; // Clamped index based on Micah + Cirrus profiles
 
+            // ⚡ Bolt: Cache shader property IDs to avoid per-frame string hashing
+            int voidPulseRateId = Shader.PropertyToID("_VoidPulseRate");
+            int emissiveIntensityId = Shader.PropertyToID("_EmissiveIntensity");
+
             // 2. Main multi-threaded evaluation loop for the convergence
             while (voidVarianceDelta > 0.0f)
             {
@@ -64,8 +68,12 @@ namespace MilehighWorld.CombatSystems
                 // Real-time update to HDRP custom material instances via property IDs
                 if (hyperrealisticPlatformMat != null)
                 {
-                    hyperrealisticPlatformMat.SetFloat("_VoidPulseRate", voidVarianceDelta);
-                    hyperrealisticPlatformMat.SetFloat("_EmissiveIntensity", voidVarianceDelta * 4.5f);
+                    // ⚡ Bolt: Use cached property IDs instead of strings
+                    // What: Replaced Material.SetFloat(string) with Material.SetFloat(int)
+                    // Why: String-based property updates inside a frame-bound loop cause significant per-frame string hashing and CPU overhead.
+                    // Impact: Reduces CPU overhead per frame by eliminating redundant native string hashing.
+                    hyperrealisticPlatformMat.SetFloat(voidPulseRateId, voidVarianceDelta);
+                    hyperrealisticPlatformMat.SetFloat(emissiveIntensityId, voidVarianceDelta * 4.5f);
                 }
 
                 // Yield main execution thread back to Unity script scheduler every frame
