@@ -555,3 +555,7 @@
 ## 2026-06-19 - Consolidate Redundant Input Checks
 **Learning:** In Unity, redundant `Input` checks (e.g., repeatedly calling `Input.anyKeyDown`) inside `Update()` loops introduce unnecessary C#/C++ native boundary crossings, which increases CPU overhead and can cause micro-stutters.
 **Action:** Eliminate duplicate execution paths to reduce CPU overhead per frame, ensuring native-managed boundary crossings are minimized.
+
+## 2026-06-29 - Coroutine Yield Optimization
+**Learning:** Using `new WaitForSeconds` inside iterative generation coroutines (like in HarmonicTerrainEngine) causes continuous GC allocations and heap fragmentation. Floating point values make poor cache keys due to imprecision.
+**Action:** Cache `WaitForSeconds` instances using an integer representation of milliseconds (`Mathf.RoundToInt(time * 1000f)`) as the key to eliminate O(N) GC allocations.
