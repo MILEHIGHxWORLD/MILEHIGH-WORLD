@@ -421,7 +421,7 @@
 ## 2024-05-24 - Fake Zero-Allocation Typewriter
 **Learning:** The cinematic typewriter effect was documented as "zero-allocation" but used `text += char` in a loop. In Unity, concatenating strings on a TextMeshPro component per frame causes O(N^2) memory allocations and forces the UI mesh to rebuild for every character, causing major GC spikes.
 **Action:** Always assign the full string to TextMeshPro once and increment `maxVisibleCharacters` to achieve a true zero-allocation typewriter effect.
-## $(date +%Y-%m-%d) - Coroutine GC Spikes in UI Typewriter Effects
+## 2026-07-10 - Coroutine GC Spikes in UI Typewriter Effects
 **Learning:** Instantiating `new WaitForSeconds` inside high-frequency loops like UI typewriter effects causes O(N) GC allocations per string, triggering garbage collection spikes and micro-stutters during text rendering.
 **Action:** Implement a static dictionary cache using `Mathf.RoundToInt(seconds * 1000f)` as integer keys to store and reuse `WaitForSeconds` instances, eliminating runtime allocations. Ensure helper methods like `GetWait` are also declared static.
 ## 2026-05-23 - Caching Yield Instructions in Coroutines
@@ -555,3 +555,6 @@
 ## 2026-06-19 - Consolidate Redundant Input Checks
 **Learning:** In Unity, redundant `Input` checks (e.g., repeatedly calling `Input.anyKeyDown`) inside `Update()` loops introduce unnecessary C#/C++ native boundary crossings, which increases CPU overhead and can cause micro-stutters.
 **Action:** Eliminate duplicate execution paths to reduce CPU overhead per frame, ensuring native-managed boundary crossings are minimized.
+## 2026-07-10 - Hoisting GetComponent and Property IDs
+**Learning:** Calling `GetComponent<T>()`, executing dictionary lookups like `GetAlly`, or performing string-based property updates (`Material.SetFloat`) inside a frame-bound loop (like an async `while` loop with `await Task.Yield()`) causes significant per-frame CPU overhead and string hashing overhead due to native/managed boundary crossings.
+**Action:** Always hoist and cache these lookups outside the loop, utilizing `Shader.PropertyToID` for shader properties to eliminate redundant string hashing overhead per frame.
