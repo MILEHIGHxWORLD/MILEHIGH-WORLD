@@ -181,7 +181,3 @@
 ## 2026-06-17 - [Tab-to-Accept for Forgiving CLI Interfaces]
 **Learning:** Providing fuzzy-match command suggestions is only half the battle; allowing users to immediately accept those suggestions with a familiar key (like Tab) completes the loop of a forgiving interface. This "Tab-to-Accept" pattern drastically reduces the cognitive load of correcting minor typos and makes terminal-style micro-interactions feel remarkably fluid and responsive.
 **Action:** Always pair "Did You Mean?" suggestions with a quick-acceptance mechanic (like Tab) to minimize user friction in command-line interfaces.
-
-## 2026-08-15 - [Persistent Focus Management in Terminal UIs]
-**Learning:** Terminal-style UI input fields (such as `TMP_InputField`) lose focus upon command submission or when enabled, forcing users to click back into the field before typing their next command. Automatically activating the input field in `OnEnable()` and re-focusing via `ActivateInputField()` immediately after command processing creates a seamless, hands-on-keyboard experience that reduces interaction friction.
-**Action:** Call `ActivateInputField()` in `OnEnable()` and immediately following command processing in terminal input controllers.
