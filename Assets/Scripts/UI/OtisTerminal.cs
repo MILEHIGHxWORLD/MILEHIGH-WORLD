@@ -14,6 +14,14 @@ namespace MilehighWorld.UI
         [SerializeField] private TMP_InputField terminalInput;
         [SerializeField] private TextMeshProUGUI terminalOutput;
 
+        private void OnEnable()
+        {
+            if (terminalInput != null)
+            {
+                terminalInput.ActivateInputField();
+            }
+        }
+
         public void OnSubmit(string input)
         {
             if (string.IsNullOrWhiteSpace(input)) return;
@@ -31,6 +39,7 @@ namespace MilehighWorld.UI
             if (terminalInput != null)
             {
                 terminalInput.text = ""; // Clear input
+                terminalInput.ActivateInputField(); // Palette: Maintain focus after command submission
             }
         }
 
