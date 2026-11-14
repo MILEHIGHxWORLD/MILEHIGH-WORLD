@@ -1,0 +1,278 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#080f18">
+<title>LINC · Into the Void · MILEHIGH.WORLD</title>
+<style>
+:root{color-scheme:dark;--bg:#080f18;--panel:#101c28;--line:#2a3b49;--text:#e5eceb;--muted:#a5b8c4;--cyan:#7fe4d5;--gold:#ecc986;--violet:#b9a5f3;--danger:#ffa69a;--mono:ui-monospace,SFMono-Regular,Consolas,monospace}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 55% 10%,#172532 0,transparent 55%),var(--bg);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,sans-serif;font-size:14px;line-height:1.5}button,input,select{font:inherit}button{cursor:pointer}button:disabled{cursor:default;opacity:.45}button,select{color:inherit;background:#142531;border:1px solid #3a505e;border-radius:5px}button:hover:enabled{background:#213946;border-color:var(--cyan)}button:focus-visible,input:focus-visible,select:focus-visible,canvas:focus-visible{outline:3px solid var(--gold);outline-offset:3px}button{min-height:42px;padding:9px 14px;transition:background .15s,border-color .15s}h1,h2,p{margin:0}svg{width:24px;height:24px;flex-shrink:0}small{font-size:11px}.eyebrow{font:10px var(--mono);text-transform:uppercase;letter-spacing:.18em;color:var(--gold)}.muted{color:var(--muted)}.mono{font-family:var(--mono)}.shell{max-width:1490px;margin:auto;padding:26px 28px 20px}.brandbar{display:flex;align-items:center;justify-content:space-between;gap:16px;padding-bottom:19px;border-bottom:1px solid var(--line)}.brand{font-weight:750;letter-spacing:.15em;font-size:12px}.brand span{color:var(--muted);font-weight:400;letter-spacing:.1em}.tag{font:10px var(--mono);letter-spacing:.15em;color:var(--cyan);padding:5px 8px;border:1px solid #395950;border-radius:20px}.intro{display:flex;align-items:end;justify-content:space-between;gap:20px;padding:24px 0 22px}.title{font-family:Georgia,serif;font-weight:400;font-size:clamp(30px,4vw,48px);line-height:1.1;letter-spacing:-.02em;margin-top:8px}.title span{color:var(--cyan)}.intro p{color:var(--muted);margin-top:10px;max-width:480px}.header-actions{display:flex;gap:8px}.ghost{background:transparent;color:var(--muted)}.metrics{display:grid;grid-template-columns:1.35fr 1fr 1fr 1fr;gap:1px;background:var(--line);border:1px solid var(--line);border-radius:7px;overflow:hidden;margin-bottom:19px}.metric{background:var(--bg);padding:14px 19px}.metric label{font:10px var(--mono);letter-spacing:.1em;color:var(--muted);text-transform:uppercase;display:block}.metric .value{font:28px var(--mono);letter-spacing:-.04em;margin-top:3px;display:inline-block}.metric .suffix{font:12px var(--mono);color:var(--muted)}.metric .sub{font:11px var(--mono);margin-top:3px;color:var(--muted)}.positive{color:var(--cyan)!important}.negative{color:var(--danger)!important}.workspace{display:grid;grid-template-columns:210px minmax(300px,1fr) 245px;gap:17px;align-items:start}.panel{background:linear-gradient(160deg,#13212d,#101a25);border:1px solid var(--line);border-radius:7px;overflow:hidden}.section-head{padding:15px 16px 13px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--line)}.section-head h2{font-size:12px;font-weight:600;letter-spacing:.035em}.section-head .mono{font-size:10px;color:var(--muted)}.tools{padding:10px;display:grid;gap:5px}.tool{display:flex;align-items:center;text-align:left;gap:11px;padding:9px 10px;min-height:57px;border:1px solid transparent;background:transparent;border-radius:4px}.tool .icon{width:29px;color:var(--muted);display:flex;justify-content:center}.tool.selected{background:#203a40;border-color:#5f9d91}.tool.selected .icon{color:var(--cyan)}.tool strong{font-size:12px;font-weight:550;display:block}.tool small{font:10px var(--mono);color:var(--muted)}.tool kbd{margin-left:auto;color:#879ba7;font:10px var(--mono)}.tool-help{padding:10px 16px 16px;color:var(--muted);font-size:12px;min-height:112px;border-top:1px solid var(--line)}.tool-help strong{color:var(--gold);font-size:11px;display:block;margin-bottom:5px}.map-head{padding:12px 16px;display:flex;align-items:center;justify-content:space-between;gap:10px;border-bottom:1px solid var(--line)}.map-head .place{font:11px var(--mono);letter-spacing:.1em}.map-head small{display:block;color:var(--muted);font:10px var(--mono);margin-top:3px}.compass{font:10px var(--mono);color:var(--gold)}.map-wrap{position:relative;background:#0b1721}canvas{display:block;width:100%;aspect-ratio:1;touch-action:none;cursor:crosshair}.map-legend{position:absolute;bottom:9px;left:14px;right:14px;display:flex;justify-content:space-between;font:9px var(--mono);color:#a7b9c3;pointer-events:none}.dot{display:inline-block;width:5px;height:5px;background:var(--cyan);border-radius:50%;margin-right:5px}.dot.off{background:var(--gold)}.map-footer{border-top:1px solid var(--line);padding:11px 14px;background:#0d1923}.tile-info{color:var(--muted);font-size:11px;margin-bottom:9px;min-height:17px}.turn-controls{display:flex;align-items:center;gap:7px}.primary{background:var(--cyan);color:#102c2a;border-color:var(--cyan);font-weight:650}.primary:hover:enabled{background:#b2f4e4;color:#102c2a}.turn-controls .primary{flex:1}.play{min-width:46px;display:flex;align-items:center;justify-content:center;padding:8px}.play svg{height:18px;width:18px}.cycle{font:10px var(--mono);color:var(--muted);min-width:60px;text-align:center}.ops-panel{display:grid;gap:16px}.mission{padding:17px 16px}.mission h2{font:23px Georgia,serif;margin:6px 0 9px}.mission p{font-size:12px;color:var(--muted)}.objectives{display:grid;gap:15px;margin:20px 0 16px;padding:0;list-style:none}.objectives li{display:flex;gap:10px;align-items:start;font-size:12px}.check{border:1px solid #5d7280;width:15px;height:15px;flex:0 0 15px;margin-top:2px;border-radius:50%}.complete .check{background:var(--cyan);border-color:var(--cyan);box-shadow:inset 0 0 0 3px #19332f}.objectives small{display:block;color:var(--muted);margin-top:2px}.streak{display:flex;gap:6px;margin-top:9px}.streak i{height:4px;border-radius:3px;background:#344854;flex:1}.streak i.on{background:var(--cyan)}.hint{padding:12px;background:#142c31;border:1px solid #315159;border-radius:4px;color:#c6e4df!important;font-size:12px;min-height:80px}.services{padding:16px}.service{margin-bottom:15px}.service:last-child{margin-bottom:0}.service-label{display:flex;justify-content:space-between;font-size:11px;margin-bottom:5px}.service-label span:last-child{font-family:var(--mono);color:var(--cyan)}.bar{height:4px;border-radius:3px;background:#2d3e4d;overflow:hidden}.bar>i{height:100%;display:block;background:var(--cyan);transition:width .3s}.bar>i.short{background:var(--gold)}.service small{display:block;color:var(--muted);font:9px var(--mono);margin-top:4px}.economy{padding:15px 16px}.economy .row{display:flex;justify-content:space-between;font:11px var(--mono);padding-bottom:7px;color:var(--muted)}.economy .row.total{border-top:1px solid var(--line);padding:9px 0 14px;color:var(--text)}.settings label{font-size:11px;color:var(--muted);display:flex;align-items:center;justify-content:space-between;margin:10px 0 5px}.settings output{font-family:var(--mono);color:var(--gold)}input[type=range]{accent-color:var(--cyan);width:100%;margin:8px 0 5px;min-height:26px}select{width:100%;padding:9px;font-size:11px}.transmission{margin-top:17px;display:flex;align-items:center;gap:14px;padding:14px 17px;border:1px solid var(--line);border-radius:6px;background:#101d29}.transmission .sigil{width:27px;height:27px;color:var(--violet);flex-shrink:0}.transmission p{font-size:12px;color:var(--muted)}.transmission strong{color:var(--text);font-weight:500}.footer{display:flex;justify-content:space-between;gap:15px;color:#8ea3b0;font:9px var(--mono);margin-top:18px;line-height:1.7}.toast{position:fixed;bottom:max(22px,env(safe-area-inset-bottom));left:50%;transform:translate(-50%,12px);opacity:0;pointer-events:none;z-index:20;border:1px solid #668879;border-radius:6px;background:#1b3535;color:#e2f5e9;padding:13px 20px;width:max-content;max-width:min(560px,92vw);font-size:12px;box-shadow:0 8px 40px #0007;transition:.2s}.toast.show{opacity:1;transform:translate(-50%,0)}.toast.error{background:#392925;border-color:#ac7366}.banner{margin-bottom:15px;padding:10px 15px;background:#192b33;border:1px solid #3c5963;border-radius:5px;font-size:12px;display:flex;align-items:center;gap:10px;justify-content:space-between}.banner[hidden]{display:none}.banner button{padding:6px 12px;min-height:34px}dialog{color:var(--text);border:1px solid #59777a;border-radius:9px;background:linear-gradient(145deg,#1b3038,#0d1826);padding:30px;max-width:440px;width:calc(100% - 36px);box-shadow:0 30px 100px #0009}dialog::backdrop{background:#040a12d9;backdrop-filter:blur(5px)}dialog h2{font:32px Georgia,serif;margin:8px 0 14px}dialog p{font-size:13px;color:#b6c9d2}dialog .dialog-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:24px}dialog .dialog-actions button{flex:1}dialog ul{padding-left:19px;color:var(--muted);font-size:13px}dialog li{margin:9px 0}[hidden]{display:none!important}.sr{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+@media(min-width:1400px){.workspace{grid-template-columns:225px minmax(300px,1fr) 265px}}@media(max-width:1100px){.workspace{grid-template-columns:180px minmax(300px,1fr) 210px;gap:11px}.shell{padding:18px}.tool kbd{display:none}.tool{gap:5px;padding:7px}.mission,.services,.economy{padding:13px}.mission h2{font-size:21px}}@media(max-width:850px){.workspace{grid-template-columns:minmax(0,1fr) 240px}.build-panel{grid-column:1/-1}.build-panel .section-head{display:none}.tools{display:flex;overflow-x:auto;padding:8px;gap:5px;scrollbar-width:thin}.tool{min-width:112px;min-height:53px;gap:7px}.tool-help{min-height:0;padding:8px 14px;font-size:11px}.tool-help strong{display:inline;margin-right:6px}.intro{padding:19px 0}.intro p{font-size:12px}.header-actions button{font-size:11px;padding:8px 11px}.metric{padding:12px 14px}.metric .value{font-size:24px}.footer{font-size:8px}}@media(max-width:620px){.shell{padding:14px 12px 20px}.brandbar{padding-bottom:13px}.brand{font-size:10px;letter-spacing:.12em}.brand span{display:block;font-size:9px;margin-top:4px}.tag{font-size:8px}.intro{align-items:start;gap:8px;flex-wrap:wrap}.title{font-size:36px}.intro p{font-size:12px;margin-top:8px;max-width:320px}.header-actions{width:100%;margin-top:4px}.header-actions button{flex:1;min-height:36px}.metrics{grid-template-columns:1fr 1fr;margin-bottom:12px}.metric{padding:10px 13px}.metric label{font-size:9px}.metric .value{font-size:24px}.metric .sub{font-size:10px}.workspace{display:flex;flex-direction:column;gap:12px}.build-panel,.map-panel,.ops-panel{width:100%}.tools{gap:3px}.tool{min-width:109px}.tool-help{font-size:10px;line-height:1.5}.map-head{padding:10px 12px}.ops-panel{display:grid;grid-template-columns:1fr 1fr;gap:11px}.mission-panel{grid-column:1/-1}.mission{padding:17px}.objectives{margin:16px 0;grid-template-columns:1fr 1fr;gap:12px}.objectives li:last-child{grid-column:1/-1}.hint{min-height:0}.mission h2{font-size:24px}.services,.economy{padding:12px}.section-head{padding:12px}.section-head h2{font-size:11px}.section-head .mono{font-size:9px}.service-label{font-size:10px}.service small{font-size:8px}.economy .row{font-size:10px}.settings label{font-size:10px}.transmission{padding:12px;margin-top:12px;gap:10px}.transmission p{font-size:11px}.footer{display:block}.footer span{display:block;margin-top:4px}.banner{font-size:11px}.cycle{min-width:54px}.map-legend{font-size:8px}.toast{font-size:12px}}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+<main class="shell">
+ <header class="brandbar"><div class="brand">MILEHIGH.WORLD <span>/ INTO THE VOID</span></div><span class="tag">CITY PROTOTYPE · 01</span></header>
+ <section class="intro"><div><div class="eyebrow">A city at the edge of erasure</div><h1 class="title">Keep <span>LINC</span> alive.</h1><p>Lay the streets. Bring the lights back. Build a district that can hold against the Void.</p></div><div class="header-actions"><button class="ghost" id="help">How to play</button><button id="save">Save</button><button class="ghost" id="new">New city</button></div></section>
+ <div class="banner" id="resume-banner" hidden><span>A checkpoint is available on this device.</span><button id="resume">Resume</button></div>
+ <section class="metrics" aria-label="City status">
+  <div class="metric"><label>Treasury</label><span class="value" id="cash">2,000</span><span class="suffix"> cr</span><div class="sub" id="net">+0.0 / cycle</div></div>
+  <div class="metric"><label>Residents</label><span class="value" id="population">8</span><span class="suffix" id="capacity"> / 16</span><div class="sub">32 needed to secure the district</div></div>
+  <div class="metric"><label>City stability</label><span class="value" id="stability">70</span><span class="suffix">%</span><div class="sub" id="stability-sub">Keep at 70% or higher</div></div>
+  <div class="metric"><label>Void pressure</label><span class="value" id="pressure">38</span><span class="suffix">%</span><div class="sub" id="surge">Surge in 5 cycles</div></div>
+ </section>
+ <div class="workspace">
+  <aside class="panel build-panel"><div class="section-head"><h2>Build the district</h2><span class="mono">01—08</span></div><div class="tools" id="tools" aria-label="Building tools"></div><div class="tool-help" id="tool-help"></div></aside>
+  <section class="panel map-panel" aria-label="District map">
+   <div class="map-head"><div class="place">LINC / NEXUS WARD<small id="map-status">STEADY MODE · TIME PAUSED</small></div><div class="compass">N ↑ &nbsp; SECTOR 01</div></div>
+   <div class="map-wrap"><canvas id="map" width="720" height="720" tabindex="0" role="application" aria-label="City building map. Arrow keys select a tile. Enter places the selected building. Numbers 1 through 8 select tools."></canvas><div class="map-legend"><span><i class="dot"></i>CONNECTED TO CORE</span><span><i class="dot off"></i>ISOLATED / NO SERVICE</span></div></div>
+   <div class="map-footer"><div class="tile-info" id="tile-info">Select a tool, then tap an empty tile. Drag to lay streets.</div><div class="turn-controls"><button class="play" id="play" aria-label="Run city automatically"></button><button class="primary" id="advance">Advance cycle <span aria-hidden="true">→</span></button><span class="cycle" id="cycle">CYCLE 00</span></div></div>
+  </section>
+  <aside class="ops-panel">
+   <section class="panel mission-panel"><div class="mission"><div class="eyebrow" id="mission-label">Your first district</div><h2 id="mission-title">A place to stay.</h2><p>Turn a fragile outpost into a self-sustaining home.</p><ul class="objectives"><li id="goal-pop"><span class="check"></span><div>Welcome 32 residents<small id="goal-pop-sub">8 / 32 residents</small></div></li><li id="goal-services"><span class="check"></span><div>Cover essential services<small>Full power, water, and healthcare</small></div></li><li id="goal-steady"><span class="check"></span><div>Hold steady for 4 cycles<small>Stability ≥70% · pressure &lt;45% · income positive</small><div class="streak" id="streak" aria-label="Stable cycles"><i></i><i></i><i></i><i></i></div></div></li></ul><div class="hint" id="hint">Build an Exchange beside a connected street to fund the district.</div></div></section>
+   <section class="panel"><div class="section-head"><h2>Essential services</h2><span class="mono">LIVE</span></div><div class="services"><div class="service"><div class="service-label"><span>Power</span><span id="power-value">100%</span></div><div class="bar"><i id="power-bar"></i></div><small id="power-detail"></small></div><div class="service"><div class="service-label"><span>Fresh water</span><span id="water-value">100%</span></div><div class="bar"><i id="water-bar"></i></div><small id="water-detail"></small></div><div class="service"><div class="service-label"><span>Healthcare</span><span id="care-value">0%</span></div><div class="bar"><i id="care-bar"></i></div><small id="care-detail"></small></div><div class="service"><div class="service-label"><span>Rift protection</span><span id="ward-value">0</span></div><div class="bar"><i id="ward-bar"></i></div><small>Pressure removed each cycle</small></div></div></section>
+   <section class="panel"><div class="section-head"><h2>City budget</h2><span class="mono">/ CYCLE</span></div><div class="economy"><div class="row"><span>Taxes + trade</span><span id="income">0</span></div><div class="row"><span>Upkeep</span><span id="upkeep">0</span></div><div class="row total"><span>Balance</span><span id="balance">0</span></div><div class="settings"><label for="tax">Residential tax<output id="tax-value" for="tax">10%</output></label><input id="tax" type="range" min="6" max="16" step="1" value="10"><label for="funding">Clinic + ward funding</label><select id="funding"><option value="50">Lean · 50%</option><option value="100" selected>Standard · 100%</option><option value="150">Expanded · 150%</option></select></div></div></section>
+  </aside>
+ </div>
+ <section class="transmission"><svg class="sigil" viewBox="0 0 32 32" fill="none" stroke="currentColor"><path d="M16 2 29 9v14l-13 7L3 23V9Z M16 7 24 12v9l-8 5-8-5v-9Z M16 7v19 M3 9l26 14 M29 9 3 23"/></svg><div><div class="eyebrow" style="color:var(--violet);margin-bottom:3px">District transmission</div><p id="transmission"><strong>Every light is a promise.</strong> Streets carry the network. Buildings need a connected street beside them.</p></div></section>
+ <footer class="footer"><span>MILEHIGH.WORLD · INTO THE VOID · EXPERIMENTAL DISTRICT SCENARIO</span><span>Local checkpoints stay on this device. &nbsp; <span id="saved-status">No checkpoint saved.</span></span></footer>
+</main>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<dialog id="help-dialog"><div class="eyebrow">Welcome to LINC</div><h2>Build. Connect. Endure.</h2><p>Time starts paused. There is no rush.</p><ul><li>Select a tool, then tap the map. Streets can be painted by dragging. Buildings must touch a street that leads to the central core.</li><li>Add two Habitats, an Exchange, a Power core, Waterworks, a Clinic, and a Rift ward. The starting streets leave space beside them.</li><li>Press <strong>Advance cycle</strong> to collect revenue, welcome residents, and update city stability. The play button advances every 8 seconds.</li><li>Hold 32 residents, full services, positive income, stability of at least 70%, and pressure below 45% for four cycles to win.</li><li>A Void surge arrives every fifth cycle. Wards reduce pressure. High taxes reduce stability; extra clinic and ward funding improves their output and costs more.</li><li>Use <strong>Save</strong> for a local checkpoint. On a keyboard: 1–8 select tools, arrows select tiles, Enter builds, and Space advances when the map is not focused.</li></ul><div class="dialog-actions"><button class="primary" id="close-help">Back to the district</button></div></dialog>
+<dialog id="new-dialog"><div class="eyebrow">A fresh beginning</div><h2>Start a new city?</h2><p>This resets the current attempt. Your saved checkpoint stays available until you save again.</p><div class="dialog-actions"><button id="cancel-new">Keep building</button><button class="primary" id="confirm-new">New city</button></div></dialog>
+<dialog id="result-dialog"><div class="eyebrow" id="result-label"></div><h2 id="result-title"></h2><p id="result-body"></p><div class="dialog-actions"><button id="result-save">Save result</button><button class="primary" id="result-next"></button></div></dialog>
+<script src="simulation.js"></script>
+<script>
+(function () {
+ 'use strict';
+ const {City, SIZE, CORE, BUILDINGS, adjacent} = LincCity;
+ const $ = id => document.getElementById(id);
+ const KEY = 'milehigh.into-the-void.linc-city.v1';
+ const palette = {habitat:'#8ac7d2',exchange:'#e0b775',power:'#8be4c7',water:'#76badd',clinic:'#d7d4be',ward:'#b3a0eb'};
+ const descriptions = {
+  road:['Connect the network','12 cr · 0.5 upkeep. Only streets joined to the city core carry services. Drag to paint.'],
+  habitat:['Make room for people','160 cr · 2 upkeep · 2 power. Houses 8 residents. Needs a street beside it.'],
+  exchange:['Create a local economy','220 cr · 6 upkeep · 3 power. Trades with up to 24 residents for 1.35 cr each per cycle.'],
+  power:['Keep the lights on','240 cr · 10 upkeep. Adds 20 power units when connected. Brownouts reduce all services.'],
+  water:['Bring fresh water','180 cr · 8 upkeep · 2 power. Adds water capacity for 44 residents.'],
+  clinic:['Care for the district','260 cr · 8 upkeep · 3 power. Serves 40 residents at standard funding.'],
+  ward:['Hold back the Void','300 cr · 8 upkeep · 4 power. Removes 7 pressure each cycle at standard funding.'],
+  bulldoze:['Reclaim a tile','Remove a building or street for a 35% refund. The city core and fractures stay in place.']
+ };
+ const symbols = {
+  road:'<path d="M8 2 5 22M16 2l3 20M12 3v4m0 3v4m0 3v4"/>',
+  habitat:'<path d="m3 11 9-8 9 8M5 9v12h14V9M10 21v-7h4v7"/>',
+  exchange:'<path d="M3 7h18l-2 5H5ZM5 12v9h14v-9M9 16h6M6 3h12"/>',
+  power:'<path d="m13 2-8 12h7l-1 8 8-12h-7Z"/>',
+  water:'<path d="M12 2S4 11 4 15a8 8 0 0 0 16 0c0-4-8-13-8-13ZM8 15a4 4 0 0 0 4 4"/>',
+  clinic:'<path d="M8 3h8v5h5v8h-5v5H8v-5H3V8h5Z"/>',
+  ward:'<path d="m12 2 9 4v6c0 5-9 10-9 10S3 17 3 12V6ZM12 7v10M7 12h10"/>',
+  bulldoze:'<path d="m4 20 9-9M10 5l4-3 8 8-3 4ZM4 18l2 2"/>'
+ };
+ const icon = key => '<svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">'+symbols[key]+'</svg>';
+ let city = new City(), state = city.state, stats = city.stats(), tool = 'road';
+ let hover = -1, keyboardTile = CORE, pressed = false, painted = -1, timer = null, toastTimer, shownPhase = 'playing';
+ const canvas = $('map'), ctx = canvas.getContext('2d');
+ const motion = !matchMedia('(prefers-reduced-motion: reduce)').matches;
+ const TOOLS = [...Object.keys(BUILDINGS),'bulldoze'];
+ $('tools').innerHTML = TOOLS.map((kind,i) => '<button type="button" class="tool" data-tool="'+kind+'" aria-pressed="false" aria-label="'+(BUILDINGS[kind]?.name || 'Reclaim')+'; '+(BUILDINGS[kind]?.cost || '35% refund')+(BUILDINGS[kind]?' credits':'')+'"><span class="icon">'+icon(kind)+'</span><span><strong>'+(BUILDINGS[kind]?.name || 'Reclaim')+'</strong><small>'+(BUILDINGS[kind] ? BUILDINGS[kind].cost+' cr' : '35% refund')+'</small></span><kbd>'+(i+1)+'</kbd></button>').join('');
+ function notify(text,error=false) {
+  clearTimeout(toastTimer); $('toast').textContent=text;
+  $('toast').className='toast show'+(error?' error':'');
+  toastTimer=setTimeout(()=>{$('toast').className='toast';},4800);
+ }
+ function select(kind) {
+  tool=kind;
+  for(const button of $('tools').children){const yes=button.dataset.tool===kind;button.classList.toggle('selected',yes);button.setAttribute('aria-pressed',String(yes));}
+  $('tool-help').replaceChildren();
+  const strong=document.createElement('strong');strong.textContent=descriptions[kind][0];
+  $('tool-help').append(strong,document.createTextNode(descriptions[kind][1]));
+  draw(performance.now());
+ }
+ function service(key,ratio,detail){
+  $(key+'-value').textContent=Math.round(ratio*100)+'%';
+  $(key+'-bar').style.width=(ratio*100)+'%';
+  $(key+'-bar').classList.toggle('short',ratio<0.99);
+  $(key+'-value').style.color=ratio<0.99?'var(--gold)':'var(--cyan)';
+  $(key+'-detail').textContent=detail;
+ }
+ function hint(){
+  if(state.phase==='lost')return 'Choose New city to try again, or resume your checkpoint.';
+  if(state.sandbox)return 'District secured. Keep expanding, or try a different balance of taxes and services.';
+  if(!state.grid.some((k,i)=>k==='exchange'&&stats.active.includes(i)))return 'Build an Exchange beside a connected street to fund the district.';
+  if(stats.capacity<32)return 'Add two Habitats beside the starting streets. Each has room for 8 residents.';
+  if(stats.power<0.99)return 'Power demand exceeds supply. Add a connected Power core.';
+  if(stats.water<0.99)return 'Build connected Waterworks. The core only supplies water for 16 residents.';
+  if(stats.care<0.99)return 'Build a connected Clinic, or increase clinic funding to cover the district.';
+  if(stats.mitigation===0)return 'Build a Rift ward before pressure rises. A surge arrives every fifth cycle.';
+  if(stats.net<=0)return 'The budget is running a deficit. Add an Exchange, adjust taxes, or trim upkeep.';
+  if(state.population<32)return 'Services are ready. Advance cycles to welcome up to 4 residents each cycle.';
+  if(state.pressure>=45)return 'Let your wards bring pressure below 45%. Expanded funding strengthens them.';
+  if(state.stability<70)return 'Keep services funded and taxes moderate while city stability recovers.';
+  return 'The city is holding. Advance cycles to complete the four-cycle stability goal.';
+ }
+ function render(){
+  state=city.state;stats=city.stats();
+  $('cash').textContent=Math.floor(state.credits).toLocaleString('en-US');
+  $('cash').classList.toggle('negative',state.credits<0);
+  const net=(stats.net>=0?'+':'')+stats.net.toFixed(1);
+  $('net').textContent=net+' cr / cycle';$('net').className='sub '+(stats.net>=0?'positive':'negative');
+  $('population').textContent=state.population;$('capacity').textContent=' / '+stats.capacity;
+  $('stability').textContent=Math.round(state.stability);$('stability').classList.toggle('negative',state.stability<45);
+  $('pressure').textContent=Math.round(state.pressure);$('pressure').classList.toggle('negative',state.pressure>=65);
+  $('stability-sub').textContent=state.debtCycles?'Debt warning: '+state.debtCycles+' / 3 cycles':'Keep at 70% or higher';
+  $('surge').textContent='Surge in '+stats.surgeIn+' cycle'+(stats.surgeIn===1?'':'s');
+  $('surge').classList.toggle('negative',stats.surgeIn===1);
+  $('cycle').textContent='CYCLE '+String(state.cycle).padStart(2,'0');
+  $('map-status').textContent=state.phase==='lost'?'DISTRICT LOST':state.phase==='won'?'DISTRICT SECURED':timer?'LIVE · ONE CYCLE / 8 SEC':'STEADY MODE · TIME PAUSED';
+  service('power',stats.power,stats.demand+' demand / '+stats.powerSupply+' supply');
+  service('water',stats.water,Math.floor(stats.waterCapacity)+' capacity / '+Math.max(stats.capacity,state.population)+' needed');
+  service('care',stats.care,Math.floor(stats.careCapacity)+' capacity / '+Math.max(stats.capacity,state.population)+' needed');
+  $('ward-value').textContent='−'+stats.mitigation.toFixed(1);$('ward-bar').style.width=Math.min(100,stats.mitigation/14*100)+'%';
+  $('income').textContent='+'+stats.income.toFixed(1);$('upkeep').textContent='−'+stats.upkeep.toFixed(1);
+  $('balance').textContent=net;$('balance').className=stats.net>0?'positive':'negative';
+  $('tax').value=state.tax;$('tax-value').textContent=state.tax+'%';$('funding').value=state.funding;
+  const finished=state.phase!=='playing';
+  for(const id of ['advance','play','tax','funding'])$(id).disabled=finished;
+  $('play').innerHTML=timer?'<svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path d="M5 4h3v12H5zm7 0h3v12h-3z"/></svg>':'<svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path d="m6 3 11 7-11 7z"/></svg>';
+  $('play').setAttribute('aria-label',timer?'Pause city':'Run city automatically');
+  $('goal-pop').classList.toggle('complete',state.population>=32);$('goal-pop-sub').textContent=state.population+' / 32 residents';
+  $('goal-services').classList.toggle('complete',stats.power>=0.99&&stats.water>=0.99&&stats.care>=0.99);
+  $('goal-steady').classList.toggle('complete',state.streak>=4);
+  [...$('streak').children].forEach((el,i)=>el.classList.toggle('on',i<state.streak));
+  $('streak').setAttribute('aria-label',state.streak+' of 4 stable cycles');
+  $('hint').textContent=hint();
+  $('mission-label').textContent=state.sandbox?'The district endures':'Your first district';
+  $('mission-title').textContent=state.sandbox?'A future to build.':'A place to stay.';
+  if(stats.isolated)$('transmission').textContent=stats.isolated+' building'+(stats.isolated===1?' is':'s are')+' isolated. Join their streets to the city core to restore services. Upkeep still applies.';
+  else if(stats.surgeIn===1)$('transmission').textContent='A surge is approaching next cycle. It adds 13 pressure before your wards reduce it. Check rift protection.';
+  else $('transmission').textContent='Every light is a promise. Streets carry the network. Buildings need a connected street beside them.';
+  draw(performance.now());
+  if(finished&&shownPhase!==state.phase){shownPhase=state.phase;stop();showResult();}
+ }
+ function stop(){if(timer){clearInterval(timer);timer=null;} }
+ function advance(){const result=city.step();render();if(result.ok&&result.surge)notify(result.message);}
+ function showResult(){
+  const win=state.phase==='won';
+  $('result-label').textContent=win?'District secured':'The signal fell silent';
+  $('result-title').textContent=win?'LINC holds.':'A city worth rebuilding.';
+  $('result-body').textContent=state.reason+' Cycle '+state.cycle+' · '+state.population+' residents · '+Math.floor(state.credits)+' credits.';
+  $('result-next').textContent=win?'Keep building':'Try again';
+  if(!$('result-dialog').open)$('result-dialog').showModal();
+ }
+ function restart(){stop();city=new City();shownPhase='playing';hover=-1;keyboardTile=CORE;render();notify('A new district. Time is paused. Your saved checkpoint was kept.');}
+ function save(){try{localStorage.setItem(KEY,city.serialize());$('saved-status').textContent='Saved at cycle '+state.cycle+'.';$('resume-banner').hidden=false;notify('Checkpoint saved on this device.');}catch(_){notify('Checkpoint could not be saved. Browser storage is unavailable or full.',true);}}
+ function resume(){try{const text=localStorage.getItem(KEY);if(text===null)throw new Error('No checkpoint is available.');const restored=City.restore(text);stop();city=restored;shownPhase='playing';$('resume-banner').hidden=true;render();notify('Checkpoint resumed. Time is paused.');}catch(error){notify(error.message||'Checkpoint could not be loaded.',true);}}
+ $('save').addEventListener('click',save);$('result-save').addEventListener('click',save);$('resume').addEventListener('click',resume);
+ $('new').addEventListener('click',()=>{stop();render();$('new-dialog').showModal();});
+ $('confirm-new').addEventListener('click',()=>{$('new-dialog').close();restart();});$('cancel-new').addEventListener('click',()=>$('new-dialog').close());
+ $('help').addEventListener('click',()=>{stop();render();$('help-dialog').showModal();});$('close-help').addEventListener('click',()=>$('help-dialog').close());
+ $('result-next').addEventListener('click',()=>{$('result-dialog').close();if(state.phase==='won'){city.continue();shownPhase='playing';render();}else restart();});
+ $('advance').addEventListener('click',advance);
+ $('play').addEventListener('click',()=>{if(timer)stop();else timer=setInterval(advance,8000);render();});
+ $('tools').addEventListener('click',e=>{const b=e.target.closest('[data-tool]');if(b)select(b.dataset.tool);});
+ function configure(){city.configure(Number($('tax').value),Number($('funding').value));render();}
+ $('tax').addEventListener('input',configure);$('funding').addEventListener('change',configure);
+ document.addEventListener('visibilitychange',()=>{if(document.hidden){stop();render();}});
+ const O=45,T=70;
+ function tileAt(e){const r=canvas.getBoundingClientRect(),x=(e.clientX-r.left)/r.width*720,y=(e.clientY-r.top)/r.height*720;const col=Math.floor((x-O)/T),row=Math.floor((y-O)/T);return col>=0&&col<SIZE&&row>=0&&row<SIZE?row*SIZE+col:-1;}
+ function tileInfo(index){if(index<0)return;const k=state.grid[index];$('tile-info').textContent=String.fromCharCode(65+index%SIZE)+(Math.floor(index/SIZE)+1)+' · '+(BUILDINGS[k]?.name||{core:'City core · 8 power / 16 water',rift:'Void fracture · cannot build',empty:'Empty tile'}[k])+(BUILDINGS[k]&&k!=='road'?' · '+(stats.active.includes(index)?'Connected':'Isolated'):'');}
+ function place(index){if(index<0)return;const result=city.place(tool,index);render();tileInfo(index);if(result.ok||painted<0)notify(result.message,!result.ok);}
+ canvas.addEventListener('pointerdown',e=>{if(e.button!==0||state.phase!=='playing')return;pressed=true;painted=-1;hover=tileAt(e);keyboardTile=hover>=0?hover:keyboardTile;canvas.setPointerCapture(e.pointerId);place(hover);painted=hover;});
+ canvas.addEventListener('pointermove',e=>{hover=tileAt(e);tileInfo(hover);if(pressed&&(tool==='road'||tool==='bulldoze')&&hover>=0&&hover!==painted){place(hover);painted=hover;}if(!motion)draw(performance.now());});
+ canvas.addEventListener('pointerup',e=>{pressed=false;painted=-1;if(canvas.hasPointerCapture(e.pointerId))canvas.releasePointerCapture(e.pointerId);});
+ canvas.addEventListener('pointercancel',()=>{pressed=false;painted=-1;});canvas.addEventListener('pointerleave',()=>{if(!pressed)hover=-1;});
+ canvas.addEventListener('keydown',e=>{let next=keyboardTile;if(e.key==='ArrowLeft')next=keyboardTile%SIZE?keyboardTile-1:keyboardTile;if(e.key==='ArrowRight')next=keyboardTile%SIZE<SIZE-1?keyboardTile+1:keyboardTile;if(e.key==='ArrowUp')next=Math.max(keyboardTile-SIZE,keyboardTile%SIZE);if(e.key==='ArrowDown')next=Math.min(keyboardTile+SIZE,72+keyboardTile%SIZE);if(['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.key)){e.preventDefault();keyboardTile=next;hover=next;tileInfo(next);draw(performance.now());}else if(e.key==='Enter'||e.key===' '){e.preventDefault();place(keyboardTile);}});
+ document.addEventListener('keydown',e=>{if(document.querySelector('dialog[open]')||['INPUT','SELECT','TEXTAREA','BUTTON'].includes(document.activeElement?.tagName)||e.altKey||e.ctrlKey||e.metaKey)return;if(/^[1-8]$/.test(e.key)){select(TOOLS[Number(e.key)-1]);e.preventDefault();}if(e.code==='Space'&&document.activeElement!==canvas){e.preventDefault();advance();}});
+ function rect(x,y,w,h,fill){ctx.fillStyle=fill;ctx.fillRect(x,y,w,h);}
+ function line(x1,y1,x2,y2,color,width=1){ctx.strokeStyle=color;ctx.lineWidth=width;ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();}
+ function polygon(points,fill,stroke){ctx.beginPath();points.forEach((p,i)=>i?ctx.lineTo(...p):ctx.moveTo(...p));ctx.closePath();if(fill){ctx.fillStyle=fill;ctx.fill();}if(stroke){ctx.strokeStyle=stroke;ctx.lineWidth=1;ctx.stroke();}}
+ function glow(x,y,r,color){const g=ctx.createRadialGradient(x,y,0,x,y,r);g.addColorStop(0,color);g.addColorStop(1,'transparent');ctx.fillStyle=g;ctx.fillRect(x-r,y-r,r*2,r*2);}
+ function building(kind,x,y,online,t){
+  const color=palette[kind],dim=online?1:0.5;ctx.save();ctx.globalAlpha=dim;
+  rect(x+8,y+49,52,9,'#040b12aa');
+  if(kind==='habitat'){
+   polygon([[x+17,y+24],[x+48,y+24],[x+48,y+54],[x+17,y+54]],'#284757');
+   polygon([[x+48,y+24],[x+56,y+30],[x+56,y+54],[x+48,y+54]],'#182e40');
+   polygon([[x+12,y+25],[x+33,y+10],[x+55,y+25]],'#538896',color);
+   rect(x+30,y+44,7,10,'#0d202b');
+   for(let row=0;row<2;row++)for(let col=0;col<3;col++)rect(x+21+col*10,y+29+row*9,4,5,online?'#dbb978':'#4a5864');
+   rect(x+41,y+12,4,11,'#51737d');
+  }else if(kind==='exchange'){
+   rect(x+12,y+26,46,28,'#514937');rect(x+16,y+38,38,16,'#1f3033');
+   for(let col=0;col<4;col++)rect(x+17+col*9,y+39,5,9,online?'#d6b56e':'#4a5864');
+   polygon([[x+8,y+26],[x+61,y+26],[x+56,y+36],[x+13,y+36]],'#b59157',color);
+   for(let col=0;col<5;col++)line(x+15+col*9,y+26,x+18+col*8,y+35,'#675238',3);
+   rect(x+27,y+14,17,9,'#736443');rect(x+30,y+16,11,3,color);
+  }else if(kind==='power'){
+   rect(x+13,y+47,44,9,'#295247');rect(x+20,y+26,30,24,'#214338');
+   polygon([[x+24,y+25],[x+35,y+6],[x+46,y+25],[x+35,y+40]],'#659e83',color);
+   line(x+35,y+12,x+35,y+35,online?'#caffde':'#627770',3);
+   if(online)glow(x+35,y+24,26,'#8bffc629');
+   rect(x+10,y+31,5,16,'#366757');rect(x+55,y+31,5,16,'#366757');
+  }else if(kind==='water'){
+   rect(x+16,y+41,38,13,'#264f69');rect(x+22,y+17,26,29,'#3b7391');
+   ctx.beginPath();ctx.ellipse(x+35,y+18,13,6,0,0,Math.PI*2);ctx.fillStyle='#91c3da';ctx.fill();
+   ctx.beginPath();ctx.ellipse(x+35,y+42,13,5,0,0,Math.PI);ctx.strokeStyle=color;ctx.stroke();
+   rect(x+30,y+11,10,5,'#4c8196');line(x+35,y+24,x+35,y+36,color,3);
+  }else if(kind==='clinic'){
+   rect(x+12,y+27,46,27,'#536467');rect(x+22,y+16,26,37,'#7d9390');
+   rect(x+31,y+20,8,17,'#e2e1b4');rect(x+26,y+25,18,7,'#e2e1b4');
+   rect(x+30,y+43,10,11,'#1e3b47');for(const j of [16,46])rect(x+j,y+34,8,8,online?'#98d8d7':'#4a5864');
+  }else if(kind==='ward'){
+   polygon([[x+15,y+49],[x+35,y+40],[x+55,y+49],[x+35,y+59]],'#554674',color);
+   polygon([[x+35,y+9],[x+47,y+31],[x+35,y+50],[x+23,y+31]],'#6c5c94',color);
+   line(x+35,y+17,x+35,y+42,'#e1cbff',2);
+   if(online){ctx.strokeStyle='#bda1f3';ctx.lineWidth=1;ctx.beginPath();ctx.ellipse(x+35,y+29,23,8,Math.sin(t/1500)*0.2,0,Math.PI*2);ctx.stroke();glow(x+35,y+30,27,'#ba99ff20');}
+  }
+  ctx.restore();if(!online){ctx.fillStyle='#f0cb85';ctx.font='bold 12px monospace';ctx.fillText('!',x+57,y+14);}
+ }
+ function draw(t){
+  if(!ctx)return;
+  const w=canvas.width;ctx.setTransform(w/720,0,0,w/720,0,0);
+  rect(0,0,720,720,'#0b1621');
+  const sky=ctx.createRadialGradient(360,330,0,360,330,470);sky.addColorStop(0,'#1a3041');sky.addColorStop(1,'#090f1c');ctx.fillStyle=sky;ctx.fillRect(0,0,720,720);
+  for(let i=0;i<80;i++){const x=(i*137+41)%720,y=(i*197+13)%720;rect(x,y,1,i%7===0?2:1,i%3===0?'#82999b55':'#7998a525');}
+  ctx.font='10px monospace';ctx.textAlign='center';ctx.fillStyle='#7e96a4';
+  for(let j=0;j<SIZE;j++){ctx.fillText(String.fromCharCode(65+j),O+j*T+T/2,28);ctx.fillText(String(j+1),24,O+j*T+T/2+3);}
+  for(let i=0;i<81;i++){
+   const x=O+(i%SIZE)*T,y=O+Math.floor(i/SIZE)*T,kind=state.grid[i];
+   rect(x+2,y+2,T-4,T-4,kind==='rift'?'#17192b':'#182a36');
+   ctx.strokeStyle='#344c592e';ctx.lineWidth=1;ctx.strokeRect(x+2.5,y+2.5,T-5,T-5);
+   if(kind==='empty'){
+    rect(x+10,y+12,4,2,'#36535a50');rect(x+50,y+49,6,2,'#36535a50');
+    line(x+26,y+35,x+43,y+35,'#486a7035');line(x+35,y+27,x+35,y+44,'#486a7035');
+   }else if(kind==='rift'){
+    glow(x+35,y+34,38,'#9a67d52a');
+    polygon([[x+12,y+3],[x+39,y+20],[x+23,y+39],[x+58,y+65],[x+39,y+39],[x+53,y+23]],'#584073','#bc8adb');
+   }else if(kind==='road'){
+    const on=stats.connected.includes(i),color=on?'#486575':'#514c49';
+    rect(x+23,y+23,24,24,color);
+    for(const n of adjacent(i)){if(!['road','core'].includes(state.grid[n]))continue;const dx=n%9-i%9,dy=Math.floor(n/9)-Math.floor(i/9);if(dx===-1)rect(x,y+23,35,24,color);if(dx===1)rect(x+35,y+23,35,24,color);if(dy===-1)rect(x+23,y,24,35,color);if(dy===1)rect(x+23,y+35,24,35,color);}
+    ctx.setLineDash([3,5]);line(x+29,y+35,x+42,y+35,on?'#91b7bb':'#9c8c76');ctx.setLineDash([]);
+    if(on){rect(x+15,y+17,3,7,'#a6c5be');glow(x+16,y+18,10,'#cbf9d31f');}
+   }else if(kind==='core'){
+    rect(x+4,y+4,62,62,'#284b50');ctx.strokeStyle='#659b92';ctx.strokeRect(x+8.5,y+8.5,53,53);
+    polygon([[x+35,y+3],[x+54,y+30],[x+35,y+61],[x+16,y+30]],'#467a7b','#a3f4df');
+    polygon([[x+35,y+13],[x+43,y+31],[x+35,y+45],[x+27,y+31]],'#a1edce');
+    glow(x+35,y+30,55,'#9ef0d82b');
+   }else building(kind,x,y,stats.active.includes(i),t);
+   if(i===hover){ctx.fillStyle=tool==='bulldoze'?'#ffbc9a1c':'#9df4d815';ctx.fillRect(x+2,y+2,T-4,T-4);ctx.strokeStyle=tool==='bulldoze'?'#f1b497':'#a0e1cc';ctx.lineWidth=2;ctx.strokeRect(x+3,y+3,T-6,T-6);}
+  }
+  ctx.textAlign='left';
+  // Small, deterministic network signals add life without affecting the simulation.
+  if(motion)for(let j=0;j<4;j++){const road=stats.connected.filter(i=>i!==CORE);if(!road.length)break;const i=road[(Math.floor(t/2000)+j*3)%road.length];const x=O+i%9*T+35,y=O+Math.floor(i/9)*T+35;rect(x-2+Math.sin(t/800+j)*9,y-1,4,2,'#e2d2a7');}
+ }
+ function resize(){const ratio=Math.min(2,window.devicePixelRatio||1);const width=Math.max(1,Math.round(canvas.getBoundingClientRect().width*ratio));canvas.width=canvas.height=width;draw(performance.now());}
+ if(typeof ResizeObserver!=='undefined')new ResizeObserver(resize).observe(canvas);else window.addEventListener('resize',resize);
+ try{$('resume-banner').hidden=localStorage.getItem(KEY)===null;}catch(_){$('saved-status').textContent='Browser storage unavailable.';}
+ select('road');render();resize();
+ let lastFrame=0;
+ function animate(t){if(t-lastFrame>=33&&!document.hidden){draw(t);lastFrame=t;}requestAnimationFrame(animate);}
+ if(motion)requestAnimationFrame(animate);
+})();
+</script>
+</body>
+</html>
