@@ -1,0 +1,12 @@
+'use strict';
+const fs = require('node:fs');
+const path = require('node:path');
+const base = __dirname;
+const html = fs.readFileSync(path.join(base, 'index.html'), 'utf8');
+const simulation = fs.readFileSync(path.join(base, 'simulation.js'), 'utf8');
+const marker = '<script src="simulation.js"></script>';
+if (html.split(marker).length !== 2) throw new Error('Expected exactly one simulation script marker.');
+const output = html.replace(marker, () => '<script>\n' + simulation.replace(/<\/script/gi, '<\\/script') + '\n</script>');
+fs.mkdirSync(path.join(base, 'dist'), { recursive: true });
+fs.writeFileSync(path.join(base, 'dist', 'LINC-City-Prototype.html'), output);
+console.log('Built dist/LINC-City-Prototype.html (' + Buffer.byteLength(output) + ' bytes; no external assets).');
